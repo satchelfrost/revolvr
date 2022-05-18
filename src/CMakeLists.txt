@@ -98,7 +98,7 @@ set_property(
  openxr_loader
  PROPERTY
  IMPORTED_LOCATION
- ${CMAKE_SOURCE_DIR}/Android/${ANDROID_ABI}/${CMAKE_BUILD_TYPE}/libopenxr_loader.so
+ ${CMAKE_SOURCE_DIR}/android/${ANDROID_ABI}/${CMAKE_BUILD_TYPE}/libopenxr_loader.so
 )
 option(BUILD_ALL_EXTENSIONS "Build loader and layers with all extensions" OFF)
 option(
