@@ -1,22 +1,3 @@
-# Copyright (c) 2017 The Khronos Group Inc.
-#
-# SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-# Author:
-#
-
 if(POLICY CMP0075)
     cmake_policy(SET CMP0075 NEW)
 endif()
@@ -31,38 +12,17 @@ include(StdFilesystemFlags)
 ### Dependencies
 
 set(OPENGLES_INCOMPATIBLE TRUE)
-set(OPENGL_INCOMPATIBLE FALSE)
 set(VULKAN_INCOMPATIBLE FALSE)
-
-# CMake will detect OpenGL/Vulkan which are not compatible with UWP and ARM/ARM64 on Windows so skip it in these cases.
-if(CMAKE_SYSTEM_NAME STREQUAL "WindowsStore" OR (WIN32 AND CMAKE_GENERATOR_PLATFORM_UPPER MATCHES "ARM.*"))
-    set(OPENGL_INCOMPATIBLE TRUE)
+find_path(ANDROID_NATIVE_APP_GLUE android_native_app_glue.h PATHS ${ANDROID_NDK}/sources/android/native_app_glue)
+if(ANDROID_NATIVE_APP_GLUE)
+    # Needed by gfxwrapper
+    set(OPENGLES_INCOMPATIBLE FALSE)
+endif()
+if(ANDROID_PLATFORM_LEVEL LESS 24)
     set(VULKAN_INCOMPATIBLE TRUE)
-    message(STATUS "OpenGL/Vulkan disabled due to incompatibility")
-elseif(ANDROID)
-    set(OPENGL_INCOMPATIBLE TRUE)
-    find_path(ANDROID_NATIVE_APP_GLUE android_native_app_glue.h PATHS ${ANDROID_NDK}/sources/android/native_app_glue)
-    if(ANDROID_NATIVE_APP_GLUE)
-        # Needed by gfxwrapper
-        set(OPENGLES_INCOMPATIBLE FALSE)
-    endif()
-    if(ANDROID_PLATFORM_LEVEL LESS 24)
-        set(VULKAN_INCOMPATIBLE TRUE)
-        message(STATUS "Vulkan disabled due to incompatibility: need to target at least API 24")
-    endif()
+    message(FATAL_ERROR "Vulkan disabled due to incompatibility: need to target at least API 24")
 endif()
 
-if(NOT OPENGL_INCOMPATIBLE)
-    set(OpenGL_GL_PREFERENCE GLVND)
-    find_package(OpenGL)
-
-    if(OPENGL_FOUND)
-        add_definitions(-DXR_USE_GRAPHICS_API_OPENGL)
-        message(STATUS "Enabling OpenGL support")
-    elseif(BUILD_ALL_EXTENSIONS)
-        message(FATAL_ERROR "OpenGL not found")
-    endif()
-endif()
 
 if(NOT OPENGLES_INCOMPATIBLE)
     find_package(OpenGLES COMPONENTS V3 V2)
@@ -100,33 +60,14 @@ set_property(
  IMPORTED_LOCATION
  ${CMAKE_SOURCE_DIR}/android/${ANDROID_ABI}/${CMAKE_BUILD_TYPE}/libopenxr_loader.so
 )
-option(BUILD_ALL_EXTENSIONS "Build loader and layers with all extensions" OFF)
 option(
     BUILD_LOADER_WITH_EXCEPTION_HANDLING
     "Enable exception handling in the loader. Leave this on unless your standard library is built to not throw."
     ON
 )
 
-if(WIN32)
-    set(OPENXR_DEBUG_POSTFIX d CACHE STRING "OpenXR loader debug postfix.")
-else()
-    set(OPENXR_DEBUG_POSTFIX "" CACHE STRING "OpenXR loader debug postfix.")
-endif()
+set(OPENXR_DEBUG_POSTFIX "" CACHE STRING "OpenXR loader debug postfix.")
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    option(DYNAMIC_LOADER "Build the loader as a .dll library" OFF)
-else()
-    option(DYNAMIC_LOADER "Build the loader as a .dll library" ON)
-endif()
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/api_layers/CMakeLists.txt")
-    option(BUILD_API_LAYERS "Build API layers" ON)
-endif()
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/revolvr/CMakeLists.txt")
-    option(BUILD_REVOLVR "Build tests" ON)
-endif()
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/conformance/CMakeLists.txt")
-    option(BUILD_CONFORMANCE_TESTS "Build conformance tests" ON)
-endif()
 include(CMakeDependentOption)
 
 cmake_dependent_option(
@@ -138,47 +79,16 @@ cmake_dependent_option(
     OFF
 )
 
-# Several files use these compile time OS switches
-if(WIN32)
-    add_definitions(-DXR_OS_WINDOWS)
-    add_definitions(-DNOMINMAX)
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    add_definitions(-DXR_OS_LINUX)
-elseif(ANDROID)
-    add_definitions(-DXR_OS_ANDROID)
-endif()
 
-# /EHsc (support for C++ exceptions) is default in most configurations but seems missing when building arm/arm64.
-if(MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
-endif()
+add_definitions(-DXR_OS_ANDROID)
+
 
 # This is a little helper library for setting up OpenGL
 if((OPENGL_FOUND OR OpenGLES_FOUND) AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/common/gfxwrapper_opengl.c")
     add_library(openxr-gfxwrapper STATIC common/gfxwrapper_opengl.c common/gfxwrapper_opengl.h)
     target_include_directories(openxr-gfxwrapper PUBLIC ${PROJECT_SOURCE_DIR}/external/include)
-    if(OPENGL_FOUND)
-        if(TARGET OpenGL::OpenGL)
-            target_link_libraries(openxr-gfxwrapper PUBLIC OpenGL::OpenGL)
-        elseif(TARGET OpenGL::GL)
-            target_link_libraries(openxr-gfxwrapper PUBLIC OpenGL::GL)
-        else()
-            target_link_libraries(openxr-gfxwrapper PUBLIC ${OPENGL_LIBRARIES})
-        endif()
-    endif()
-    if(OpenGLES_FOUND)
-        if(TARGET OpenGLES::OpenGLESv3)
-            target_link_libraries(openxr-gfxwrapper PUBLIC OpenGLES::OpenGLESv3)
-        elseif(TARGET OpenGLES::OpenGLESv2)
-            target_link_libraries(openxr-gfxwrapper PUBLIC OpenGLES::OpenGLESv2)
-        else()
-            message(FATAL_ERROR "Should not get here!")
-        endif()
-        target_link_libraries(openxr-gfxwrapper PUBLIC EGL::EGL)
-    endif()
     if(ANDROID)
         target_include_directories(openxr-gfxwrapper PUBLIC ${ANDROID_NATIVE_APP_GLUE})
-
         # Note: For some reason, just adding this to the gfxwrapper library results in failure at load time.
         # So, each consuming target must add $<TARGET_OBJECTS:android_native_app_glue> to their sources
         add_library(android_native_app_glue OBJECT "${ANDROID_NATIVE_APP_GLUE}/android_native_app_glue.c")
@@ -188,64 +98,19 @@ if((OPENGL_FOUND OR OpenGLES_FOUND) AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/comm
     message(STATUS "Enabling OpenGL support in hello_xr, loader_test, and conformance, if configured")
 endif()
 
-# Determine the presentation backend for Linux systems.
-# Use an include because the code is pretty big.
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    include(presentation)
-endif()
-
-# Several files use these compile time platform switches
-if(WIN32)
-    add_definitions(-DXR_USE_PLATFORM_WIN32)
-elseif(ANDROID)
-    add_definitions(-DXR_USE_PLATFORM_ANDROID)
-    set(OPENXR_ANDROID_VERSION_SUFFIX "" CACHE STRING "Suffix for generated Android artifacts.")
-elseif(PRESENTATION_BACKEND MATCHES "xlib")
-    add_definitions(-DXR_USE_PLATFORM_XLIB)
-elseif(PRESENTATION_BACKEND MATCHES "xcb")
-    add_definitions(-DXR_USE_PLATFORM_XCB)
-
-    # TODO remove once conformance supports XCB
-    set(BUILD_CONFORMANCE_TESTS OFF)
-elseif(PRESENTATION_BACKEND MATCHES "wayland")
-    add_definitions(-DXR_USE_PLATFORM_WAYLAND)
-
-    # TODO remove once conformance supports Wayland
-    set(BUILD_CONFORMANCE_TESTS OFF)
-endif()
-
-if(BUILD_CONFORMANCE_TESTS AND NOT ANDROID)
-    set(BUILD_CONFORMANCE_CLI ON)
-else()
-    set(BUILD_CONFORMANCE_CLI OFF)
-endif()
-
+add_definitions(-DXR_USE_PLATFORM_ANDROID)
+set(OPENXR_ANDROID_VERSION_SUFFIX "" CACHE STRING "Suffix for generated Android artifacts.")
 set(OPENXR_ALL_SUPPORTED_DEFINES)
-if(BUILD_WITH_XLIB_HEADERS)
-    list(APPEND OPENXR_ALL_SUPPORTED_DEFINES XR_USE_PLATFORM_XLIB)
-endif()
 
-if(BUILD_WITH_XCB_HEADERS)
-    list(APPEND OPENXR_ALL_SUPPORTED_DEFINES XR_USE_PLATFORM_XCB)
-endif()
 
-if(BUILD_WITH_WAYLAND_HEADERS)
-    list(APPEND OPENXR_ALL_SUPPORTED_DEFINES XR_USE_PLATFORM_WAYLAND)
-endif()
 
-# Find glslc shader compiler.
-# On Android, the NDK includes the binary, so no external dependency.
-if(ANDROID)
-    file(GLOB glslc_folders ${ANDROID_NDK}/shader-tools/*)
-    find_program(
-        GLSL_COMPILER glslc
-        PATHS ${glslc_folders}
-        NO_DEFAULT_PATH
-    )
-else()
-    file(GLOB glslc_folders $ENV{VULKAN_SDK}/*)
-    find_program(GLSL_COMPILER glslc PATHS ${glslc_folders})
-endif()
+file(GLOB glslc_folders ${ANDROID_NDK}/shader-tools/*)
+find_program(
+    GLSL_COMPILER glslc
+    PATHS ${glslc_folders}
+    NO_DEFAULT_PATH
+)
+
 find_program(GLSLANG_VALIDATOR glslangValidator)
 if(GLSL_COMPILER)
     message(STATUS "Found glslc: ${GLSL_COMPILER}")
@@ -418,15 +283,7 @@ if(NOT MSVC)
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
 endif()
 
-if(ANDROID)
-    find_library(ANDROID_LIBRARY NAMES android)
-    find_library(ANDROID_LOG_LIBRARY NAMES log)
-endif()
+find_library(ANDROID_LIBRARY NAMES android)
+find_library(ANDROID_LOG_LIBRARY NAMES log)
+add_subdirectory(revolvr)
 
-if(BUILD_API_LAYERS)
-    add_subdirectory(api_layers)
-endif()
-
-if(BUILD_REVOLVR)
-    add_subdirectory(revolvr)
-endif()

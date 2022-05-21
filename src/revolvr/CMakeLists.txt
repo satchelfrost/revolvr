@@ -21,6 +21,7 @@ file(GLOB LOCAL_HEADERS "*.h")
 file(GLOB LOCAL_SOURCE "*.cpp")
 file(GLOB VULKAN_SHADERS "vulkan_shaders/*.glsl")
 
+
 # For including compiled shaders
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
