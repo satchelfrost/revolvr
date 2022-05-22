@@ -36,8 +36,8 @@ android {
         minSdkVersion 24
         compileSdkVersion 26
 
-        versionName = project.versionOpenXR.toString() + project.versionQualifier
-        versionCode = project.versionOpenXR.getVersionCode()
+//        versionName = project.versionOpenXR.toString() + project.versionQualifier
+//        versionCode = project.versionOpenXR.getVersionCode()
 
         externalNativeBuild {
             cmake {
