@@ -22,8 +22,8 @@ repositories {
 apply plugin: 'com.android.application'
 
 // These next few lines are just to make the version match the OpenXR release.
-project.ext.repoRoot = file('../../')
-apply from: file('../version.gradle')
+project.ext.repoRoot = file('../')
+//apply from: file('../version.gradle')
 
 android {
     compileSdkVersion 29
