@@ -7,7 +7,7 @@ set_property(
  openxr_loader
  PROPERTY
  IMPORTED_LOCATION
- ${CMAKE_SOURCE_DIR}/android/${ANDROID_ABI}/${CMAKE_BUILD_TYPE}/libopenxr_loader.so
+ ${CMAKE_SOURCE_DIR}/lib/meta/android/${ANDROID_ABI}/${CMAKE_BUILD_TYPE}/libopenxr_loader.so
 )
 
-add_subdirectory(OpenXR-SDK-Source)
+add_subdirectory(lib/khronos/OpenXR-SDK-Source)
