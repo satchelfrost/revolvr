@@ -1,5 +1,3 @@
-package com.imminenteminence.fts;
-
 // BOOYAAHH
 public class MainActivity extends android.app.NativeActivity {
   static {

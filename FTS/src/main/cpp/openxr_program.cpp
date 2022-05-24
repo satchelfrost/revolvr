@@ -2,14 +2,14 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "pch.h"
-#include "common.h"
-#include "options.h"
-#include "platformdata.h"
-#include "platformplugin.h"
-#include "graphicsplugin.h"
-#include "openxr_program.h"
-#include "xr_linear.h"
+#include "include/pch.h"
+#include "include/common.h"
+#include "include/options.h"
+#include "include/platformdata.h"
+#include "include/platformplugin.h"
+#include "include/graphicsplugin.h"
+#include "include/openxr_program.h"
+#include "include/xr_linear.h"
 #include <array>
 #include <cmath>
 

@@ -4,11 +4,11 @@
 
 #include <utility>
 
-#include "pch.h"
-#include "common.h"
-#include "options.h"
-#include "platformdata.h"
-#include "graphicsplugin.h"
+#include "include/pch.h"
+#include "include/common.h"
+#include "include/options.h"
+#include "include/platformdata.h"
+#include "include/graphicsplugin.h"
 
 std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_VulkanLegacy(const std::shared_ptr<Options>& options,
                                                                    std::shared_ptr<IPlatformPlugin> platformPlugin);

@@ -18,7 +18,7 @@
 
 		<!-- launchMode is set to singleTask because there should never be multiple copies of the app running -->
 		<!-- Theme.Black.NoTitleBar.Fullscreen gives solid black instead of a (bad stereoscopic) gradient on app transition -->
-		<!-- If targeting API level 24+, configChanges should additionally include 'density'. -->
+		<!-- If targeting API level 24+, configChanges should additionally includes 'density'. -->
 		<!-- If targeting API level 24+, android:resizeableActivity="false" should be added. -->
 		<activity
 				android:name="com.imminenteminence.fts.MainActivity"

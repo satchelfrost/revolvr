@@ -2,12 +2,12 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "pch.h"
-#include "common.h"
-#include "geometry.h"
-#include "graphicsplugin.h"
+#include "include/pch.h"
+#include "include/common.h"
+#include "include/geometry.h"
+#include "include/graphicsplugin.h"
 
-#include "xr_linear.h"
+#include "include/xr_linear.h"
 #include <array>
 
 #ifdef USE_ONLINE_VULKAN_SHADERC
@@ -1451,10 +1451,10 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
 #else
         std::vector<uint32_t> vertexSPIRV = SPV_PREFIX
 #include "vert.spv"
-            SPV_SUFFIX;
+        SPV_SUFFIX;
         std::vector<uint32_t> fragmentSPIRV = SPV_PREFIX
 #include "frag.spv"
-            SPV_SUFFIX;
+        SPV_SUFFIX;
 #endif
         if (vertexSPIRV.empty()) THROW("Failed to compile vertex shader");
         if (fragmentSPIRV.empty()) THROW("Failed to compile fragment shader");

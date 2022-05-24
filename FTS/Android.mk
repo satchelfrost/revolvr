@@ -3,13 +3,13 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := fts
 
-include ../../../cflags.mk
+include ../cflags.mk
 
 LOCAL_C_INCLUDES := \
-  					$(LOCAL_PATH)/../../../../libs/khronos/openxr/OpenXR-SDK/include \
-  					$(LOCAL_PATH)/../../../include \
+  					$(LOCAL_PATH)/../libs/khronos/openxr/OpenXR-SDK/include \
+  					$(LOCAL_PATH)/src/main/cpp/include \
 
-LOCAL_SRC_FILES	:= $(wildcard $(LOCAL_PATH)/../../../src/*.cpp)
+LOCAL_SRC_FILES	:= $(wildcard $(LOCAL_PATH)/src/main/cpp/*.cpp)
 
 # include default libraries
 LOCAL_LDLIBS 			:= -llog -landroid -lvulkan

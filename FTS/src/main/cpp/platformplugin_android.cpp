@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "pch.h"
-#include "common.h"
-#include "platformdata.h"
-#include "platformplugin.h"
+#include "include/pch.h"
+#include "include/common.h"
+#include "include/platformdata.h"
+#include "include/platformplugin.h"
 
 namespace {
 struct AndroidPlatformPlugin : public IPlatformPlugin {

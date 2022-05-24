@@ -2,7 +2,6 @@
 rootProject.projectDir = new File(settingsDir, '.')
 rootProject.name = "RevolVR"
 
-include ':', \
-	':FTS:Projects:Android'
+include ':', ':FTS'
 
 // Top level settings

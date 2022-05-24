@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "pch.h"
-#include "platformplugin.h"
-#include "common.h"
+#include "include/pch.h"
+#include "include/platformplugin.h"
+#include "include/common.h"
 
 #define UNUSED_PARM(x) \
     { (void)(x); }
