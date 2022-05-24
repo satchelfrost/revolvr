@@ -7,18 +7,11 @@
 #include "geometry.h"
 #include "graphicsplugin.h"
 
-#ifdef XR_USE_GRAPHICS_API_VULKAN
-
 #include "xr_linear.h"
 #include <array>
 
 #ifdef USE_ONLINE_VULKAN_SHADERC
 #include <shaderc/shaderc.hpp>
-#endif
-
-#if defined(VK_USE_PLATFORM_WIN32_KHR)
-// Define USE_MIRROR_WINDOW to open a otherwise-unused window for e.g. RenderDoc
-#define USE_MIRROR_WINDOW
 #endif
 
 // glslangValidator doesn't wrap its output in brackets if you don't have it define the whole array.
@@ -1849,15 +1842,6 @@ struct VulkanGraphicsPluginLegacy : public VulkanGraphicsPlugin {
             VkPhysicalDeviceFeatures features{};
             memcpy(&features, createInfo->vulkanCreateInfo->pEnabledFeatures, sizeof(features));
 
-#if !defined(XR_USE_PLATFORM_ANDROID)
-            VkPhysicalDeviceFeatures availableFeatures{};
-            vkGetPhysicalDeviceFeatures(m_vkPhysicalDevice, &availableFeatures);
-            if (availableFeatures.shaderStorageImageMultisample == VK_TRUE) {
-                // Setting this quiets down a validation error triggered by the Oculus runtime
-                features.shaderStorageImageMultisample = VK_TRUE;
-            }
-#endif
-
             VkDeviceCreateInfo deviceInfo{VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO};
             memcpy(&deviceInfo, createInfo->vulkanCreateInfo, sizeof(deviceInfo));
             deviceInfo.pEnabledFeatures = &features;
@@ -1914,4 +1898,3 @@ std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_VulkanLegacy(const std::sh
     return std::make_shared<VulkanGraphicsPluginLegacy>(options, std::move(platformPlugin));
 }
 
-#endif  // XR_USE_GRAPHICS_API_VULKAN
