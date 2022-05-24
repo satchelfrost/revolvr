@@ -1,0 +1,8 @@
+
+rootProject.projectDir = new File(settingsDir, '.')
+rootProject.name = "OculusRoot"
+
+include ':', \
+	':FTS:Projects:Android'
+
+// Top level settings
