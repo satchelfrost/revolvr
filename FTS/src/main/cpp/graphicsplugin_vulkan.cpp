@@ -891,7 +891,8 @@ struct SwapchainImageContext {
 };
 
 struct VulkanGraphicsPlugin : public IGraphicsPlugin {
-    VulkanGraphicsPlugin(const std::shared_ptr<Options>& /*unused*/, std::shared_ptr<IPlatformPlugin> /*unused*/) {
+    VulkanGraphicsPlugin(const std::shared_ptr<Options>& /*unused*/, std::shared_ptr<IPlatformPlugin> /*unused*/,
+                         const android_app* app) : app_(app) {
         m_graphicsBinding.type = GetGraphicsBindingType();
     };
 
@@ -1094,6 +1095,14 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
 #include "frag.spv"
         ;
 #endif
+        // Load in the compiled shader from the apk
+        AAsset* file = AAssetManager_open(app_->activity->assetManager,
+                                          "shaders/blarg.frag.spv",
+                                          AASSET_MODE_BUFFER);
+        size_t fileLength = AAsset_getLength(file);
+        Log::Write(Log::Level::Info, Fmt("blarg.frag.spv file size %d", fileLength));
+
+
         if (vertexSPIRV.empty()) THROW("Failed to compile vertex shader");
         if (fragmentSPIRV.empty()) THROW("Failed to compile fragment shader");
 
@@ -1400,10 +1409,14 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
 
         return pfnGetVulkanGraphicsRequirements2KHR(instance, systemId, graphicsRequirements);
     }
+
+ private:
+    const android_app* app_;
 };
 }  // namespace
 
 std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_Vulkan(const std::shared_ptr<Options>& options,
-                                                             std::shared_ptr<IPlatformPlugin> platformPlugin) {
-    return std::make_shared<VulkanGraphicsPlugin>(options, std::move(platformPlugin));
+                                                             std::shared_ptr<IPlatformPlugin> platformPlugin,
+                                                             const android_app* app) {
+    return std::make_shared<VulkanGraphicsPlugin>(options, std::move(platformPlugin), app);
 }

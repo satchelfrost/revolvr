@@ -43,4 +43,5 @@ struct IGraphicsPlugin {
 
 // Create a graphics plugin for the graphics API specified in the options.
 std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin(const std::shared_ptr<struct Options>& options,
-                                                      std::shared_ptr<struct IPlatformPlugin> platformPlugin);
+                                                      std::shared_ptr<struct IPlatformPlugin> platformPlugin,
+                                                      const android_app* app);

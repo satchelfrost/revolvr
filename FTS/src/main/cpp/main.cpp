@@ -11,7 +11,7 @@ namespace {
 void ShowHelp() { Log::Write(Log::Level::Info, "adb shell setprop debug.xr.graphicsPlugin OpenGLES|Vulkan"); }
 
 bool UpdateOptionsFromSystemProperties(Options& options) {
-    options.GraphicsPlugin = "Vulkan2";
+    options.GraphicsPlugin = "Vulkan";
 
     char value[PROP_VALUE_MAX] = {};
     if (__system_property_get("debug.xr.graphicsPlugin", value) != 0) {
@@ -116,8 +116,7 @@ void android_main(struct android_app* app) {
     // Create platform-specific implementation.
     std::shared_ptr<IPlatformPlugin> platformPlugin = CreatePlatformPlugin(options, data);
     // Create graphics API implementation.
-    std::shared_ptr<IGraphicsPlugin> graphicsPlugin = CreateGraphicsPlugin(options, platformPlugin);
-//    std::shared_ptr<IGraphicsPlugin> vulkan_plugin = CreateVulkanPlugin(options, std::move(platformPlugin));
+    std::shared_ptr<IGraphicsPlugin> graphicsPlugin = CreateGraphicsPlugin(options, platformPlugin, app);
 
     // Initialize the OpenXR program.
     std::shared_ptr<IOpenXrProgram> program = CreateOpenXrProgram(options, platformPlugin, graphicsPlugin);
