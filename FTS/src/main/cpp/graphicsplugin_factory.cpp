@@ -10,9 +10,6 @@
 #include "include/platformdata.h"
 #include "include/graphicsplugin.h"
 
-std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_VulkanLegacy(const std::shared_ptr<Options>& options,
-                                                                   std::shared_ptr<IPlatformPlugin> platformPlugin);
-
 std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_Vulkan(const std::shared_ptr<Options>& options,
                                                              std::shared_ptr<IPlatformPlugin> platformPlugin);
 
@@ -21,10 +18,6 @@ using GraphicsPluginFactory = std::function<std::shared_ptr<IGraphicsPlugin>(con
                                                                              std::shared_ptr<IPlatformPlugin> platformPlugin)>;
 
 std::map<std::string, GraphicsPluginFactory, IgnoreCaseStringLess> graphicsPluginMap = {
-    {"Vulkan",
-     [](const std::shared_ptr<Options>& options, std::shared_ptr<IPlatformPlugin> platformPlugin) {
-         return CreateGraphicsPlugin_VulkanLegacy(options, std::move(platformPlugin));
-     }},
     {"Vulkan2",
      [](const std::shared_ptr<Options>& options, std::shared_ptr<IPlatformPlugin> platformPlugin) {
          return CreateGraphicsPlugin_Vulkan(options, std::move(platformPlugin));
