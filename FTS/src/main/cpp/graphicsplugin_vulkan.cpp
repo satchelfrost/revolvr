@@ -1064,44 +1064,22 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         m_graphicsBinding.queueIndex = 0;
     }
 
-#ifdef USE_ONLINE_VULKAN_SHADERC
-    // Compile a shader to a SPIR-V binary.
-    std::vector<uint32_t> CompileGlslShader(const std::string& name, shaderc_shader_kind kind, const std::string& source) {
-        shaderc::Compiler compiler;
-        shaderc::CompileOptions options;
-
-        options.SetOptimizationLevel(shaderc_optimization_level_size);
-
-        shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(source, kind, name.c_str(), options);
-
-        if (module.GetCompilationStatus() != shaderc_compilation_status_success) {
-            Log::Write(Log::Level::Error, Fmt("Shader %s compilation failed: %s", name.c_str(), module.GetErrorMessage().c_str()));
-            return std::vector<uint32_t>();
-        }
-
-        return {module.cbegin(), module.cend()};
-    }
-#endif
-
-    void InitializeResources() {
-#ifdef USE_ONLINE_VULKAN_SHADERC
-        auto vertexSPIRV = CompileGlslShader("vertex", shaderc_glsl_default_vertex_shader, VertexShaderGlsl);
-        auto fragmentSPIRV = CompileGlslShader("fragment", shaderc_glsl_default_fragment_shader, FragmentShaderGlsl);
-#else
-        std::vector<uint32_t> vertexSPIRV =
-#include "vert.spv"
-        ;
-        std::vector<uint32_t> fragmentSPIRV =
-#include "frag.spv"
-        ;
-#endif
+    std::vector<uint32_t> CreateSPIRVVector(const char* asset_name) {
         // Load in the compiled shader from the apk
         AAsset* file = AAssetManager_open(app_->activity->assetManager,
-                                          "shaders/blarg.frag.spv",
+                                          asset_name,
                                           AASSET_MODE_BUFFER);
-        size_t fileLength = AAsset_getLength(file);
-        Log::Write(Log::Level::Info, Fmt("blarg.frag.spv file size %d", fileLength));
+        off_t file_length = AAsset_getLength(file);
+        auto* file_content = new uint32_t[file_length];
+        AAsset_read(file, file_content, file_length);
+        std::vector<uint32_t> shader_vector(file_content, file_content + file_length);
+        delete[] file_content;
+        return shader_vector;
+    }
 
+    void InitializeResources() {
+        auto fragmentSPIRV = CreateSPIRVVector("shaders/blarg.frag.spv");
+        auto vertexSPIRV = CreateSPIRVVector("shaders/blarg.vert.spv");
 
         if (vertexSPIRV.empty()) THROW("Failed to compile vertex shader");
         if (fragmentSPIRV.empty()) THROW("Failed to compile fragment shader");
@@ -1417,6 +1395,6 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
 
 std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_Vulkan(const std::shared_ptr<Options>& options,
                                                              std::shared_ptr<IPlatformPlugin> platformPlugin,
-                                                             const android_app* app) {
+                                                            const android_app* app) {
     return std::make_shared<VulkanGraphicsPlugin>(options, std::move(platformPlugin), app);
 }
