@@ -223,16 +223,16 @@ struct ShaderProgram {
     ShaderProgram(ShaderProgram&&) = delete;
     ShaderProgram& operator=(ShaderProgram&&) = delete;
 
-    void LoadVertexShader(const std::vector<uint32_t>& code) { Load(0, code); }
+    void LoadVertexShader(const std::vector<char>& code) { Load(0, code); }
 
-    void LoadFragmentShader(const std::vector<uint32_t>& code) { Load(1, code); }
+    void LoadFragmentShader(const std::vector<char>& code) { Load(1, code); }
 
     void Init(VkDevice device) { m_vkDevice = device; }
 
    private:
     VkDevice m_vkDevice{VK_NULL_HANDLE};
 
-    void Load(uint32_t index, const std::vector<uint32_t>& code) {
+    void Load(uint32_t index, const std::vector<char>& code) {
         VkShaderModuleCreateInfo modInfo{VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO};
 
         auto& si = shaderInfo[index];
@@ -252,8 +252,8 @@ struct ShaderProgram {
                 THROW(Fmt("Unknown code index %d", index));
         }
 
-        modInfo.codeSize = code.size() * sizeof(code[0]);
-        modInfo.pCode = &code[0];
+        modInfo.codeSize = code.size();
+        modInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
         CHECK_MSG((modInfo.codeSize > 0) && modInfo.pCode, Fmt("Invalid %s shader ", name.c_str()));
 
         CHECK_VKCMD(vkCreateShaderModule(m_vkDevice, &modInfo, nullptr, &si.module));
@@ -1064,15 +1064,15 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         m_graphicsBinding.queueIndex = 0;
     }
 
-    std::vector<uint32_t> CreateSPIRVVector(const char* asset_name) {
+    std::vector<char> CreateSPIRVVector(const char* asset_name) {
         // Load in the compiled shader from the apk
         AAsset* file = AAssetManager_open(app_->activity->assetManager,
                                           asset_name,
                                           AASSET_MODE_BUFFER);
         off_t file_length = AAsset_getLength(file);
-        auto* file_content = new uint32_t[file_length];
+        char* file_content = new char[file_length];
         AAsset_read(file, file_content, file_length);
-        std::vector<uint32_t> shader_vector(file_content, file_content + file_length);
+        std::vector<char> shader_vector(file_content, file_content + file_length);
         delete[] file_content;
         return shader_vector;
     }
