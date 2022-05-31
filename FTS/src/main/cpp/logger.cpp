@@ -28,11 +28,7 @@ void Write(Level severity, const std::string& msg) {
     const auto now = std::chrono::system_clock::now();
     const time_t now_time = std::chrono::system_clock::to_time_t(now);
     tm now_tm;
-#ifdef _WIN32
-    localtime_s(&now_tm, &now_time);
-#else
     localtime_r(&now_time, &now_tm);
-#endif
     // time_t only has second precision. Use the rounding error to get sub-second precision.
     const auto secondRemainder = now - std::chrono::system_clock::from_time_t(now_time);
     const int64_t milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(secondRemainder).count();
@@ -48,14 +44,9 @@ void Write(Level severity, const std::string& msg) {
 
     std::lock_guard<std::mutex> lock(g_logLock);  // Ensure output is serialized
     ((severity == Level::Error) ? std::clog : std::cout) << out.str();
-#if defined(_WIN32)
-    OutputDebugStringA(out.str().c_str());
-#endif
-#if defined(ANDROID)
     if (severity == Level::Error)
         ALOGE("%s", out.str().c_str());
     else
         ALOGV("%s", out.str().c_str());
-#endif
 }
 }  // namespace Log

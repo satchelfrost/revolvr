@@ -10,30 +10,26 @@
 #include "include/platformdata.h"
 #include "include/graphicsplugin.h"
 
-std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_VulkanLegacy(const std::shared_ptr<Options>& options,
-                                                                   std::shared_ptr<IPlatformPlugin> platformPlugin);
-
 std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_Vulkan(const std::shared_ptr<Options>& options,
-                                                             std::shared_ptr<IPlatformPlugin> platformPlugin);
+                                                             std::shared_ptr<IPlatformPlugin> platformPlugin,
+                                                             const android_app* app);
 
 namespace {
 using GraphicsPluginFactory = std::function<std::shared_ptr<IGraphicsPlugin>(const std::shared_ptr<Options>& options,
-                                                                             std::shared_ptr<IPlatformPlugin> platformPlugin)>;
+                                                                             std::shared_ptr<IPlatformPlugin> platformPlugin,
+                                                                             const android_app* app)>;
 
 std::map<std::string, GraphicsPluginFactory, IgnoreCaseStringLess> graphicsPluginMap = {
     {"Vulkan",
-     [](const std::shared_ptr<Options>& options, std::shared_ptr<IPlatformPlugin> platformPlugin) {
-         return CreateGraphicsPlugin_VulkanLegacy(options, std::move(platformPlugin));
-     }},
-    {"Vulkan2",
-     [](const std::shared_ptr<Options>& options, std::shared_ptr<IPlatformPlugin> platformPlugin) {
-         return CreateGraphicsPlugin_Vulkan(options, std::move(platformPlugin));
+     [](const std::shared_ptr<Options>& options, std::shared_ptr<IPlatformPlugin> platformPlugin, const android_app* app) {
+         return CreateGraphicsPlugin_Vulkan(options, std::move(platformPlugin), app);
      }},
 };
 }  // namespace
 
 std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin(const std::shared_ptr<Options>& options,
-                                                      std::shared_ptr<IPlatformPlugin> platformPlugin) {
+                                                      std::shared_ptr<IPlatformPlugin> platformPlugin,
+                                                      const android_app* app) {
     if (options->GraphicsPlugin.empty()) {
         ALOGE("No graphics API specified");
         exit(1);
@@ -45,5 +41,5 @@ std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin(const std::shared_ptr<Opti
         exit(1);
     }
 
-    return apiIt->second(options, std::move(platformPlugin));
+    return CreateGraphicsPlugin_Vulkan(options, std::move(platformPlugin), app);
 }

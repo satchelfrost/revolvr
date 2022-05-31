@@ -1,7 +1,3 @@
-// Copyright (c) 2017-2022, The Khronos Group Inc.
-//
-// SPDX-License-Identifier: Apache-2.0
-
 #include "include/pch.h"
 #include "include/common.h"
 #include "include/options.h"
@@ -120,7 +116,7 @@ void android_main(struct android_app* app) {
     // Create platform-specific implementation.
     std::shared_ptr<IPlatformPlugin> platformPlugin = CreatePlatformPlugin(options, data);
     // Create graphics API implementation.
-    std::shared_ptr<IGraphicsPlugin> graphicsPlugin = CreateGraphicsPlugin(options, platformPlugin);
+    std::shared_ptr<IGraphicsPlugin> graphicsPlugin = CreateGraphicsPlugin(options, platformPlugin, app);
 
     // Initialize the OpenXR program.
     std::shared_ptr<IOpenXrProgram> program = CreateOpenXrProgram(options, platformPlugin, graphicsPlugin);
