@@ -7,6 +7,7 @@ include ../cflags.mk
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/../libs/khronos/openxr/OpenXR-SDK/include
 LOCAL_SRC_FILES  := $(wildcard $(LOCAL_PATH)/src/main/cpp/*.cpp)
+LOCAL_SRC_FILES  += $(wildcard $(LOCAL_PATH)/src/main/cpp/*.s)
 
 # include default libraries
 LOCAL_LDLIBS           := -llog -landroid -lvulkan
