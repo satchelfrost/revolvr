@@ -6,6 +6,8 @@
 #include "include/vulkan_results.h"
 #include <array>
 
+extern "C" void fast_matrix_mul(float*, float*, float*);
+
 namespace {
 struct MemoryAllocator {
     void Init(VkPhysicalDevice physicalDevice, VkDevice device) {
@@ -1193,7 +1195,9 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         XrMatrix4x4f view;
         XrMatrix4x4f_InvertRigidBody(&view, &toView);
         XrMatrix4x4f vp;
-        XrMatrix4x4f_Multiply(&vp, &proj, &view);
+        // Leave this in here so that we can do benchmarks later. For now just use fast_matrix_mul
+        //XrMatrix4x4f_Multiply(&vp, &proj, &view);
+        fast_matrix_mul(vp.m, proj.m, view.m);
 
         // Render each cube
         for (const Cube& cube : cubes) {
@@ -1201,7 +1205,10 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
             XrMatrix4x4f model;
             XrMatrix4x4f_CreateTranslationRotationScale(&model, &cube.Pose.position, &cube.Pose.orientation, &cube.Scale);
             XrMatrix4x4f mvp;
-            XrMatrix4x4f_Multiply(&mvp, &vp, &model);
+
+            // Leave this in here so that we can do benchmarks later. For now just use fast_matrix_mul
+            //XrMatrix4x4f_Multiply(&mvp, &vp, &model);
+            fast_matrix_mul(mvp.m, vp.m, model.m);
             vkCmdPushConstants(m_cmdBuffer.buf, m_pipelineLayout.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(mvp.m), &mvp.m[0]);
 
             // Draw the cube.
