@@ -4,7 +4,7 @@
 #include "include/platformdata.h"
 #include "include/platformplugin.h"
 #include "include/graphicsplugin.h"
-#include "include/openxr_program.h"
+#include "include/revolvr_app.h"
 
 namespace {
 
@@ -119,7 +119,7 @@ void android_main(struct android_app* app) {
     std::shared_ptr<IGraphicsPlugin> graphicsPlugin = CreateGraphicsPlugin(options, platformPlugin, app);
 
     // Initialize the OpenXR program.
-    std::shared_ptr<IOpenXrProgram> program = CreateOpenXrProgram(options, platformPlugin, graphicsPlugin);
+    RVRApp rvrApp(options, platformPlugin, graphicsPlugin);
 
     // Initialize the loader for this platform
     PFN_xrInitializeLoaderKHR initializeLoader = nullptr;
@@ -134,10 +134,10 @@ void android_main(struct android_app* app) {
         initializeLoader((const XrLoaderInitInfoBaseHeaderKHR*)&loaderInitInfoAndroid);
     }
 
-    program->CreateInstance();
-    program->InitializeSystem();
-    program->InitializeSession();
-    program->CreateSwapchains();
+    rvrApp.CreateInstance();
+    rvrApp.InitializeSystem();
+    rvrApp.InitializeSession();
+    rvrApp.CreateSwapchains();
 
     while (app->destroyRequested == 0) {
         // Read all pending events.
@@ -147,7 +147,7 @@ void android_main(struct android_app* app) {
             // If the timeout is zero, returns immediately without blocking.
             // If the timeout is negative, waits indefinitely until an event appears.
             const int timeoutMilliseconds =
-                (!appState.Resumed && !program->IsSessionRunning() && app->destroyRequested == 0) ? -1 : 0;
+                (!appState.Resumed && !rvrApp.IsSessionRunning() && app->destroyRequested == 0) ? -1 : 0;
             if (ALooper_pollAll(timeoutMilliseconds, nullptr, &events, (void**)&source) < 0) {
                 break;
             }
@@ -158,15 +158,15 @@ void android_main(struct android_app* app) {
             }
         }
 
-        program->PollEvents(&exitRenderLoop, &requestRestart);
-        if (!program->IsSessionRunning()) {
+        rvrApp.PollEvents(&exitRenderLoop, &requestRestart);
+        if (!rvrApp.IsSessionRunning()) {
             // Throttle loop since xrWaitFrame won't be called.
             std::this_thread::sleep_for(std::chrono::milliseconds(250));
             continue;
         }
 
-        program->PollActions();
-        program->RenderFrame();
+        rvrApp.PollActions();
+        rvrApp.RenderFrame();
     }
 
     app->activity->vm->DetachCurrentThread();

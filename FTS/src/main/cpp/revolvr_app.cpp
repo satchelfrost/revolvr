@@ -1,7 +1,6 @@
-#include "include/openxr_program.h"
-#include "include/xr_helpers.h"
+#include "include/revolvr_app.h"
+#include "include/xr_app_helpers.h"
 
-#define strcpy_s(dest, source) strncpy((dest), (source), sizeof(dest))
 
 RVRApp::RVRApp(const std::shared_ptr<Options>& options,
                const std::shared_ptr<IPlatformPlugin>& platformPlugin,

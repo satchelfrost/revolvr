@@ -14,6 +14,7 @@
 #include <openxr/openxr_reflection.h>
 #define OVR_LOG_TAG "xrhandsfb"
 #define ALOGE(...) __android_log_print(ANDROID_LOG_ERROR, OVR_LOG_TAG, __VA_ARGS__)
+#define strcpy_s(dest, source) strncpy((dest), (source), sizeof(dest))
 
 // Macro to generate stringify functions for OpenXR enumerations based data provided in openxr_reflection.h
 // clang-format off
