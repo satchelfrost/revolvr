@@ -18,7 +18,7 @@
         failureMessage += Fmt("\n    Source: %s", sourceLocation);
     }
 
-    ALOGE("Error");
+    Log::Write(Log::Level::Warning, Fmt("%s", failureMessage.c_str()));
     exit(1);
 }
 
