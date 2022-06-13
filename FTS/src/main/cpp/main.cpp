@@ -1,8 +1,7 @@
 #include "include/pch.h"
 #include "include/common.h"
 #include "include/options.h"
-#include "include/platformdata.h"
-#include "include/platformplugin.h"
+#include "include/rvr_android_platform.h"
 #include "include/graphicsplugin.h"
 #include "include/revolvr_app.h"
 
@@ -106,15 +105,16 @@ void android_main(struct android_app* app) {
         return;
     }
 
-    std::shared_ptr<PlatformData> data = std::make_shared<PlatformData>();
-    data->applicationVM = app->activity->vm;
-    data->applicationActivity = app->activity->clazz;
+//    std::shared_ptr<PlatformData> data = std::make_shared<PlatformData>();
+//    data->applicationVM = app->activity->vm;
+//    data->applicationActivity = app->activity->clazz;
 
     bool requestRestart = false;
     bool exitRenderLoop = false;
 
-    // Create platform-specific implementation.
-    std::shared_ptr<IPlatformPlugin> platformPlugin = CreatePlatformPlugin(options, data);
+    // Create platform abstraction
+    RVRAndroidPlatform rvrAndroidPlatform(app);
+
     // Create graphics API implementation.
     std::shared_ptr<IGraphicsPlugin> graphicsPlugin = CreateGraphicsPlugin(options, platformPlugin, app);
 

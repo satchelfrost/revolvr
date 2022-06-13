@@ -7,7 +7,6 @@
 #include "include/pch.h"
 #include "include/common.h"
 #include "include/options.h"
-#include "include/platformdata.h"
 #include "include/graphicsplugin.h"
 
 std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_Vulkan(const std::shared_ptr<Options>& options,
