@@ -2,7 +2,7 @@
 #include "include/common.h"
 #include "include/options.h"
 #include "include/rvr_android_platform.h"
-#include "include/graphicsplugin.h"
+#include "include/rvr_vulkan_renderer.h"
 #include "include/revolvr_app.h"
 
 namespace {
@@ -105,21 +105,17 @@ void android_main(struct android_app* app) {
         return;
     }
 
-//    std::shared_ptr<PlatformData> data = std::make_shared<PlatformData>();
-//    data->applicationVM = app->activity->vm;
-//    data->applicationActivity = app->activity->clazz;
-
     bool requestRestart = false;
     bool exitRenderLoop = false;
 
     // Create platform abstraction
-    RVRAndroidPlatform rvrAndroidPlatform(app);
+    RVRAndroidPlatform androidPlatform(app);
 
     // Create graphics API implementation.
-    std::shared_ptr<IGraphicsPlugin> graphicsPlugin = CreateGraphicsPlugin(options, rvrAndroidPlatform);
+    RVRVulkanRenderer vulkanRenderer(options, &androidPlatform);
 
     // Initialize the OpenXR program.
-    RVRApp rvrApp(options, rvrAndroidPlatform, graphicsPlugin);
+    RVRApp rvrApp(options, &androidPlatform, &vulkanRenderer);
 
     // Initialize the loader for this platform
     PFN_xrInitializeLoaderKHR initializeLoader = nullptr;

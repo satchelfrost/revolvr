@@ -21,7 +21,7 @@ AAssetManager * RVRAndroidPlatform::GetAndroidAssetManager() {
     return app_->activity->assetManager;
 }
 
-android_app* RVRAndroidPlatform::GetAndroidApp() {
+android_app* RVRAndroidPlatform::GetAndroidApp() const {
     return app_;
 }
 
