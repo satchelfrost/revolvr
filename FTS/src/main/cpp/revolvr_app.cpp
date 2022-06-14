@@ -3,9 +3,9 @@
 
 
 RVRApp::RVRApp(const std::shared_ptr<Options>& options,
-               const std::shared_ptr<IPlatformPlugin>& platformPlugin,
+               RVRAndroidPlatform& android_platform,
                const std::shared_ptr<IGraphicsPlugin>& graphicsPlugin) :
-               m_options(options), m_platformPlugin(platformPlugin), m_graphicsPlugin(graphicsPlugin) {}
+        m_options(options), m_androidPlatform(android_platform), m_graphicsPlugin(graphicsPlugin) {}
 
  RVRApp::~RVRApp() {
      if (m_input.actionSet != XR_NULL_HANDLE) {
@@ -100,7 +100,7 @@ void RVRApp::CreateInstanceInternal() {
     std::vector<const char*> extensions;
 
     // Transform platform and graphics extension std::strings to C strings.
-    const std::vector<std::string> platformExtensions = m_platformPlugin->GetInstanceExtensions();
+    const std::vector<std::string> platformExtensions = m_androidPlatform.GetInstanceExtensions();
     std::transform(platformExtensions.begin(), platformExtensions.end(), std::back_inserter(extensions),
                    [](const std::string& ext) { return ext.c_str(); });
     const std::vector<std::string> graphicsExtensions = m_graphicsPlugin->GetInstanceExtensions();
@@ -108,7 +108,7 @@ void RVRApp::CreateInstanceInternal() {
                    [](const std::string& ext) { return ext.c_str(); });
 
     XrInstanceCreateInfo createInfo{XR_TYPE_INSTANCE_CREATE_INFO};
-    createInfo.next = m_platformPlugin->GetInstanceCreateExtension();
+    createInfo.next = m_androidPlatform.GetInstanceCreateExtension();
     createInfo.enabledExtensionCount = (uint32_t)extensions.size();
     createInfo.enabledExtensionNames = extensions.data();
 

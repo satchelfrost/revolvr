@@ -5,6 +5,7 @@
 #include "options.h"
 #include "graphicsplugin.h"
 #include "xr_linear.h"
+#include "rvr_android_platform.h"
 #include <array>
 #include <cmath>
 
@@ -17,7 +18,7 @@ namespace Side {
 class RVRApp {
 public:
   RVRApp(const std::shared_ptr<Options>& options,
-         const std::shared_ptr<IPlatformPlugin>& platformPlugin,
+         RVRAndroidPlatform& android_platform,
          const std::shared_ptr<IGraphicsPlugin>& graphicsPlugin);
 
   ~RVRApp();
@@ -77,7 +78,7 @@ public:
 
 private:
     const std::shared_ptr<Options> m_options;
-    std::shared_ptr<IPlatformPlugin> m_platformPlugin;
+    RVRAndroidPlatform m_androidPlatform;
     std::shared_ptr<IGraphicsPlugin> m_graphicsPlugin;
     XrInstance m_instance{XR_NULL_HANDLE};
     XrSession m_session{XR_NULL_HANDLE};

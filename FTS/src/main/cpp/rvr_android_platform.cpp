@@ -9,7 +9,7 @@ RVRAndroidPlatform::RVRAndroidPlatform(android_app* app) {
     instanceCreateInfoAndroid_.applicationActivity = app->activity->clazz;
 }
 
-XrBaseInStructure *RVRAndroidPlatform::GetInstanceCreateExtension() const {
+XrBaseInStructure * RVRAndroidPlatform::GetInstanceCreateExtension() const {
     return (XrBaseInStructure *) &instanceCreateInfoAndroid_;
 }
 
@@ -17,8 +17,13 @@ std::vector<std::string> RVRAndroidPlatform::GetInstanceExtensions() const {
     return {XR_KHR_ANDROID_CREATE_INSTANCE_EXTENSION_NAME};
 }
 
-AAssetManager *RVRAndroidPlatform::GetAndroidAssetManager() {
+AAssetManager * RVRAndroidPlatform::GetAndroidAssetManager() {
     return app_->activity->assetManager;
 }
+
+android_app* RVRAndroidPlatform::GetAndroidApp() {
+    return app_;
+}
+
 
 

@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "rvr_android_platform.h"
+
 struct Cube {
     XrPosef Pose;
     XrVector3f Scale;
@@ -43,5 +45,4 @@ struct IGraphicsPlugin {
 
 // Create a graphics plugin for the graphics API specified in the options.
 std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin(const std::shared_ptr<struct Options>& options,
-                                                      std::shared_ptr<struct IPlatformPlugin> platformPlugin,
-                                                      const android_app* app);
+                                                      RVRAndroidPlatform& android_platform);

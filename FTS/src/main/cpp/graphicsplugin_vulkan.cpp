@@ -893,8 +893,8 @@ struct SwapchainImageContext {
 };
 
 struct VulkanGraphicsPlugin : public IGraphicsPlugin {
-    VulkanGraphicsPlugin(const std::shared_ptr<Options>& /*unused*/, std::shared_ptr<IPlatformPlugin> /*unused*/,
-                         const android_app* app) : app_(app) {
+    VulkanGraphicsPlugin(const std::shared_ptr<Options>& /*unused*/, RVRAndroidPlatform& android_platform) {
+        app_ = android_platform.GetAndroidApp();
         m_graphicsBinding.type = GetGraphicsBindingType();
     };
 
@@ -1401,7 +1401,6 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
 }  // namespace
 
 std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_Vulkan(const std::shared_ptr<Options>& options,
-                                                             std::shared_ptr<IPlatformPlugin> platformPlugin,
-                                                            const android_app* app) {
-    return std::make_shared<VulkanGraphicsPlugin>(options, std::move(platformPlugin), app);
+                                                             RVRAndroidPlatform& android_platform) {
+    return std::make_shared<VulkanGraphicsPlugin>(options, android_platform);
 }

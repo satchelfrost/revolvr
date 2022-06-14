@@ -116,10 +116,10 @@ void android_main(struct android_app* app) {
     RVRAndroidPlatform rvrAndroidPlatform(app);
 
     // Create graphics API implementation.
-    std::shared_ptr<IGraphicsPlugin> graphicsPlugin = CreateGraphicsPlugin(options, platformPlugin, app);
+    std::shared_ptr<IGraphicsPlugin> graphicsPlugin = CreateGraphicsPlugin(options, rvrAndroidPlatform);
 
     // Initialize the OpenXR program.
-    RVRApp rvrApp(options, platformPlugin, graphicsPlugin);
+    RVRApp rvrApp(options, rvrAndroidPlatform, graphicsPlugin);
 
     // Initialize the loader for this platform
     PFN_xrInitializeLoaderKHR initializeLoader = nullptr;

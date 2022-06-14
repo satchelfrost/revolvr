@@ -15,6 +15,8 @@ public:
 
     AAssetManager* GetAndroidAssetManager();
 
+    android_app* GetAndroidApp();
+
 private:
     XrInstanceCreateInfoAndroidKHR instanceCreateInfoAndroid_;
     android_app* app_;
