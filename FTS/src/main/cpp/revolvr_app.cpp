@@ -3,9 +3,9 @@
 
 
 RVRApp::RVRApp(const std::shared_ptr<Options>& options,
-               const std::shared_ptr<IPlatformPlugin>& platformPlugin,
-               const std::shared_ptr<IGraphicsPlugin>& graphicsPlugin) :
-               m_options(options), m_platformPlugin(platformPlugin), m_graphicsPlugin(graphicsPlugin) {}
+               RVRAndroidPlatform* androidPlatform,
+               RVRVulkanRenderer* vulkanRenderer) :
+        m_options(options), m_androidPlatform(androidPlatform), m_vulkanRenderer(vulkanRenderer) {}
 
  RVRApp::~RVRApp() {
      if (m_input.actionSet != XR_NULL_HANDLE) {
@@ -100,15 +100,15 @@ void RVRApp::CreateInstanceInternal() {
     std::vector<const char*> extensions;
 
     // Transform platform and graphics extension std::strings to C strings.
-    const std::vector<std::string> platformExtensions = m_platformPlugin->GetInstanceExtensions();
+    const std::vector<std::string> platformExtensions = m_androidPlatform->GetInstanceExtensions();
     std::transform(platformExtensions.begin(), platformExtensions.end(), std::back_inserter(extensions),
                    [](const std::string& ext) { return ext.c_str(); });
-    const std::vector<std::string> graphicsExtensions = m_graphicsPlugin->GetInstanceExtensions();
+    const std::vector<std::string> graphicsExtensions = m_vulkanRenderer->GetInstanceExtensions();
     std::transform(graphicsExtensions.begin(), graphicsExtensions.end(), std::back_inserter(extensions),
                    [](const std::string& ext) { return ext.c_str(); });
 
     XrInstanceCreateInfo createInfo{XR_TYPE_INSTANCE_CREATE_INFO};
-    createInfo.next = m_platformPlugin->GetInstanceCreateExtension();
+    createInfo.next = m_androidPlatform->GetInstanceCreateExtension();
     createInfo.enabledExtensionCount = (uint32_t)extensions.size();
     createInfo.enabledExtensionNames = extensions.data();
 
@@ -216,7 +216,7 @@ void RVRApp::InitializeSystem() {
 
     // The graphics API can initialize the graphics device now that the systemId and instance
     // handle are available.
-    m_graphicsPlugin->InitializeDevice(m_instance, m_systemId);
+    m_vulkanRenderer->InitializeDevice(m_instance, m_systemId);
 }
 
 void RVRApp::LogReferenceSpaces() {
@@ -450,7 +450,7 @@ void RVRApp::InitializeSession() {
         Log::Write(Log::Level::Verbose, Fmt("Creating session..."));
 
         XrSessionCreateInfo createInfo{XR_TYPE_SESSION_CREATE_INFO};
-        createInfo.next = m_graphicsPlugin->GetGraphicsBinding();
+        createInfo.next = m_vulkanRenderer->GetGraphicsBinding();
         createInfo.systemId = m_systemId;
         CHECK_XRCMD(xrCreateSession(m_instance, &createInfo, &m_session));
     }
@@ -509,7 +509,7 @@ void RVRApp::CreateSwapchains() {
         CHECK_XRCMD(xrEnumerateSwapchainFormats(m_session, (uint32_t)swapchainFormats.size(), &swapchainFormatCount,
                                                 swapchainFormats.data()));
         CHECK(swapchainFormatCount == swapchainFormats.size());
-        m_colorSwapchainFormat = m_graphicsPlugin->SelectColorSwapchainFormat(swapchainFormats);
+        m_colorSwapchainFormat = m_vulkanRenderer->SelectColorSwapchainFormat(swapchainFormats);
 
         // Print swapchain formats and the selected one.
         {
@@ -543,7 +543,7 @@ void RVRApp::CreateSwapchains() {
             swapchainCreateInfo.height = vp.recommendedImageRectHeight;
             swapchainCreateInfo.mipCount = 1;
             swapchainCreateInfo.faceCount = 1;
-            swapchainCreateInfo.sampleCount = m_graphicsPlugin->GetSupportedSwapchainSampleCount(vp);
+            swapchainCreateInfo.sampleCount = m_vulkanRenderer->GetSupportedSwapchainSampleCount(vp);
             swapchainCreateInfo.usageFlags = XR_SWAPCHAIN_USAGE_SAMPLED_BIT | XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT;
             Swapchain swapchain;
             swapchain.width = swapchainCreateInfo.width;
@@ -556,7 +556,7 @@ void RVRApp::CreateSwapchains() {
             CHECK_XRCMD(xrEnumerateSwapchainImages(swapchain.handle, 0, &imageCount, nullptr));
             // XXX This should really just return XrSwapchainImageBaseHeader*
             std::vector<XrSwapchainImageBaseHeader*> swapchainImages =
-                m_graphicsPlugin->AllocateSwapchainImageStructs(imageCount, swapchainCreateInfo);
+                m_vulkanRenderer->AllocateSwapchainImageStructs(imageCount, swapchainCreateInfo);
             CHECK_XRCMD(xrEnumerateSwapchainImages(swapchain.handle, imageCount, &imageCount, swapchainImages[0]));
 
             m_swapchainImages.insert(std::make_pair(swapchain.handle, std::move(swapchainImages)));
@@ -873,7 +873,7 @@ bool RVRApp::RenderLayer(XrTime predictedDisplayTime,
         projectionLayerViews[i].subImage.imageRect.extent = {viewSwapchain.width, viewSwapchain.height};
 
         const XrSwapchainImageBaseHeader* const swapchainImage = m_swapchainImages[viewSwapchain.handle][swapchainImageIndex];
-        m_graphicsPlugin->RenderView(projectionLayerViews[i], swapchainImage, m_colorSwapchainFormat, cubes);
+        m_vulkanRenderer->RenderView(projectionLayerViews[i], swapchainImage, m_colorSwapchainFormat, cubes);
 
         XrSwapchainImageReleaseInfo releaseInfo{XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO};
         CHECK_XRCMD(xrReleaseSwapchainImage(viewSwapchain.handle, &releaseInfo));
