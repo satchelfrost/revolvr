@@ -599,13 +599,13 @@ void RVRApp::LogActionSourceName(XrAction action, const std::string& actionName)
     CHECK_XRCMD(xrEnumerateBoundSourcesForAction(m_session, &getInfo, uint32_t(paths.size()), &pathCount, paths.data()));
 
     std::string sourceName;
-    for (uint32_t i = 0; i < pathCount; ++i) {
+    for (auto& path : paths) {
         constexpr XrInputSourceLocalizedNameFlags all = XR_INPUT_SOURCE_LOCALIZED_NAME_USER_PATH_BIT |
                                                         XR_INPUT_SOURCE_LOCALIZED_NAME_INTERACTION_PROFILE_BIT |
                                                         XR_INPUT_SOURCE_LOCALIZED_NAME_COMPONENT_BIT;
 
         XrInputSourceLocalizedNameGetInfo nameInfo = {XR_TYPE_INPUT_SOURCE_LOCALIZED_NAME_GET_INFO};
-        nameInfo.sourcePath = paths[i];
+        nameInfo.sourcePath = path;
         nameInfo.whichComponents = all;
 
         uint32_t size = 0;
