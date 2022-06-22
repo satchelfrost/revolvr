@@ -3,10 +3,9 @@
 #include "pch.h"
 #include "common.h"
 #include "options.h"
-#include "platformdata.h"
-#include "platformplugin.h"
-#include "graphicsplugin.h"
+#include "rvr_vulkan_renderer.h"
 #include "xr_linear.h"
+#include "rvr_android_platform.h"
 #include <array>
 #include <cmath>
 
@@ -19,8 +18,8 @@ namespace Side {
 class RVRApp {
 public:
   RVRApp(const std::shared_ptr<Options>& options,
-         const std::shared_ptr<IPlatformPlugin>& platformPlugin,
-         const std::shared_ptr<IGraphicsPlugin>& graphicsPlugin);
+         RVRAndroidPlatform* androidPlatform,
+         RVRVulkanRenderer* vulkanRenderer);
 
   ~RVRApp();
 
@@ -79,8 +78,8 @@ public:
 
 private:
     const std::shared_ptr<Options> m_options;
-    std::shared_ptr<IPlatformPlugin> m_platformPlugin;
-    std::shared_ptr<IGraphicsPlugin> m_graphicsPlugin;
+    RVRAndroidPlatform* m_androidPlatform;
+    RVRVulkanRenderer* m_vulkanRenderer;
     XrInstance m_instance{XR_NULL_HANDLE};
     XrSession m_session{XR_NULL_HANDLE};
     XrSpace m_appSpace{XR_NULL_HANDLE};
