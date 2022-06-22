@@ -68,13 +68,8 @@ public:
   void HandleSessionStateChangedEvent(const XrEventDataSessionStateChanged& stateChangedEvent, bool* exitRenderLoop,
                                       bool* requestRestart);
 
-  // Loggers
-  void LogInstanceInfo();
-  void LogViewConfigurations();
-  void LogEnvironmentBlendMode(XrViewConfigurationType type);
-  void LogReferenceSpaces();
-  void LogLayersAndExtensions();
   void LogActionSourceName(XrAction action, const std::string& actionName) const;
+  bool UpdateRVRObjectFromLocatedSpace(XrTime& predictedDisplayTime, XrSpace& space, Cube& rvrObject);
 
 private:
     const std::shared_ptr<Options> m_options;

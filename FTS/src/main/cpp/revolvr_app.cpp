@@ -349,19 +349,23 @@ void RVRApp::InitializeActions() {
 void RVRApp::CreateVisualizedSpaces() {
     CHECK(m_session != XR_NULL_HANDLE);
 
-    std::string visualizedSpaces[] = {"ViewFront",        "Local", "Stage", "StageLeft", "StageRight", "StageLeftRotated",
+    std::string visualizedSpaces[] = {"HUD",
+                                      "Local",
+                                      "Floor",
+                                      "StageLeft",
+                                      "StageRight",
+                                      "StageLeftRotated",
                                       "StageRightRotated"};
 
     for (const auto& visualizedSpace : visualizedSpaces) {
         XrReferenceSpaceCreateInfo referenceSpaceCreateInfo = GetXrReferenceSpaceCreateInfo(visualizedSpace);
         XrSpace space;
         XrResult res = xrCreateReferenceSpace(m_session, &referenceSpaceCreateInfo, &space);
-        if (XR_SUCCEEDED(res)) {
+        if (XR_SUCCEEDED(res))
             m_visualizedSpaces.push_back(space);
-        } else {
-            Log::Write(Log::Level::Warning,
+        else
+            Log::Write(Log::Level::Info,
                        Fmt("Failed to create reference space %s with error %d", visualizedSpace.c_str(), res));
-        }
     }
 }
 
@@ -707,9 +711,27 @@ void RVRApp::RenderFrame() {
     CHECK_XRCMD(xrEndFrame(m_session, &frameEndInfo));
 }
 
+
+bool RVRApp::UpdateRVRObjectFromLocatedSpace(XrTime& predictedDisplayTime, XrSpace& space, Cube& rvrObject) {
+    // Locate the space of interest
+    XrSpaceLocation spaceLocation{XR_TYPE_SPACE_LOCATION};
+    XrResult res = xrLocateSpace(space, m_appSpace, predictedDisplayTime, &spaceLocation);
+    CHECK_XRRESULT(res, "xrLocateSpace");
+
+    // If found and valid, map the space's location to the object
+    if (XR_UNQUALIFIED_SUCCESS(res)) {
+        if ((spaceLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) != 0 &&
+            (spaceLocation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT) != 0) {
+            rvrObject.Pose = spaceLocation.pose;
+            return true;
+        }
+    }
+    return false;
+}
+
 bool RVRApp::RenderLayer(XrTime predictedDisplayTime,
-                                std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
-                                XrCompositionLayerProjection& layer) {
+                         std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
+                         XrCompositionLayerProjection& layer) {
     XrResult res;
 
     XrViewState viewState{XR_TYPE_VIEW_STATE};
@@ -734,43 +756,32 @@ bool RVRApp::RenderLayer(XrTime predictedDisplayTime,
 
     projectionLayerViews.resize(viewCountOutput);
 
-    // For each locatable space that we want to visualize, render a 25cm cube.
+    // For now this is cubes but eventually we want this to be a more general object
     std::vector<Cube> cubes;
 
-    for (XrSpace visualizedSpace : m_visualizedSpaces) {
-        XrSpaceLocation spaceLocation{XR_TYPE_SPACE_LOCATION};
-        res = xrLocateSpace(visualizedSpace, m_appSpace, predictedDisplayTime, &spaceLocation);
-        CHECK_XRRESULT(res, "xrLocateSpace");
-        if (XR_UNQUALIFIED_SUCCESS(res)) {
-            if ((spaceLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) != 0 &&
-                (spaceLocation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT) != 0) {
-                cubes.push_back(Cube{spaceLocation.pose, {0.25f, 0.25f, 0.25f}});
-            }
-        } else {
-            Log::Write(Log::Level::Verbose, Fmt("Unable to locate a visualized reference space in app space: %d", res));
-        }
+    // For each locatable space that we want to visualize, render a 25cm cube.
+    for (XrSpace space : m_visualizedSpaces) {
+        Cube cube{};
+        cube.Scale = {0.25f, 0.25f, 0.25f};
+        if (UpdateRVRObjectFromLocatedSpace(predictedDisplayTime, space, cube))
+            cubes.push_back(cube);
+        else
+            Log::Write(Log::Level::Info, Fmt("Unable to locate space in app space: %d", res));
     }
 
-    // Render a 10cm cube scaled by grabAction for each hand. Note renderHand will only be
-    // true when the application has focus.
+    // Render a 10cm cube scaled by grabAction for each hand.
     for (auto hand : {Side::LEFT, Side::RIGHT}) {
-        XrSpaceLocation spaceLocation{XR_TYPE_SPACE_LOCATION};
-        res = xrLocateSpace(m_input.handSpace[hand], m_appSpace, predictedDisplayTime, &spaceLocation);
-        CHECK_XRRESULT(res, "xrLocateSpace");
-        if (XR_UNQUALIFIED_SUCCESS(res)) {
-            if ((spaceLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) != 0 &&
-                (spaceLocation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT) != 0) {
-                float scale = 0.1f * m_input.handScale[hand];
-                cubes.push_back(Cube{spaceLocation.pose, {scale, scale, scale}});
-            }
-        } else {
-            // Tracking loss is expected when the hand is not active so only log a message
-            // if the hand is active.
-            if (m_input.handActive[hand] == XR_TRUE) {
-                const char* handName[] = {"left", "right"};
-                Log::Write(Log::Level::Verbose,
-                           Fmt("Unable to locate %s hand action space in app space: %d", handName[hand], res));
-            }
+        Cube cube{};
+        float scale = 0.1f * m_input.handScale[hand];
+        cube.Scale = {scale, scale, scale};
+        if (UpdateRVRObjectFromLocatedSpace(predictedDisplayTime, m_input.handSpace[hand], cube)) {
+            cubes.push_back(cube);
+        }
+        else if (m_input.handActive[hand] == XR_TRUE) {
+            // Tracking loss is expected when the hand is not active so only log a message if the hand is active.
+            const char* handName[] = {"left", "right"};
+            Log::Write(Log::Level::Info,
+                       Fmt("Unable to locate %s hand action space in app space: %d", handName[hand], res));
         }
     }
 
