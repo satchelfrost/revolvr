@@ -507,7 +507,7 @@ const XrEventDataBaseHeader* RVRApp::TryReadNextEvent() {
     THROW_XR(xr, "xrPollEvent");
 }
 
-void RVRApp::PollEvents(bool* exitRenderLoop, bool* requestRestart) {
+void RVRApp::PollXrEvents(bool* exitRenderLoop, bool* requestRestart) {
     *exitRenderLoop = *requestRestart = false;
 
     // Process all pending messages.

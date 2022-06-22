@@ -41,7 +41,7 @@ public:
   void CreateSwapchains();
 
   // Process any events in the event queue.
-  void PollEvents(bool* exitRenderLoop, bool* requestRestart);
+  void PollXrEvents(bool* exitRenderLoop, bool* requestRestart);
 
   // Manage session lifecycle to track if RenderFrame should be called.
   bool IsSessionRunning() const;
