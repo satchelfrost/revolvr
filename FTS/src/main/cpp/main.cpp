@@ -154,7 +154,7 @@ void android_main(struct android_app* app) {
             }
         }
 
-        rvrApp.PollEvents(&exitRenderLoop, &requestRestart);
+        rvrApp.PollXrEvents(&exitRenderLoop, &requestRestart);
         if (!rvrApp.IsSessionRunning()) {
             // Throttle loop since xrWaitFrame won't be called.
             std::this_thread::sleep_for(std::chrono::milliseconds(250));

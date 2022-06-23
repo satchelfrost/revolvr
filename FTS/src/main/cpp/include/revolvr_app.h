@@ -40,7 +40,7 @@ public:
   void CreateSwapchains();
 
   // Process any events in the event queue.
-  void PollEvents(bool* exitRenderLoop, bool* requestRestart);
+  void PollXrEvents(bool* exitRenderLoop, bool* requestRestart);
 
   // Manage session lifecycle to track if RenderFrame should be called.
   bool IsSessionRunning() const;
@@ -68,13 +68,8 @@ public:
   void HandleSessionStateChangedEvent(const XrEventDataSessionStateChanged& stateChangedEvent, bool* exitRenderLoop,
                                       bool* requestRestart);
 
-  // Loggers
-  void LogInstanceInfo();
-  void LogViewConfigurations();
-  void LogEnvironmentBlendMode(XrViewConfigurationType type);
-  void LogReferenceSpaces();
-  void LogLayersAndExtensions();
   void LogActionSourceName(XrAction action, const std::string& actionName) const;
+  bool UpdateRVRObjectFromLocatedSpace(XrTime& predictedDisplayTime, XrSpace& space, Cube& rvrObject);
 
 private:
     const std::shared_ptr<Options> m_options;

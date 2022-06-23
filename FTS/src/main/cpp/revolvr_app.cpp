@@ -36,64 +36,7 @@ RVRApp::RVRApp(const std::shared_ptr<Options>& options,
      }
  }
 
-void RVRApp::LogLayersAndExtensions() {
-     // Write out extension properties for a given layer.
-     const auto logExtensions = [](const char* layerName, int indent = 0) {
-         uint32_t instanceExtensionCount;
-         CHECK_XRCMD(xrEnumerateInstanceExtensionProperties(layerName, 0, &instanceExtensionCount, nullptr));
-
-         std::vector<XrExtensionProperties> extensions(instanceExtensionCount);
-         for (XrExtensionProperties& extension : extensions) {
-             extension.type = XR_TYPE_EXTENSION_PROPERTIES;
-         }
-
-         CHECK_XRCMD(xrEnumerateInstanceExtensionProperties(layerName, (uint32_t)extensions.size(), &instanceExtensionCount,
-                                                            extensions.data()));
-
-         const std::string indentStr(indent, ' ');
-         Log::Write(Log::Level::Verbose, Fmt("%sAvailable Extensions: (%d)", indentStr.c_str(), instanceExtensionCount));
-         for (const XrExtensionProperties& extension : extensions) {
-             Log::Write(Log::Level::Verbose, Fmt("%s  Name=%s SpecVersion=%d", indentStr.c_str(), extension.extensionName,
-                                                 extension.extensionVersion));
-         }
-     };
-
-     // Log non-layer extensions (layerName==nullptr).
-     logExtensions(nullptr);
-
-     // Log layers and any of their extensions.
-     {
-         uint32_t layerCount;
-         CHECK_XRCMD(xrEnumerateApiLayerProperties(0, &layerCount, nullptr));
-
-         std::vector<XrApiLayerProperties> layers(layerCount);
-         for (XrApiLayerProperties& layer : layers) {
-             layer.type = XR_TYPE_API_LAYER_PROPERTIES;
-         }
-
-         CHECK_XRCMD(xrEnumerateApiLayerProperties((uint32_t)layers.size(), &layerCount, layers.data()));
-
-         Log::Write(Log::Level::Info, Fmt("Available Layers: (%d)", layerCount));
-         for (const XrApiLayerProperties& layer : layers) {
-             Log::Write(Log::Level::Verbose,
-                        Fmt("  Name=%s SpecVersion=%s LayerVersion=%d Description=%s", layer.layerName,
-                            GetXrVersionString(layer.specVersion).c_str(), layer.layerVersion, layer.description));
-             logExtensions(layer.layerName, 4);
-         }
-     }
- }
-
-void RVRApp::LogInstanceInfo() {
-     CHECK(m_instance != XR_NULL_HANDLE);
-
-     XrInstanceProperties instanceProperties{XR_TYPE_INSTANCE_PROPERTIES};
-     CHECK_XRCMD(xrGetInstanceProperties(m_instance, &instanceProperties));
-
-     Log::Write(Log::Level::Info, Fmt("Instance RuntimeName=%s RuntimeVersion=%s", instanceProperties.runtimeName,
-                                      GetXrVersionString(instanceProperties.runtimeVersion).c_str()));
- }
-
-void RVRApp::CreateInstanceInternal() {
+void RVRApp::CreateInstance() {
     CHECK(m_instance == XR_NULL_HANDLE);
 
     // Create union of extensions required by platform and graphics plugins.
@@ -116,85 +59,9 @@ void RVRApp::CreateInstanceInternal() {
     createInfo.applicationInfo.apiVersion = XR_CURRENT_API_VERSION;
 
     CHECK_XRCMD(xrCreateInstance(&createInfo, &m_instance));
+
 }
 
-void RVRApp::CreateInstance() {
-    LogLayersAndExtensions();
-
-    CreateInstanceInternal();
-
-    LogInstanceInfo();
-}
-
-void RVRApp::LogViewConfigurations() {
-    CHECK(m_instance != XR_NULL_HANDLE);
-    CHECK(m_systemId != XR_NULL_SYSTEM_ID);
-
-    uint32_t viewConfigTypeCount;
-    CHECK_XRCMD(xrEnumerateViewConfigurations(m_instance, m_systemId, 0, &viewConfigTypeCount, nullptr));
-    std::vector<XrViewConfigurationType> viewConfigTypes(viewConfigTypeCount);
-    CHECK_XRCMD(xrEnumerateViewConfigurations(m_instance, m_systemId, viewConfigTypeCount, &viewConfigTypeCount,
-                                              viewConfigTypes.data()));
-    CHECK((uint32_t)viewConfigTypes.size() == viewConfigTypeCount);
-
-    Log::Write(Log::Level::Info, Fmt("Available View Configuration Types: (%d)", viewConfigTypeCount));
-    for (XrViewConfigurationType viewConfigType : viewConfigTypes) {
-        Log::Write(Log::Level::Verbose, Fmt("  View Configuration Type: %s %s", to_string(viewConfigType),
-                                            viewConfigType == m_viewConfigType ? "(Selected)" : ""));
-
-        XrViewConfigurationProperties viewConfigProperties{XR_TYPE_VIEW_CONFIGURATION_PROPERTIES};
-        CHECK_XRCMD(xrGetViewConfigurationProperties(m_instance, m_systemId, viewConfigType, &viewConfigProperties));
-
-        Log::Write(Log::Level::Verbose,
-                   Fmt("  View configuration FovMutable=%s", viewConfigProperties.fovMutable == XR_TRUE ? "True" : "False"));
-
-        uint32_t viewCount;
-        CHECK_XRCMD(xrEnumerateViewConfigurationViews(m_instance, m_systemId, viewConfigType, 0, &viewCount, nullptr));
-        if (viewCount > 0) {
-            std::vector<XrViewConfigurationView> views(viewCount, {XR_TYPE_VIEW_CONFIGURATION_VIEW});
-            CHECK_XRCMD(
-                xrEnumerateViewConfigurationViews(m_instance, m_systemId, viewConfigType, viewCount, &viewCount, views.data()));
-
-            for (uint32_t i = 0; i < views.size(); i++) {
-                const XrViewConfigurationView& view = views[i];
-
-                Log::Write(Log::Level::Verbose, Fmt("    View [%d]: Recommended Width=%d Height=%d SampleCount=%d", i,
-                                                    view.recommendedImageRectWidth, view.recommendedImageRectHeight,
-                                                    view.recommendedSwapchainSampleCount));
-                Log::Write(Log::Level::Verbose,
-                           Fmt("    View [%d]:     Maximum Width=%d Height=%d SampleCount=%d", i, view.maxImageRectWidth,
-                               view.maxImageRectHeight, view.maxSwapchainSampleCount));
-            }
-        } else {
-            Log::Write(Log::Level::Error, Fmt("Empty view configuration type"));
-        }
-
-        LogEnvironmentBlendMode(viewConfigType);
-    }
-}
-
-void RVRApp::LogEnvironmentBlendMode(XrViewConfigurationType type) {
-    CHECK(m_instance != XR_NULL_HANDLE);
-    CHECK(m_systemId != 0);
-
-    uint32_t count;
-    CHECK_XRCMD(xrEnumerateEnvironmentBlendModes(m_instance, m_systemId, type, 0, &count, nullptr));
-    CHECK(count > 0);
-
-    Log::Write(Log::Level::Info, Fmt("Available Environment Blend Mode count : (%d)", count));
-
-    std::vector<XrEnvironmentBlendMode> blendModes(count);
-    CHECK_XRCMD(xrEnumerateEnvironmentBlendModes(m_instance, m_systemId, type, count, &count, blendModes.data()));
-
-    bool blendModeFound = false;
-    for (XrEnvironmentBlendMode mode : blendModes) {
-        const bool blendModeMatch = (mode == m_environmentBlendMode);
-        Log::Write(Log::Level::Info,
-                   Fmt("Environment Blend Mode (%s) : %s", to_string(mode), blendModeMatch ? "(Selected)" : ""));
-        blendModeFound |= blendModeMatch;
-    }
-    CHECK(blendModeFound);
-}
 
 void RVRApp::InitializeSystem() {
     CHECK(m_instance != XR_NULL_HANDLE);
@@ -208,29 +75,11 @@ void RVRApp::InitializeSystem() {
     systemInfo.formFactor = m_formFactor;
     CHECK_XRCMD(xrGetSystem(m_instance, &systemInfo, &m_systemId));
 
-    Log::Write(Log::Level::Verbose, Fmt("Using system %d for form factor %s", m_systemId, to_string(m_formFactor)));
     CHECK(m_instance != XR_NULL_HANDLE);
     CHECK(m_systemId != XR_NULL_SYSTEM_ID);
 
-    LogViewConfigurations();
-
-    // The graphics API can initialize the graphics device now that the systemId and instance
-    // handle are available.
+    // The graphics API can initialize the graphics device
     m_vulkanRenderer->InitializeDevice(m_instance, m_systemId);
-}
-
-void RVRApp::LogReferenceSpaces() {
-    CHECK(m_session != XR_NULL_HANDLE);
-
-    uint32_t spaceCount;
-    CHECK_XRCMD(xrEnumerateReferenceSpaces(m_session, 0, &spaceCount, nullptr));
-    std::vector<XrReferenceSpaceType> spaces(spaceCount);
-    CHECK_XRCMD(xrEnumerateReferenceSpaces(m_session, spaceCount, &spaceCount, spaces.data()));
-
-    Log::Write(Log::Level::Info, Fmt("Available reference spaces: %d", spaceCount));
-    for (XrReferenceSpaceType space : spaces) {
-        Log::Write(Log::Level::Verbose, Fmt("  Name: %s", to_string(space)));
-    }
 }
 
 void RVRApp::InitializeActions() {
@@ -312,26 +161,7 @@ void RVRApp::InitializeActions() {
     CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/right/input/b/click", &bClickPath[Side::RIGHT]));
     CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/left/input/trigger/value", &triggerValuePath[Side::LEFT]));
     CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/right/input/trigger/value", &triggerValuePath[Side::RIGHT]));
-    // Suggest bindings for KHR Simple.
-    {
-        XrPath khrSimpleInteractionProfilePath;
-        CHECK_XRCMD(
-            xrStringToPath(m_instance, "/interaction_profiles/khr/simple_controller", &khrSimpleInteractionProfilePath));
-        std::vector<XrActionSuggestedBinding> bindings{{// Fall back to a click input for the grab action.
-                                                        {m_input.grabAction, selectPath[Side::LEFT]},
-                                                        {m_input.grabAction, selectPath[Side::RIGHT]},
-                                                        {m_input.poseAction, posePath[Side::LEFT]},
-                                                        {m_input.poseAction, posePath[Side::RIGHT]},
-                                                        {m_input.quitAction, menuClickPath[Side::LEFT]},
-                                                        {m_input.quitAction, menuClickPath[Side::RIGHT]},
-                                                        {m_input.vibrateAction, hapticPath[Side::LEFT]},
-                                                        {m_input.vibrateAction, hapticPath[Side::RIGHT]}}};
-        XrInteractionProfileSuggestedBinding suggestedBindings{XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING};
-        suggestedBindings.interactionProfile = khrSimpleInteractionProfilePath;
-        suggestedBindings.suggestedBindings = bindings.data();
-        suggestedBindings.countSuggestedBindings = (uint32_t)bindings.size();
-        CHECK_XRCMD(xrSuggestInteractionProfileBindings(m_instance, &suggestedBindings));
-    }
+
     // Suggest bindings for the Oculus Touch.
     {
         XrPath oculusTouchInteractionProfilePath;
@@ -350,65 +180,7 @@ void RVRApp::InitializeActions() {
         suggestedBindings.countSuggestedBindings = (uint32_t)bindings.size();
         CHECK_XRCMD(xrSuggestInteractionProfileBindings(m_instance, &suggestedBindings));
     }
-    // Suggest bindings for the Vive Controller.
-    {
-        XrPath viveControllerInteractionProfilePath;
-        CHECK_XRCMD(
-            xrStringToPath(m_instance, "/interaction_profiles/htc/vive_controller", &viveControllerInteractionProfilePath));
-        std::vector<XrActionSuggestedBinding> bindings{{{m_input.grabAction, triggerValuePath[Side::LEFT]},
-                                                        {m_input.grabAction, triggerValuePath[Side::RIGHT]},
-                                                        {m_input.poseAction, posePath[Side::LEFT]},
-                                                        {m_input.poseAction, posePath[Side::RIGHT]},
-                                                        {m_input.quitAction, menuClickPath[Side::LEFT]},
-                                                        {m_input.quitAction, menuClickPath[Side::RIGHT]},
-                                                        {m_input.vibrateAction, hapticPath[Side::LEFT]},
-                                                        {m_input.vibrateAction, hapticPath[Side::RIGHT]}}};
-        XrInteractionProfileSuggestedBinding suggestedBindings{XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING};
-        suggestedBindings.interactionProfile = viveControllerInteractionProfilePath;
-        suggestedBindings.suggestedBindings = bindings.data();
-        suggestedBindings.countSuggestedBindings = (uint32_t)bindings.size();
-        CHECK_XRCMD(xrSuggestInteractionProfileBindings(m_instance, &suggestedBindings));
-    }
 
-    // Suggest bindings for the Valve Index Controller.
-    {
-        XrPath indexControllerInteractionProfilePath;
-        CHECK_XRCMD(
-            xrStringToPath(m_instance, "/interaction_profiles/valve/index_controller", &indexControllerInteractionProfilePath));
-        std::vector<XrActionSuggestedBinding> bindings{{{m_input.grabAction, squeezeForcePath[Side::LEFT]},
-                                                        {m_input.grabAction, squeezeForcePath[Side::RIGHT]},
-                                                        {m_input.poseAction, posePath[Side::LEFT]},
-                                                        {m_input.poseAction, posePath[Side::RIGHT]},
-                                                        {m_input.quitAction, bClickPath[Side::LEFT]},
-                                                        {m_input.quitAction, bClickPath[Side::RIGHT]},
-                                                        {m_input.vibrateAction, hapticPath[Side::LEFT]},
-                                                        {m_input.vibrateAction, hapticPath[Side::RIGHT]}}};
-        XrInteractionProfileSuggestedBinding suggestedBindings{XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING};
-        suggestedBindings.interactionProfile = indexControllerInteractionProfilePath;
-        suggestedBindings.suggestedBindings = bindings.data();
-        suggestedBindings.countSuggestedBindings = (uint32_t)bindings.size();
-        CHECK_XRCMD(xrSuggestInteractionProfileBindings(m_instance, &suggestedBindings));
-    }
-
-    // Suggest bindings for the Microsoft Mixed Reality Motion Controller.
-    {
-        XrPath microsoftMixedRealityInteractionProfilePath;
-        CHECK_XRCMD(xrStringToPath(m_instance, "/interaction_profiles/microsoft/motion_controller",
-                                   &microsoftMixedRealityInteractionProfilePath));
-        std::vector<XrActionSuggestedBinding> bindings{{{m_input.grabAction, squeezeClickPath[Side::LEFT]},
-                                                        {m_input.grabAction, squeezeClickPath[Side::RIGHT]},
-                                                        {m_input.poseAction, posePath[Side::LEFT]},
-                                                        {m_input.poseAction, posePath[Side::RIGHT]},
-                                                        {m_input.quitAction, menuClickPath[Side::LEFT]},
-                                                        {m_input.quitAction, menuClickPath[Side::RIGHT]},
-                                                        {m_input.vibrateAction, hapticPath[Side::LEFT]},
-                                                        {m_input.vibrateAction, hapticPath[Side::RIGHT]}}};
-        XrInteractionProfileSuggestedBinding suggestedBindings{XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING};
-        suggestedBindings.interactionProfile = microsoftMixedRealityInteractionProfilePath;
-        suggestedBindings.suggestedBindings = bindings.data();
-        suggestedBindings.countSuggestedBindings = (uint32_t)bindings.size();
-        CHECK_XRCMD(xrSuggestInteractionProfileBindings(m_instance, &suggestedBindings));
-    }
     XrActionSpaceCreateInfo actionSpaceInfo{XR_TYPE_ACTION_SPACE_CREATE_INFO};
     actionSpaceInfo.action = m_input.poseAction;
     actionSpaceInfo.poseInActionSpace.orientation.w = 1.f;
@@ -426,19 +198,23 @@ void RVRApp::InitializeActions() {
 void RVRApp::CreateVisualizedSpaces() {
     CHECK(m_session != XR_NULL_HANDLE);
 
-    std::string visualizedSpaces[] = {"ViewFront",        "Local", "Stage", "StageLeft", "StageRight", "StageLeftRotated",
+    std::string visualizedSpaces[] = {"HUD",
+                                      "Local",
+                                      "Floor",
+                                      "StageLeft",
+                                      "StageRight",
+                                      "StageLeftRotated",
                                       "StageRightRotated"};
 
     for (const auto& visualizedSpace : visualizedSpaces) {
         XrReferenceSpaceCreateInfo referenceSpaceCreateInfo = GetXrReferenceSpaceCreateInfo(visualizedSpace);
         XrSpace space;
         XrResult res = xrCreateReferenceSpace(m_session, &referenceSpaceCreateInfo, &space);
-        if (XR_SUCCEEDED(res)) {
+        if (XR_SUCCEEDED(res))
             m_visualizedSpaces.push_back(space);
-        } else {
-            Log::Write(Log::Level::Warning,
+        else
+            Log::Write(Log::Level::Info,
                        Fmt("Failed to create reference space %s with error %d", visualizedSpace.c_str(), res));
-        }
     }
 }
 
@@ -446,23 +222,16 @@ void RVRApp::InitializeSession() {
     CHECK(m_instance != XR_NULL_HANDLE);
     CHECK(m_session == XR_NULL_HANDLE);
 
-    {
-        Log::Write(Log::Level::Verbose, Fmt("Creating session..."));
+    XrSessionCreateInfo createInfo{XR_TYPE_SESSION_CREATE_INFO};
+    createInfo.next = m_vulkanRenderer->GetGraphicsBinding();
+    createInfo.systemId = m_systemId;
+    CHECK_XRCMD(xrCreateSession(m_instance, &createInfo, &m_session));
 
-        XrSessionCreateInfo createInfo{XR_TYPE_SESSION_CREATE_INFO};
-        createInfo.next = m_vulkanRenderer->GetGraphicsBinding();
-        createInfo.systemId = m_systemId;
-        CHECK_XRCMD(xrCreateSession(m_instance, &createInfo, &m_session));
-    }
-
-    LogReferenceSpaces();
     InitializeActions();
     CreateVisualizedSpaces();
 
-    {
-        XrReferenceSpaceCreateInfo referenceSpaceCreateInfo = GetXrReferenceSpaceCreateInfo(m_options->AppSpace);
-        CHECK_XRCMD(xrCreateReferenceSpace(m_session, &referenceSpaceCreateInfo, &m_appSpace));
-    }
+    XrReferenceSpaceCreateInfo referenceSpaceCreateInfo = GetXrReferenceSpaceCreateInfo(m_options->AppSpace);
+    CHECK_XRCMD(xrCreateReferenceSpace(m_session, &referenceSpaceCreateInfo, &m_appSpace));
 }
 
 void RVRApp::CreateSwapchains() {
@@ -473,17 +242,6 @@ void RVRApp::CreateSwapchains() {
     // Read graphics properties for preferred swapchain length and logging.
     XrSystemProperties systemProperties{XR_TYPE_SYSTEM_PROPERTIES};
     CHECK_XRCMD(xrGetSystemProperties(m_instance, m_systemId, &systemProperties));
-
-    // Log system properties.
-    Log::Write(Log::Level::Info,
-               Fmt("System Properties: Name=%s VendorId=%d", systemProperties.systemName, systemProperties.vendorId));
-    Log::Write(Log::Level::Info, Fmt("System Graphics Properties: MaxWidth=%d MaxHeight=%d MaxLayers=%d",
-                                     systemProperties.graphicsProperties.maxSwapchainImageWidth,
-                                     systemProperties.graphicsProperties.maxSwapchainImageHeight,
-                                     systemProperties.graphicsProperties.maxLayerCount));
-    Log::Write(Log::Level::Info, Fmt("System Tracking Properties: OrientationTracking=%s PositionTracking=%s",
-                                     systemProperties.trackingProperties.orientationTracking == XR_TRUE ? "True" : "False",
-                                     systemProperties.trackingProperties.positionTracking == XR_TRUE ? "True" : "False"));
 
     // Note: No other view configurations exist at the time this code was written. If this
     // condition is not met, the project will need to be audited to see how support should be
@@ -511,29 +269,9 @@ void RVRApp::CreateSwapchains() {
         CHECK(swapchainFormatCount == swapchainFormats.size());
         m_colorSwapchainFormat = m_vulkanRenderer->SelectColorSwapchainFormat(swapchainFormats);
 
-        // Print swapchain formats and the selected one.
-        {
-            std::string swapchainFormatsString;
-            for (int64_t format : swapchainFormats) {
-                const bool selected = format == m_colorSwapchainFormat;
-                swapchainFormatsString += " ";
-                if (selected) {
-                    swapchainFormatsString += "[";
-                }
-                swapchainFormatsString += std::to_string(format);
-                if (selected) {
-                    swapchainFormatsString += "]";
-                }
-            }
-            Log::Write(Log::Level::Verbose, Fmt("Swapchain Formats: %s", swapchainFormatsString.c_str()));
-        }
-
         // Create a swapchain for each view.
         for (uint32_t i = 0; i < viewCount; i++) {
             const XrViewConfigurationView& vp = m_configViews[i];
-            Log::Write(Log::Level::Info,
-                       Fmt("Creating swapchain for view %d with dimensions Width=%d Height=%d SampleCount=%d", i,
-                           vp.recommendedImageRectWidth, vp.recommendedImageRectHeight, vp.recommendedSwapchainSampleCount));
 
             // Create the swapchain.
             XrSwapchainCreateInfo swapchainCreateInfo{XR_TYPE_SWAPCHAIN_CREATE_INFO};
@@ -573,7 +311,7 @@ const XrEventDataBaseHeader* RVRApp::TryReadNextEvent() {
     if (xr == XR_SUCCESS) {
         if (baseHeader->type == XR_TYPE_EVENT_DATA_EVENTS_LOST) {
             const XrEventDataEventsLost* const eventsLost = reinterpret_cast<const XrEventDataEventsLost*>(baseHeader);
-            Log::Write(Log::Level::Warning, Fmt("%d events lost", eventsLost));
+            Log::Write(Log::Level::Info, Fmt("%d events lost", eventsLost));
         }
 
         return baseHeader;
@@ -584,7 +322,7 @@ const XrEventDataBaseHeader* RVRApp::TryReadNextEvent() {
     THROW_XR(xr, "xrPollEvent");
 }
 
-void RVRApp::PollEvents(bool* exitRenderLoop, bool* requestRestart) {
+void RVRApp::PollXrEvents(bool* exitRenderLoop, bool* requestRestart) {
     *exitRenderLoop = *requestRestart = false;
 
     // Process all pending messages.
@@ -592,7 +330,7 @@ void RVRApp::PollEvents(bool* exitRenderLoop, bool* requestRestart) {
         switch (event->type) {
             case XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING: {
                 const auto& instanceLossPending = *reinterpret_cast<const XrEventDataInstanceLossPending*>(event);
-                Log::Write(Log::Level::Warning, Fmt("XrEventDataInstanceLossPending by %lld", instanceLossPending.lossTime));
+                Log::Write(Log::Level::Info, Fmt("XrEventDataInstanceLossPending by %lld", instanceLossPending.lossTime));
                 *exitRenderLoop = true;
                 *requestRestart = true;
                 return;
@@ -610,7 +348,7 @@ void RVRApp::PollEvents(bool* exitRenderLoop, bool* requestRestart) {
                 break;
             case XR_TYPE_EVENT_DATA_REFERENCE_SPACE_CHANGE_PENDING:
             default: {
-                Log::Write(Log::Level::Verbose, Fmt("Ignoring event type %d", event->type));
+                Log::Write(Log::Level::Info, Fmt("Ignoring event type %d", event->type));
                 break;
             }
         }
@@ -676,13 +414,13 @@ void RVRApp::LogActionSourceName(XrAction action, const std::string& actionName)
     CHECK_XRCMD(xrEnumerateBoundSourcesForAction(m_session, &getInfo, uint32_t(paths.size()), &pathCount, paths.data()));
 
     std::string sourceName;
-    for (uint32_t i = 0; i < pathCount; ++i) {
+    for (auto& path : paths) {
         constexpr XrInputSourceLocalizedNameFlags all = XR_INPUT_SOURCE_LOCALIZED_NAME_USER_PATH_BIT |
                                                         XR_INPUT_SOURCE_LOCALIZED_NAME_INTERACTION_PROFILE_BIT |
                                                         XR_INPUT_SOURCE_LOCALIZED_NAME_COMPONENT_BIT;
 
         XrInputSourceLocalizedNameGetInfo nameInfo = {XR_TYPE_INPUT_SOURCE_LOCALIZED_NAME_GET_INFO};
-        nameInfo.sourcePath = paths[i];
+        nameInfo.sourcePath = path;
         nameInfo.whichComponents = all;
 
         uint32_t size = 0;
@@ -784,9 +522,27 @@ void RVRApp::RenderFrame() {
     CHECK_XRCMD(xrEndFrame(m_session, &frameEndInfo));
 }
 
+
+bool RVRApp::UpdateRVRObjectFromLocatedSpace(XrTime& predictedDisplayTime, XrSpace& space, Cube& rvrObject) {
+    // Locate the space of interest
+    XrSpaceLocation spaceLocation{XR_TYPE_SPACE_LOCATION};
+    XrResult res = xrLocateSpace(space, m_appSpace, predictedDisplayTime, &spaceLocation);
+    CHECK_XRRESULT(res, "xrLocateSpace");
+
+    // If found and valid, map the space's location to the object
+    if (XR_UNQUALIFIED_SUCCESS(res)) {
+        if ((spaceLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) != 0 &&
+            (spaceLocation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT) != 0) {
+            rvrObject.Pose = spaceLocation.pose;
+            return true;
+        }
+    }
+    return false;
+}
+
 bool RVRApp::RenderLayer(XrTime predictedDisplayTime,
-                                std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
-                                XrCompositionLayerProjection& layer) {
+                         std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
+                         XrCompositionLayerProjection& layer) {
     XrResult res;
 
     XrViewState viewState{XR_TYPE_VIEW_STATE};
@@ -811,43 +567,32 @@ bool RVRApp::RenderLayer(XrTime predictedDisplayTime,
 
     projectionLayerViews.resize(viewCountOutput);
 
-    // For each locatable space that we want to visualize, render a 25cm cube.
+    // For now this is cubes but eventually we want this to be a more general object
     std::vector<Cube> cubes;
 
-    for (XrSpace visualizedSpace : m_visualizedSpaces) {
-        XrSpaceLocation spaceLocation{XR_TYPE_SPACE_LOCATION};
-        res = xrLocateSpace(visualizedSpace, m_appSpace, predictedDisplayTime, &spaceLocation);
-        CHECK_XRRESULT(res, "xrLocateSpace");
-        if (XR_UNQUALIFIED_SUCCESS(res)) {
-            if ((spaceLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) != 0 &&
-                (spaceLocation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT) != 0) {
-                cubes.push_back(Cube{spaceLocation.pose, {0.25f, 0.25f, 0.25f}});
-            }
-        } else {
-            Log::Write(Log::Level::Verbose, Fmt("Unable to locate a visualized reference space in app space: %d", res));
-        }
+    // For each locatable space that we want to visualize, render a 25cm cube.
+    for (XrSpace space : m_visualizedSpaces) {
+        Cube cube{};
+        cube.Scale = {0.25f, 0.25f, 0.25f};
+        if (UpdateRVRObjectFromLocatedSpace(predictedDisplayTime, space, cube))
+            cubes.push_back(cube);
+        else
+            Log::Write(Log::Level::Info, Fmt("Unable to locate space in app space: %d", res));
     }
 
-    // Render a 10cm cube scaled by grabAction for each hand. Note renderHand will only be
-    // true when the application has focus.
+    // Render a 10cm cube scaled by grabAction for each hand.
     for (auto hand : {Side::LEFT, Side::RIGHT}) {
-        XrSpaceLocation spaceLocation{XR_TYPE_SPACE_LOCATION};
-        res = xrLocateSpace(m_input.handSpace[hand], m_appSpace, predictedDisplayTime, &spaceLocation);
-        CHECK_XRRESULT(res, "xrLocateSpace");
-        if (XR_UNQUALIFIED_SUCCESS(res)) {
-            if ((spaceLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) != 0 &&
-                (spaceLocation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT) != 0) {
-                float scale = 0.1f * m_input.handScale[hand];
-                cubes.push_back(Cube{spaceLocation.pose, {scale, scale, scale}});
-            }
-        } else {
-            // Tracking loss is expected when the hand is not active so only log a message
-            // if the hand is active.
-            if (m_input.handActive[hand] == XR_TRUE) {
-                const char* handName[] = {"left", "right"};
-                Log::Write(Log::Level::Verbose,
-                           Fmt("Unable to locate %s hand action space in app space: %d", handName[hand], res));
-            }
+        Cube cube{};
+        float scale = 0.1f * m_input.handScale[hand];
+        cube.Scale = {scale, scale, scale};
+        if (UpdateRVRObjectFromLocatedSpace(predictedDisplayTime, m_input.handSpace[hand], cube)) {
+            cubes.push_back(cube);
+        }
+        else if (m_input.handActive[hand] == XR_TRUE) {
+            // Tracking loss is expected when the hand is not active so only log a message if the hand is active.
+            const char* handName[] = {"left", "right"};
+            Log::Write(Log::Level::Info,
+                       Fmt("Unable to locate %s hand action space in app space: %d", handName[hand], res));
         }
     }
 
