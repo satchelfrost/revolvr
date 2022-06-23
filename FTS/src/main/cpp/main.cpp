@@ -5,6 +5,11 @@
 #include "include/rvr_vulkan_renderer.h"
 #include "include/rvr_app.h"
 
+// test
+#include "include/my_rvr_object.h"
+#include "include/rvr_type.h"
+
+
 namespace {
 
 void ShowHelp() { Log::Write(Log::Level::Info, "adb shell setprop debug.xr.graphicsPlugin OpenGLES|Vulkan"); }
@@ -107,6 +112,8 @@ void android_main(struct android_app* app) {
 
     bool requestRestart = false;
     bool exitRenderLoop = false;
+
+    MyRVRObject myRvrObject(42);
 
     // Create platform abstraction
     RVRAndroidPlatform androidPlatform(app);
