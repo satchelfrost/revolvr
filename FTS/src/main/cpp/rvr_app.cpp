@@ -1,4 +1,4 @@
-#include "include/revolvr_app.h"
+#include "include/rvr_app.h"
 #include "include/xr_app_helpers.h"
 
 

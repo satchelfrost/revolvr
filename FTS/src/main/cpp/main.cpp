@@ -3,7 +3,7 @@
 #include "include/options.h"
 #include "include/rvr_android_platform.h"
 #include "include/rvr_vulkan_renderer.h"
-#include "include/revolvr_app.h"
+#include "include/rvr_app.h"
 
 namespace {
 
