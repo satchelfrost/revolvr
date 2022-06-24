@@ -7,8 +7,7 @@
 
 // test
 #include "include/my_rvr_object.h"
-#include "include/rvr_type.h"
-
+#include "include/my_rvr_spatial.h"
 
 namespace {
 
@@ -114,6 +113,7 @@ void android_main(struct android_app* app) {
     bool exitRenderLoop = false;
 
     MyRVRObject myRvrObject(42);
+    MyRVRSpatial myRvrSpatial(43);
 
     // Create platform abstraction
     RVRAndroidPlatform androidPlatform(app);
