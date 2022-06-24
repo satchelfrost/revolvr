@@ -53,7 +53,7 @@ inline XrReferenceSpaceCreateInfo GetXrReferenceSpaceCreateInfo(const std::strin
         referenceSpaceCreateInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_VIEW;
     } else if (EqualsIgnoreCase(referenceSpaceTypeStr, "Local")) {
         referenceSpaceCreateInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_LOCAL;
-    } else if (EqualsIgnoreCase(referenceSpaceTypeStr, "Floor")) {
+    } else if (EqualsIgnoreCase(referenceSpaceTypeStr, "TrackedOrigin")) {
         referenceSpaceCreateInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_STAGE;
     } else if (EqualsIgnoreCase(referenceSpaceTypeStr, "StageLeft")) {
         referenceSpaceCreateInfo.poseInReferenceSpace = RVRMath::Pose::RotateCCWAboutYAxis(0.f, {-2.f, 0.f, -2.f});

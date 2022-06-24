@@ -70,6 +70,7 @@ public:
 
   void LogActionSourceName(XrAction action, const std::string& actionName) const;
   bool UpdateRVRObjectFromLocatedSpace(XrTime& predictedDisplayTime, XrSpace& space, Cube& rvrObject);
+  bool UpdateRVRObjectFromTrackedOrigin(XrTime& predictedDisplayTime, Cube& rvrObject);
 
 private:
     const std::shared_ptr<Options> m_options;

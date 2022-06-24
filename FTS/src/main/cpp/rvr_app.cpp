@@ -200,7 +200,7 @@ void RVRApp::CreateVisualizedSpaces() {
 
     std::string visualizedSpaces[] = {"HUD",
                                       "Local",
-                                      "Floor",
+                                      "TrackedOrigin",
                                       "StageLeft",
                                       "StageRight",
                                       "StageLeftRotated",
@@ -540,6 +540,28 @@ bool RVRApp::UpdateRVRObjectFromLocatedSpace(XrTime& predictedDisplayTime, XrSpa
     return false;
 }
 
+bool RVRApp::UpdateRVRObjectFromTrackedOrigin(XrTime& predictedDisplayTime, Cube& rvrObject) {
+    // Locate the space of interest
+    XrSpaceLocation originLocation{XR_TYPE_SPACE_LOCATION};
+    XrSpace trackedOrigin = m_visualizedSpaces[2];
+    XrResult res = xrLocateSpace(trackedOrigin, m_appSpace, predictedDisplayTime, &originLocation);
+    CHECK_XRRESULT(res, "xrLocateSpace");
+
+    // If found and valid, map the space's location to the object
+    if (XR_UNQUALIFIED_SUCCESS(res)) {
+        if ((originLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) != 0 &&
+            (originLocation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT) != 0) {
+            rvrObject.Pose.orientation = originLocation.pose.orientation;
+            rvrObject.Pose.position.x = originLocation.pose.position.x + rvrObject.Pose.position.x;
+            rvrObject.Pose.position.y = originLocation.pose.position.y + rvrObject.Pose.position.y;
+            rvrObject.Pose.position.z = originLocation.pose.position.z + rvrObject.Pose.position.z;
+            return true;
+        }
+    }
+    return false;
+}
+
+
 bool RVRApp::RenderLayer(XrTime predictedDisplayTime,
                          std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
                          XrCompositionLayerProjection& layer) {
@@ -595,6 +617,18 @@ bool RVRApp::RenderLayer(XrTime predictedDisplayTime,
                        Fmt("Unable to locate %s hand action space in app space: %d", handName[hand], res));
         }
     }
+
+    Cube cube{};
+    cube.Scale = {0.5f, 0.5f, 0.5f};
+    cube.Pose = RVRMath::Pose::Identity();
+    cube.Pose.position = {2, 2, 0};
+    if (UpdateRVRObjectFromTrackedOrigin(predictedDisplayTime, cube))
+        cubes.push_back(cube);
+    else
+        Log::Write(Log::Level::Info, Fmt("Unable to locate space in app space: %d", res));
+
+
+
 
     // Render view to the appropriate part of the swapchain image.
     for (uint32_t i = 0; i < viewCountOutput; i++) {
