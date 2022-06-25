@@ -6,6 +6,7 @@
 #include "rvr_vulkan_renderer.h"
 #include "xr_linear.h"
 #include "rvr_android_platform.h"
+#include "rvr_reference_space.h"
 #include <array>
 #include <cmath>
 
@@ -17,9 +18,7 @@ namespace Side {
 
 class RVRApp {
 public:
-  RVRApp(const std::shared_ptr<Options>& options,
-         RVRAndroidPlatform* androidPlatform,
-         RVRVulkanRenderer* vulkanRenderer);
+  RVRApp(RVRAndroidPlatform* androidPlatform, RVRVulkanRenderer* vulkanRenderer);
 
   ~RVRApp();
 
@@ -58,8 +57,6 @@ public:
                    std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
                    XrCompositionLayerProjection& layer);
 
-  void CreateInstanceInternal();
-
   void CreateVisualizedSpaces();
 
   // Return event if one is available, otherwise return null.
@@ -70,32 +67,31 @@ public:
 
   void LogActionSourceName(XrAction action, const std::string& actionName) const;
   bool UpdateRVRObjectFromLocatedSpace(XrTime& predictedDisplayTime, XrSpace& space, Cube& rvrObject);
-  bool UpdateRVRObjectFromTrackedOrigin(XrTime& predictedDisplayTime, Cube& rvrObject);
+  bool UpdateRVRObjectFromTrackedOrigin(XrTime& predictedDisplayTime, const XrVector3f playerWorldPos, Cube& rvrObject);
 
 private:
-    const std::shared_ptr<Options> m_options;
-    RVRAndroidPlatform* m_androidPlatform;
-    RVRVulkanRenderer* m_vulkanRenderer;
-    XrInstance m_instance{XR_NULL_HANDLE};
-    XrSession m_session{XR_NULL_HANDLE};
-    XrSpace m_appSpace{XR_NULL_HANDLE};
-    XrFormFactor m_formFactor{XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY};
-    XrViewConfigurationType m_viewConfigType{XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO};
-    XrEnvironmentBlendMode m_environmentBlendMode{XR_ENVIRONMENT_BLEND_MODE_OPAQUE};
-    XrSystemId m_systemId{XR_NULL_SYSTEM_ID};
+    RVRAndroidPlatform* androidPlatform_;
+    RVRVulkanRenderer* vulkanRenderer_;
+    XrInstance xrInstance_{XR_NULL_HANDLE};
+    XrSession xrSession_{XR_NULL_HANDLE};
+    XrSpace appSpace_{XR_NULL_HANDLE};
+    XrViewConfigurationType xrViewConfigType_{XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO};
+    XrSystemId xrSystemId_{XR_NULL_SYSTEM_ID};
+    XrFormFactor formFactor_{XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY};
+    XrEnvironmentBlendMode blendMode_{XR_ENVIRONMENT_BLEND_MODE_OPAQUE};
 
-    std::vector<XrViewConfigurationView> m_configViews;
-    std::map<XrSwapchain, std::vector<XrSwapchainImageBaseHeader*>> m_swapchainImages;
-    std::vector<XrView> m_views;
-    int64_t m_colorSwapchainFormat{-1};
+    std::vector<XrViewConfigurationView> xrConfigViews_;
+    std::map<XrSwapchain, std::vector<XrSwapchainImageBaseHeader*>> xrSwapchainImages_;
+    std::vector<XrView> xrViews_;
+    int64_t xrColorSwapchainFormat_{-1};
 
-    std::vector<XrSpace> m_visualizedSpaces;
+    std::map<RVRReferenceSpace, XrSpace> referenceSpaces_;
 
     // Application's current lifecycle state according to the runtime
-    XrSessionState m_sessionState{XR_SESSION_STATE_UNKNOWN};
-    bool m_sessionRunning{false};
+    XrSessionState xrSessionState_{XR_SESSION_STATE_UNKNOWN};
+    bool xrSessionRunning_{false};
 
-    XrEventDataBuffer m_eventDataBuffer;
+    XrEventDataBuffer xrEventDataBuffer_;
 
     struct InputState {
         XrActionSet actionSet{XR_NULL_HANDLE};
@@ -108,13 +104,13 @@ private:
         std::array<float, Side::COUNT> handScale = {{1.0f, 1.0f}};
         std::array<XrBool32, Side::COUNT> handActive;
     };
-    InputState m_input;
+    InputState input_;
 
     struct Swapchain {
         XrSwapchain handle;
         int32_t width;
         int32_t height;
     };
-    std::vector<Swapchain> m_swapchains;
+    std::vector<Swapchain> swapchains_;
 
 };

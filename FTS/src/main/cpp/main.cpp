@@ -122,7 +122,7 @@ void android_main(struct android_app* app) {
     RVRVulkanRenderer vulkanRenderer(options, &androidPlatform);
 
     // Initialize the OpenXR program.
-    RVRApp rvrApp(options, &androidPlatform, &vulkanRenderer);
+    RVRApp rvrApp(&androidPlatform, &vulkanRenderer);
 
     // Initialize the loader for this platform
     PFN_xrInitializeLoaderKHR initializeLoader = nullptr;
