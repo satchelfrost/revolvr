@@ -18,7 +18,7 @@ RVRApp::RVRApp(RVRAndroidPlatform* androidPlatform, RVRVulkanRenderer* vulkanRen
          xrDestroySwapchain(swapchain.handle);
      }
 
-     for (auto referenceSpace : referenceSpaces_) {
+     for (auto referenceSpace : initializedRefSpaces_) {
          xrDestroySpace(referenceSpace.second);
      }
 
@@ -67,7 +67,7 @@ void RVRApp::InitializeSystem() {
     CHECK(xrSystemId_ == XR_NULL_SYSTEM_ID);
 
     XrSystemGetInfo systemInfo{XR_TYPE_SYSTEM_GET_INFO};
-    systemInfo.formFactor = formFactor_;
+    systemInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
     CHECK_XRCMD(xrGetSystem(xrInstance_, &systemInfo, &xrSystemId_));
 
     CHECK(xrInstance_ != XR_NULL_HANDLE);
@@ -190,12 +190,12 @@ void RVRApp::InitializeActions() {
     CHECK_XRCMD(xrAttachSessionActionSets(xrSession_, &attachInfo));
 }
 
-void RVRApp::CreateVisualizedSpaces() {
+void RVRApp::InitializeReferenceSpaces() {
     CHECK(xrSession_ != XR_NULL_HANDLE);
     RVRReferenceSpace referenceSpaces[] = { //RVRReferenceSpace::RVRHead,
-                                            RVRReferenceSpace::RVRHud
+                                            RVRReferenceSpace::RVRHud,
                                             //RVRReferenceSpace::RVRHeadInitial,
-                                            //RVRReferenceSpace::RVRTrackedOrigin,
+                                            RVRReferenceSpace::RVRTrackedOrigin
                                             //RVRReferenceSpace::RVRStageRight,
                                             //RVRReferenceSpace::RVRStageLeft
                                             };
@@ -205,9 +205,9 @@ void RVRApp::CreateVisualizedSpaces() {
         XrSpace space;
         XrResult res = xrCreateReferenceSpace(xrSession_, &referenceSpaceCreateInfo, &space);
         if (XR_SUCCEEDED(res))
-            referenceSpaces_[referenceSpace] = space;
+            initializedRefSpaces_[referenceSpace] = space;
         else
-            Log::Write(Log::Level::Info,
+            Log::Write(Log::Level::Error,
                        Fmt("Failed to create reference space %d with error %d", referenceSpace, res));
     }
 }
@@ -222,7 +222,7 @@ void RVRApp::InitializeSession() {
     CHECK_XRCMD(xrCreateSession(xrInstance_, &createInfo, &xrSession_));
 
     InitializeActions();
-    CreateVisualizedSpaces();
+    InitializeReferenceSpaces();
 
     XrReferenceSpaceCreateInfo referenceSpaceCreateInfo = GetXrReferenceSpaceCreateInfo(RVRReferenceSpace::RVRHeadInitial);
     CHECK_XRCMD(xrCreateReferenceSpace(xrSession_, &referenceSpaceCreateInfo, &appSpace_));
@@ -300,7 +300,7 @@ const XrEventDataBaseHeader* RVRApp::TryReadNextEvent() {
     if (xr == XR_SUCCESS) {
         if (baseHeader->type == XR_TYPE_EVENT_DATA_EVENTS_LOST) {
             const XrEventDataEventsLost* const eventsLost = reinterpret_cast<const XrEventDataEventsLost*>(baseHeader);
-            Log::Write(Log::Level::Info, Fmt("%d events lost", eventsLost));
+            Log::Write(Log::Level::Warning, Fmt("%d events lost", eventsLost));
         }
 
         return baseHeader;
@@ -358,7 +358,7 @@ void RVRApp::HandleSessionStateChangedEvent(const XrEventDataSessionStateChanged
                    stateChangedEvent.time));
 
     if ((stateChangedEvent.session != XR_NULL_HANDLE) && (stateChangedEvent.session != xrSession_)) {
-        Log::Write(Log::Level::Error, "XrEventDataSessionStateChanged for unknown session");
+        Log::Write(Log::Level::Info, "XrEventDataSessionStateChanged for unknown session");
         return;
     }
 
@@ -494,28 +494,31 @@ void RVRApp::RenderFrame() {
     XrFrameBeginInfo frameBeginInfo{XR_TYPE_FRAME_BEGIN_INFO};
     CHECK_XRCMD(xrBeginFrame(xrSession_, &frameBeginInfo));
 
+    // Save the predicted display time for various xrLocateSpace calls
+    predictedDisplayTime_ = frameState.predictedDisplayTime;
+
     std::vector<XrCompositionLayerBaseHeader*> layers;
     XrCompositionLayerProjection layer{XR_TYPE_COMPOSITION_LAYER_PROJECTION};
     std::vector<XrCompositionLayerProjectionView> projectionLayerViews;
     if (frameState.shouldRender == XR_TRUE) {
-        if (RenderLayer(frameState.predictedDisplayTime, projectionLayerViews, layer)) {
+        if (RenderLayer(projectionLayerViews, layer)) {
             layers.push_back(reinterpret_cast<XrCompositionLayerBaseHeader*>(&layer));
         }
     }
 
     XrFrameEndInfo frameEndInfo{XR_TYPE_FRAME_END_INFO};
-    frameEndInfo.displayTime = frameState.predictedDisplayTime;
-    frameEndInfo.environmentBlendMode = blendMode_;
+    frameEndInfo.displayTime = predictedDisplayTime_;
+    frameEndInfo.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
     frameEndInfo.layerCount = (uint32_t)layers.size();
     frameEndInfo.layers = layers.data();
     CHECK_XRCMD(xrEndFrame(xrSession_, &frameEndInfo));
 }
 
 
-bool RVRApp::UpdateRVRObjectFromLocatedSpace(XrTime& predictedDisplayTime, XrSpace& space, Cube& rvrObject) {
+bool RVRApp::UpdateRVRObjectFromLocatedSpace(XrSpace& space, Cube& rvrObject) {
     // Locate the space of interest
     XrSpaceLocation spaceLocation{XR_TYPE_SPACE_LOCATION};
-    XrResult res = xrLocateSpace(space, appSpace_, predictedDisplayTime, &spaceLocation);
+    XrResult res = xrLocateSpace(space, appSpace_, predictedDisplayTime_, &spaceLocation);
     CHECK_XRRESULT(res, "xrLocateSpace");
 
     // If found and valid, map the space's location to the object
@@ -529,13 +532,11 @@ bool RVRApp::UpdateRVRObjectFromLocatedSpace(XrTime& predictedDisplayTime, XrSpa
     return false;
 }
 
-bool RVRApp::UpdateRVRObjectFromTrackedOrigin(XrTime& predictedDisplayTime,
-                                              const XrVector3f playerWorldPos,
-                                              Cube& rvrObject) {
+bool RVRApp::UpdateRVRObjectFromTrackedOrigin(const XrVector3f playerWorldPos, Cube& rvrObject) {
     // Locate the space of interest
     XrSpaceLocation originLocation{XR_TYPE_SPACE_LOCATION};
-    XrSpace trackedOrigin = referenceSpaces_[RVRReferenceSpace::RVRTrackedOrigin];
-    XrResult res = xrLocateSpace(trackedOrigin, appSpace_, predictedDisplayTime, &originLocation);
+    XrSpace trackedOrigin = initializedRefSpaces_[RVRReferenceSpace::RVRTrackedOrigin];
+    XrResult res = xrLocateSpace(trackedOrigin, appSpace_, predictedDisplayTime_, &originLocation);
     CHECK_XRRESULT(res, "xrLocateSpace");
 
     // If found and valid, map the space's location to the object
@@ -545,7 +546,7 @@ bool RVRApp::UpdateRVRObjectFromTrackedOrigin(XrTime& predictedDisplayTime,
             rvrObject.Pose.orientation = originLocation.pose.orientation;
             XrVector3f relativePosition;
             XrVector3f_Sub(&relativePosition, &rvrObject.Pose.position, &playerWorldPos);
-            XrVector3f_Add(&rvrObject.Pose.position, &rvrObject.Pose.position, &originLocation.pose.position);
+            XrVector3f_Add(&rvrObject.Pose.position, &relativePosition, &originLocation.pose.position);
             return true;
         }
     }
@@ -560,21 +561,58 @@ Cube MakeCube(float scale, XrVector3f position) {
     return cube;
 }
 
-bool RVRApp::RenderLayer(XrTime predictedDisplayTime,
-                         std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
-                         XrCompositionLayerProjection& layer) {
-    XrResult res;
+void RVRApp::UpdateRefSpacesToRender() {
+    // Gather any reference spaces to render for debug purposes
+    for (auto refSpace : {RVRReferenceSpace::RVRHud /*Add any others*/}) {
+        Cube cube{};
+        cube.Scale = {0.25f, 0.25f, 0.25f};
+        XrSpace space = initializedRefSpaces_[refSpace];
+        CHECK_MSG(space, Fmt("RVRReferenceSpace %s was never initialized.", toString(refSpace)));
+        if (UpdateRVRObjectFromLocatedSpace(space, cube))
+            renderBuffer_.push_back(cube);
+    }
+}
 
+void RVRApp::UpdateHands() {
+    for (auto hand : {Side::LEFT, Side::RIGHT}) {
+        Cube cube{};
+        float scale = 0.1f * input_.handScale[hand];
+        cube.Scale = {scale, scale, scale};
+        if (UpdateRVRObjectFromLocatedSpace(input_.handSpace[hand], cube))
+            renderBuffer_.push_back(cube);
+    }
+}
+
+void RVRApp::UpdateScene() {
+    // For now code this locally until this can read a scene description
+    XrVector3f worldOrigin{0, 1.5, 0};
+    XrVector3f z{0, 1.5, 1};
+    XrVector3f x{1, 1.5, 0};
+    XrVector3f zx{1, 1.5, 1};
+    XrVector3f playerPosition{0.5, 0, 0.5};
+    Cube testCubes[] {MakeCube(0.1, z),
+                      MakeCube(0.1, x),
+                      MakeCube(0.1, zx),
+                      MakeCube(0.1, worldOrigin)};
+
+    for (auto testCube : testCubes)
+        if (UpdateRVRObjectFromTrackedOrigin(playerPosition, testCube))
+            renderBuffer_.push_back(testCube);
+}
+
+bool RVRApp::RenderLayer(std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
+                         XrCompositionLayerProjection& layer) {
     XrViewState viewState{XR_TYPE_VIEW_STATE};
     uint32_t viewCapacityInput = (uint32_t)xrViews_.size();
     uint32_t viewCountOutput;
 
     XrViewLocateInfo viewLocateInfo{XR_TYPE_VIEW_LOCATE_INFO};
     viewLocateInfo.viewConfigurationType = xrViewConfigType_;
-    viewLocateInfo.displayTime = predictedDisplayTime;
+    viewLocateInfo.displayTime = predictedDisplayTime_;
     viewLocateInfo.space = appSpace_;
 
-    res = xrLocateViews(xrSession_, &viewLocateInfo, &viewState, viewCapacityInput, &viewCountOutput, xrViews_.data());
+    XrResult res = xrLocateViews(xrSession_, &viewLocateInfo, &viewState, viewCapacityInput,
+                                 &viewCountOutput, xrViews_.data());
     CHECK_XRRESULT(res, "xrLocateViews");
     if ((viewState.viewStateFlags & XR_VIEW_STATE_POSITION_VALID_BIT) == 0 ||
         (viewState.viewStateFlags & XR_VIEW_STATE_ORIENTATION_VALID_BIT) == 0) {
@@ -587,51 +625,10 @@ bool RVRApp::RenderLayer(XrTime predictedDisplayTime,
 
     projectionLayerViews.resize(viewCountOutput);
 
-    // For now this is cubes but eventually we want this to be a more general object
-    std::vector<Cube> cubes;
-
-    // For each locatable space that we want to visualize, render a 25cm cube.
-    for (auto space : referenceSpaces_) {
-        Cube cube{};
-        cube.Scale = {0.25f, 0.25f, 0.25f};
-        if (UpdateRVRObjectFromLocatedSpace(predictedDisplayTime, space.second, cube))
-            cubes.push_back(cube);
-        else
-            Log::Write(Log::Level::Info, Fmt("Unable to locate space in app space: %d", res));
-    }
-
-    // Render a 10cm cube scaled by grabAction for each hand.
-    for (auto hand : {Side::LEFT, Side::RIGHT}) {
-        Cube cube{};
-        float scale = 0.1f * input_.handScale[hand];
-        cube.Scale = {scale, scale, scale};
-        if (UpdateRVRObjectFromLocatedSpace(predictedDisplayTime, input_.handSpace[hand], cube)) {
-            cubes.push_back(cube);
-        }
-        else if (input_.handActive[hand] == XR_TRUE) {
-            // Tracking loss is expected when the hand is not active so only log a message if the hand is active.
-            const char* handName[] = {"left", "right"};
-            Log::Write(Log::Level::Info,
-                       Fmt("Unable to locate %s hand action space in app space: %d", handName[hand], res));
-        }
-    }
-
-    XrVector3f worldOrigin{0, 0, 0};
-    XrVector3f z{0, 0, 5};
-    XrVector3f x{5, 0, 0};
-    XrVector3f zx{5, 0, 5};
-    XrVector3f playerPosition{3, 0, 3};
-    Cube testCubes[] {MakeCube(0.1, z),
-                      MakeCube(0.5, x),
-                      MakeCube(1.0, zx),
-                      MakeCube(0.05, worldOrigin)};
-
-    for (auto testCube : testCubes) {
-        if (UpdateRVRObjectFromTrackedOrigin(predictedDisplayTime, playerPosition, testCube))
-            cubes.push_back(testCube);
-        else
-            Log::Write(Log::Level::Info, Fmt("Unable to locate space in app space: %d", res));
-    }
+    // Make various updates to render buffer
+    // UpdateRefSpacesToRender();
+    UpdateHands();
+    UpdateScene();
 
     // Render view to the appropriate part of the swapchain image.
     for (uint32_t i = 0; i < viewCountOutput; i++) {
@@ -655,11 +652,14 @@ bool RVRApp::RenderLayer(XrTime predictedDisplayTime,
         projectionLayerViews[i].subImage.imageRect.extent = {viewSwapchain.width, viewSwapchain.height};
 
         const XrSwapchainImageBaseHeader* const swapchainImage = xrSwapchainImages_[viewSwapchain.handle][swapchainImageIndex];
-        vulkanRenderer_->RenderView(projectionLayerViews[i], swapchainImage, xrColorSwapchainFormat_, cubes);
+        vulkanRenderer_->RenderView(projectionLayerViews[i], swapchainImage, xrColorSwapchainFormat_, renderBuffer_);
 
         XrSwapchainImageReleaseInfo releaseInfo{XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO};
         CHECK_XRCMD(xrReleaseSwapchainImage(viewSwapchain.handle, &releaseInfo));
     }
+
+    // Clear the renderbuffer for the next frame
+    renderBuffer_.clear();
 
     layer.space = appSpace_;
     layer.viewCount = (uint32_t)projectionLayerViews.size();

@@ -53,11 +53,10 @@ public:
   // Create and submit a frame.
   void RenderFrame();
 
-  bool RenderLayer(XrTime predictedDisplayTime,
-                   std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
+  bool RenderLayer(std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
                    XrCompositionLayerProjection& layer);
 
-  void CreateVisualizedSpaces();
+  void InitializeReferenceSpaces();
 
   // Return event if one is available, otherwise return null.
   const XrEventDataBaseHeader* TryReadNextEvent();
@@ -66,8 +65,11 @@ public:
                                       bool* requestRestart);
 
   void LogActionSourceName(XrAction action, const std::string& actionName) const;
-  bool UpdateRVRObjectFromLocatedSpace(XrTime& predictedDisplayTime, XrSpace& space, Cube& rvrObject);
-  bool UpdateRVRObjectFromTrackedOrigin(XrTime& predictedDisplayTime, const XrVector3f playerWorldPos, Cube& rvrObject);
+  bool UpdateRVRObjectFromLocatedSpace(XrSpace& space, Cube& rvrObject);
+  bool UpdateRVRObjectFromTrackedOrigin(const XrVector3f playerWorldPos, Cube& rvrObject);
+  void UpdateRefSpacesToRender();
+  void UpdateHands();
+  void UpdateScene();
 
 private:
     RVRAndroidPlatform* androidPlatform_;
@@ -77,15 +79,15 @@ private:
     XrSpace appSpace_{XR_NULL_HANDLE};
     XrViewConfigurationType xrViewConfigType_{XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO};
     XrSystemId xrSystemId_{XR_NULL_SYSTEM_ID};
-    XrFormFactor formFactor_{XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY};
-    XrEnvironmentBlendMode blendMode_{XR_ENVIRONMENT_BLEND_MODE_OPAQUE};
+    XrTime predictedDisplayTime_{XR_NO_DURATION};
 
     std::vector<XrViewConfigurationView> xrConfigViews_;
     std::map<XrSwapchain, std::vector<XrSwapchainImageBaseHeader*>> xrSwapchainImages_;
     std::vector<XrView> xrViews_;
     int64_t xrColorSwapchainFormat_{-1};
 
-    std::map<RVRReferenceSpace, XrSpace> referenceSpaces_;
+    std::map<RVRReferenceSpace, XrSpace> initializedRefSpaces_;
+    std::vector<Cube> renderBuffer_;
 
     // Application's current lifecycle state according to the runtime
     XrSessionState xrSessionState_{XR_SESSION_STATE_UNKNOWN};
