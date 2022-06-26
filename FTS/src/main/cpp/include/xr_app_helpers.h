@@ -43,8 +43,7 @@ inline XrReferenceSpaceCreateInfo GetXrReferenceSpaceCreateInfo(RVRReferenceSpac
         referenceSpaceCreateInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_STAGE;
         break;
     default:
-        ALOGE("Unknown reference space type '%d', see RVRReferenceSpace enum class", referenceSpace);
-        exit(1);
+        THROW(Fmt("Unknown reference space type '%d', see RVRReferenceSpace enum class", referenceSpace));
     }
     return referenceSpaceCreateInfo;
 }
