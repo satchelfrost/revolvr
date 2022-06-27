@@ -1,3 +1,5 @@
+#pragma once
+
 #include "rvr_spatial.h"
 
 class MyRVRSpatial : public RVRSpatial {

@@ -7,6 +7,7 @@
 #include "xr_linear.h"
 #include "rvr_android_platform.h"
 #include "rvr_reference_space.h"
+#include "rvr_scene_tree.h"
 #include <array>
 #include <cmath>
 
@@ -65,13 +66,15 @@ public:
                                       bool* requestRestart);
 
   void LogActionSourceName(XrAction action, const std::string& actionName) const;
-  bool UpdateRVRObjectFromLocatedSpace(XrSpace& space, Cube& rvrObject);
+//  bool UpdateRVRObjectFromLocatedSpace(XrSpace& space, Cube& rvrObject);
+  bool UpdateRVRSpatialFromLocatedSpace(XrSpace& space, RVRSpatial* rvrSpatial);
   bool UpdateRVRObjectFromTrackedOrigin(const XrVector3f playerWorldPos, Cube& rvrObject);
-  void UpdateRefSpacesToRender();
+//  void UpdateRefSpacesToRender();
   void UpdateHands();
   void UpdateScene();
 
 private:
+    RVRSceneTree sceneTree_;
     RVRAndroidPlatform* androidPlatform_;
     RVRVulkanRenderer* vulkanRenderer_;
     XrInstance xrInstance_{XR_NULL_HANDLE};

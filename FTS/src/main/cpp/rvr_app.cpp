@@ -515,7 +515,7 @@ void RVRApp::RenderFrame() {
 }
 
 
-bool RVRApp::UpdateRVRObjectFromLocatedSpace(XrSpace& space, Cube& rvrObject) {
+bool RVRApp::UpdateRVRSpatialFromLocatedSpace(XrSpace& space, RVRSpatial* rvrSpatial) {
     // Locate the space of interest
     XrSpaceLocation spaceLocation{XR_TYPE_SPACE_LOCATION};
     XrResult res = xrLocateSpace(space, appSpace_, predictedDisplayTime_, &spaceLocation);
@@ -525,7 +525,8 @@ bool RVRApp::UpdateRVRObjectFromLocatedSpace(XrSpace& space, Cube& rvrObject) {
     if (XR_UNQUALIFIED_SUCCESS(res)) {
         if ((spaceLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) != 0 &&
             (spaceLocation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT) != 0) {
-            rvrObject.Pose = spaceLocation.pose;
+            rvrSpatial->pose = spaceLocation.pose;
+            sceneTree_.CascadePose(rvrSpatial);
             return true;
         }
     }
@@ -561,25 +562,29 @@ Cube MakeCube(float scale, XrVector3f position) {
     return cube;
 }
 
-void RVRApp::UpdateRefSpacesToRender() {
-    // Gather any reference spaces to render for debug purposes
-    for (auto refSpace : {RVRReferenceSpace::RVRHud /*Add any others*/}) {
-        Cube cube{};
-        cube.Scale = {0.25f, 0.25f, 0.25f};
-        XrSpace space = initializedRefSpaces_[refSpace];
-        CHECK_MSG(space, Fmt("RVRReferenceSpace %s was never initialized.", toString(refSpace)));
-        if (UpdateRVRObjectFromLocatedSpace(space, cube))
-            renderBuffer_.push_back(cube);
-    }
-}
+//void RVRApp::UpdateRefSpacesToRender() {
+//    // Gather any reference spaces to render for debug purposes
+//    for (auto refSpace : {RVRReferenceSpace::RVRHud /*Add any others*/}) {
+//        Cube cube{};
+//        cube.Scale = {0.25f, 0.25f, 0.25f};
+//        XrSpace space = initializedRefSpaces_[refSpace];
+//        CHECK_MSG(space, Fmt("RVRReferenceSpace %s was never initialized.", toString(refSpace)));
+//        if (UpdateRVRObjectFromLocatedSpace(space, cube))
+//            renderBuffer_.push_back(cube);
+//    }
+//}
 
 void RVRApp::UpdateHands() {
     for (auto hand : {Side::LEFT, Side::RIGHT}) {
         Cube cube{};
         float scale = 0.1f * input_.handScale[hand];
         cube.Scale = {scale, scale, scale};
-        if (UpdateRVRObjectFromLocatedSpace(input_.handSpace[hand], cube))
-            renderBuffer_.push_back(cube);
+        auto handSpatial = reinterpret_cast<RVRSpatial*>(sceneTree_.hands[hand]);
+        if (UpdateRVRSpatialFromLocatedSpace(input_.handSpace[hand], handSpatial)) {
+            if(handSpatial->type == RVRType::RVRMesh) {
+                renderBuffer_.push_back(cube);
+            }
+        }
     }
 }
 
@@ -628,7 +633,7 @@ bool RVRApp::RenderLayer(std::vector<XrCompositionLayerProjectionView>& projecti
     // Make various updates to render buffer
     // UpdateRefSpacesToRender();
     UpdateHands();
-    UpdateScene();
+//    UpdateScene();
 
     // Render view to the appropriate part of the swapchain image.
     for (uint32_t i = 0; i < viewCountOutput; i++) {

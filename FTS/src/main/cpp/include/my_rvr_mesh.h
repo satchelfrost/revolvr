@@ -1,3 +1,5 @@
+#pragma once
+
 #include "rvr_mesh.h"
 
 class MyRVRMesh : public RVRMesh {

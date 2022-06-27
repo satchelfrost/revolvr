@@ -29,5 +29,9 @@ namespace Vector {
 XrVector3f Zero() {
     return {0.0f, 0.0f, 0.0f};
 }
+
+XrVector3f One() {
+    return {1.0f, 1.0f, 1.0f};
+}
 } // namespace Vector
 } // namespace RVRMath
