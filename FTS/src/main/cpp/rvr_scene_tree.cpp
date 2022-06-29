@@ -1,49 +1,46 @@
 #include "include/rvr_scene_tree.h"
 
-RVRSceneTree::RVRSceneTree() : nodeId_(0) {
+RVRSceneTree::RVRSceneTree() {
     // Setup the root node
-    root_ = static_cast<RVRObject*>(new MyRVRSpatial(NewId()));
+    nodeId_= 0;
+    root_ = vrOrigin = new RVROrigin(NewId());
+    vrOrigin->pose.position.x = 3;
 
     // Setup VR Origin
-    auto vrOriginSpatial = new MyRVRSpatial(1);
-    vrOriginSpatial->pose.position.x = 3;
-    auto vrOrigin  = static_cast<RVRObject*>(vrOriginSpatial);
-    auto leftHand  = static_cast<RVRObject*>(new MyRVRSpatial(NewId()));
-    auto rightHand = static_cast<RVRObject*>(new MyRVRSpatial(NewId()));
-    hands[0] = leftHand;
-    hands[1] = rightHand;
+    leftHand = new RVRHand(NewId(), 0);
+    rightHand = new RVRHand(NewId(), 1);
     vrOrigin->AddChild(leftHand);
     vrOrigin->AddChild(rightHand);
-    root_->AddChild(vrOrigin);
 
     // Create meshes for the hands and attach to the hands
-    auto leftHandMesh = new MyRVRMesh(NewId());
+    auto leftHandMesh = new RVRMesh(NewId());
     leftHandMesh->UniformScale(0.1);
-    auto rightHandMesh = new MyRVRMesh(NewId());
+    auto rightHandMesh = new RVRMesh(NewId());
     rightHandMesh->UniformScale(0.1);
-    auto pointer = new MyRVRMesh(NewId());
+    auto pointer = new RVRMesh(NewId());
     pointer->scale = {0.01, 0.01, 0.5};
     pointer->pose.position.z = -0.25;
-    leftHand->AddChild(static_cast<RVRObject*>(leftHandMesh));
-    rightHand->AddChild(static_cast<RVRObject*>(rightHandMesh));
-    rightHand->AddChild(static_cast<RVRObject*>(pointer));
+    leftHand->AddChild(leftHandMesh);
+    rightHand->AddChild(rightHandMesh);
+    rightHand->AddChild(pointer);
 
     // Add four more nodes to the scene
-    auto worldOriginMesh = new MyRVRMesh(NewId());
+    auto worldOriginMesh = new RVRMesh(NewId());
     worldOriginMesh->UniformScale(0.5);
-    auto backMesh   = new MyRVRMesh(NewId());
+    auto backMesh   = new RVRMesh(NewId());
     backMesh->scale = {0.5, 3, 0.5};
     backMesh->pose.position = {3, 1.5, 4};
-    auto rightMesh  = new MyRVRMesh(NewId());
+    auto rightMesh  = new RVRMesh(NewId());
     rightMesh->scale = {0.5, 3, 0.5};
     rightMesh->pose.position = {6, 1.247, 0};
-    auto frontMesh  = new MyRVRMesh(NewId());
+    rightMesh->pose.orientation = XrQuaternionf_CreateFromVectorAngle({1, 0, 0}, -3.14 / 4);
+    auto frontMesh  = new RVRMesh(NewId());
     frontMesh->scale = {4, 0.5, 0.5};
     frontMesh->pose.position = {3, 0.25, -5};
-    root_->AddChild(static_cast<RVRObject*>(worldOriginMesh));
-    root_->AddChild(static_cast<RVRObject*>(backMesh));
-    root_->AddChild(static_cast<RVRObject*>(rightMesh));
-    root_->AddChild(static_cast<RVRObject*>(frontMesh));
+    vrOrigin->AddChild(worldOriginMesh);
+    vrOrigin->AddChild(backMesh);
+    vrOrigin->AddChild(rightMesh);
+    vrOrigin->AddChild(frontMesh);
 
 }
 
@@ -51,29 +48,53 @@ int RVRSceneTree::NewId() {
     return nodeId_++;
 }
 
-void RVRSceneTree::CascadePose(RVRSpatial* parent) {
+void RVRSceneTree::CascadePose(const TrackedSpaceLocations& trackedSpaceLocations) {
+    CascadePose_(root_, trackedSpaceLocations);
+}
+
+void RVRSceneTree::CascadePose_(RVRSpatial* parent, const TrackedSpaceLocations& trackedSpaceLocations) {
     for (auto objChild : parent->GetChildren()) {
-        auto child = reinterpret_cast<RVRSpatial*>(objChild);
-        XrVector3f_Add(&child->pose.position, &child->pose.position, &parent->pose.position);
-        child->pose.orientation = parent->pose.orientation;
-        CascadePose(reinterpret_cast<RVRSpatial*>(child));
+        switch (objChild->type) {
+            case RVRType::Origin: {
+                auto child = reinterpret_cast<RVROrigin*>(objChild);
+                child->worldPose = trackedSpaceLocations.vrOrigin.pose;
+                break;
+            }
+            case RVRType::Hand: {
+                auto child = reinterpret_cast<RVRHand*>(objChild);
+                if(child->GetSide())
+                    child->worldPose = trackedSpaceLocations.rightHand.pose;
+                else
+                    child->worldPose = trackedSpaceLocations.leftHand.pose;
+                break;
+            }
+            case RVRType::Spatial:
+            case RVRType::Mesh: {
+                auto child = reinterpret_cast<RVRSpatial*>(objChild);
+                XrQuaternionf_Multiply(&child->worldPose.orientation, &child->pose.orientation, &parent->worldPose.orientation);
+                child->worldPose.position = parent->worldPose.position;
+                XrVector3f offset = XrQuaternionf_Rotate_World(child->worldPose.orientation, child->pose.position);
+                XrVector3f_Add(&child->worldPose.position, &offset, &child->worldPose.position);
+                XrVector3f_Sub(&child->worldPose.position, &child->worldPose.position, &parent->pose.position);
+                break;
+            }
+            default:
+                break;
+        }
+        CascadePose_(reinterpret_cast<RVRSpatial*>(objChild), trackedSpaceLocations);
     }
 }
 
 std::vector<RVRMesh*> RVRSceneTree::GatherRenderables() {
     std::vector<RVRMesh*> renderables;
-    for (auto child : root_->GetChildren()) {
-        if (child->type == RVRType::RVRMesh)
-            renderables.push_back(reinterpret_cast<RVRMesh*>(child));
-    }
+    GatherRenderables_(root_, renderables);
     return renderables;
 }
 
-//void RVRSceneTree::Traverse(RVRObject* node) {
-//    auto children = node->GetChildren();
-//    if (children.size() == 0)
-//        traversedObjects_.push_back(node);
-//
-//    for (auto child : children)
-//        Traverse(child);
-//}
+void RVRSceneTree::GatherRenderables_(RVRObject* node, std::vector<RVRMesh*>& renderables) {
+    for (auto child : node->GetChildren()) {
+        if (child->type == RVRType::Mesh)
+            renderables.push_back(reinterpret_cast<RVRMesh*>(child));
+        GatherRenderables_(child, renderables);
+    }
+}
