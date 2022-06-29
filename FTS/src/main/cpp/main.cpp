@@ -3,7 +3,11 @@
 #include "include/options.h"
 #include "include/rvr_android_platform.h"
 #include "include/rvr_vulkan_renderer.h"
-#include "include/revolvr_app.h"
+#include "include/rvr_app.h"
+
+// test
+#include "include/my_rvr_object.h"
+#include "include/my_rvr_spatial.h"
 
 namespace {
 
@@ -108,6 +112,9 @@ void android_main(struct android_app* app) {
     bool requestRestart = false;
     bool exitRenderLoop = false;
 
+    MyRVRObject myRvrObject(42);
+    MyRVRSpatial myRvrSpatial(43);
+
     // Create platform abstraction
     RVRAndroidPlatform androidPlatform(app);
 
@@ -115,7 +122,7 @@ void android_main(struct android_app* app) {
     RVRVulkanRenderer vulkanRenderer(options, &androidPlatform);
 
     // Initialize the OpenXR program.
-    RVRApp rvrApp(options, &androidPlatform, &vulkanRenderer);
+    RVRApp rvrApp(&androidPlatform, &vulkanRenderer);
 
     // Initialize the loader for this platform
     PFN_xrInitializeLoaderKHR initializeLoader = nullptr;
@@ -154,7 +161,7 @@ void android_main(struct android_app* app) {
             }
         }
 
-        rvrApp.PollEvents(&exitRenderLoop, &requestRestart);
+        rvrApp.PollXrEvents(&exitRenderLoop, &requestRestart);
         if (!rvrApp.IsSessionRunning()) {
             // Throttle loop since xrWaitFrame won't be called.
             std::this_thread::sleep_for(std::chrono::milliseconds(250));
