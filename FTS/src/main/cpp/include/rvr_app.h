@@ -8,6 +8,7 @@
 #include "rvr_android_platform.h"
 #include "rvr_reference_space.h"
 #include "rvr_scene_tree.h"
+#include "xr_app_helpers.h"
 #include <array>
 #include <cmath>
 
@@ -16,6 +17,7 @@ namespace Side {
     const int RIGHT = 1;
     const int COUNT = 2;
 };  // namespace Side
+
 
 class RVRApp {
 public:
@@ -66,12 +68,7 @@ public:
                                       bool* requestRestart);
 
   void LogActionSourceName(XrAction action, const std::string& actionName) const;
-//  bool UpdateRVRObjectFromLocatedSpace(XrSpace& space, Cube& rvrObject);
-  bool UpdateRVRSpatialFromLocatedSpace(XrSpace& space, RVRSpatial* rvrSpatial);
-  bool UpdateRVRObjectFromTrackedOrigin(const XrVector3f playerWorldPos, Cube& rvrObject);
-//  void UpdateRefSpacesToRender();
-  void UpdateHands();
-  void UpdateScene();
+  void RefreshTrackedSpaceLocations();
 
 private:
     RVRSceneTree sceneTree_;
@@ -97,6 +94,8 @@ private:
     bool xrSessionRunning_{false};
 
     XrEventDataBuffer xrEventDataBuffer_;
+
+    TrackedSpaceLocations trackedSpaceLocations_;
 
     struct InputState {
         XrActionSet actionSet{XR_NULL_HANDLE};
