@@ -34,7 +34,7 @@ void Write(Level severity, const std::string& msg) {
     const int64_t milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(secondRemainder).count();
 
     static std::map<Level, const char*> severityName = {
-        {Level::Verbose, "Verbose"}, {Level::Info, "Info   "}, {Level::Warning, "Warning"}, {Level::Error, "Error  "}};
+        {Level::Verbose, "RVR_Verbose"}, {Level::Info, "RVR_Info___"}, {Level::Warning, "RVR_Warning"}, {Level::Error, "RVR_Error__"}};
 
     std::ostringstream out;
     out.fill('0');
