@@ -294,4 +294,4 @@ project.tasks.whenTaskAdded { task ->
   }
 }
 
-apply plugin: VrAppPlugin
+//apply plugin: VrAppPlugin
