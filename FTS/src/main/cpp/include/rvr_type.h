@@ -1,19 +1,25 @@
 #pragma once
 
 enum class RVRType {
-    RVRObject = 0,
-    RVRSpatial = 1,
-    RVRMesh = 2
+    Object = 0,
+    Spatial = 1,
+    Mesh = 2,
+    Origin = 3,
+    Hand = 4
 };
 
 inline const char* toString(RVRType rvrType) {
     switch (rvrType) {
-    case RVRType::RVRObject:
-        return "RVRObject";
-    case RVRType::RVRSpatial:
-        return "RVRSpatial";
-    case RVRType::RVRMesh:
-        return "RVRMesh";
+    case RVRType::Object:
+        return "Object";
+    case RVRType::Spatial:
+        return "Spatial";
+    case RVRType::Mesh:
+        return "Mesh";
+    case RVRType::Origin:
+        return "Origin";
+    case RVRType::Hand:
+        return "Hand";
     default:
         return "RVRType unrecognized";
     }
