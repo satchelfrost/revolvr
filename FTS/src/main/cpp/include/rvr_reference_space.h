@@ -1,34 +1,34 @@
 #pragma once
 
 enum class RVRReferenceSpace {
-    RVRHead = 0,
-    RVRHud = 1,
-    RVRHeadInitial = 2,
-    RVRTrackedOrigin = 3,
-    RVRStageRight = 4,
-    RVRStageLeft = 5,
-    RVRStageRightRotated = 6,
-    RVRStageLeftRotated = 7
+    Head = 0,
+    Hud = 1,
+    HeadInitial = 2,
+    TrackedOrigin = 3,
+    StageRight = 4,
+    StageLeft = 5,
+    StageRightRotated = 6,
+    StageLeftRotated = 7
 };
 
 inline const char* toString(RVRReferenceSpace space) {
     switch (space) {
-    case RVRReferenceSpace::RVRHead:
-        return "RVRHead";
-    case RVRReferenceSpace::RVRHud:
-        return "RVRHud";
-    case RVRReferenceSpace::RVRHeadInitial:
-        return "RVRHeadInitial";
-    case RVRReferenceSpace::RVRTrackedOrigin:
-        return "RVRTrackedOrigin";
-    case RVRReferenceSpace::RVRStageRight:
-        return "RVRStageRight";
-    case RVRReferenceSpace::RVRStageLeft:
-        return "RVRStageLeft";
-    case RVRReferenceSpace::RVRStageRightRotated:
-        return "RVRStateRightRotated";
-    case RVRReferenceSpace::RVRStageLeftRotated:
-        return "RVRStageLeftRotated";
+    case RVRReferenceSpace::Head:
+        return "VRHead";
+    case RVRReferenceSpace::Hud:
+        return "Hud";
+    case RVRReferenceSpace::HeadInitial:
+        return "HeadInitial";
+    case RVRReferenceSpace::TrackedOrigin:
+        return "TrackedOrigin";
+    case RVRReferenceSpace::StageRight:
+        return "StageRight";
+    case RVRReferenceSpace::StageLeft:
+        return "StageLeft";
+    case RVRReferenceSpace::StageRightRotated:
+        return "StateRightRotated";
+    case RVRReferenceSpace::StageLeftRotated:
+        return "StageLeftRotated";
     default:
         return "Unknown RVRReferenceSpace type";
     }
