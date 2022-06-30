@@ -1,7 +1,5 @@
-
 apply plugin: 'com.android.application'
 apply from: "${rootProject.projectDir}/VrApp.gradle"
-
 
 
 android {
@@ -15,6 +13,8 @@ android {
     implementation 'com.android.support:appcompat-v7:26.0.0'
   }
 
+  compileSdkVersion 26
+  ndkVersion '21.0.6113669'
 
   defaultConfig {
     // Gradle replaces the manifest package with this value, which must
@@ -23,13 +23,12 @@ android {
     applicationId "com.imminenteminence." + project.archivesBaseName
     minSdkVersion 24
     targetSdkVersion 25
-    compileSdkVersion 26
 
     // override app plugin abiFilters for 64-bit support
     externalNativeBuild {
-        ndk {
-                abiFilters 'arm64-v8a'
-        }
+      ndk {
+        abiFilters 'arm64-v8a'
+      }
       cmake {
         cppFlags '-std=c++17'
       }
@@ -40,15 +39,14 @@ android {
     main {
       manifest.srcFile 'AndroidManifest.xml'
       java.srcDirs = ['src/main/java']
-//      jniLibs.srcDir 'libs'
       assets.srcDirs = ['assets']
     }
-
   }
 
   externalNativeBuild {
     cmake {
-      path "CMakeLists.txt"
+      path file('CMakeLists.txt')
+      version '3.10.2'
     }
   }
 
