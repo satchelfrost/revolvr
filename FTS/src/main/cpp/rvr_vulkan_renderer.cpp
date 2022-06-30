@@ -274,123 +274,88 @@ std::vector<XrSwapchainImageBaseHeader *> RVRVulkanRenderer::AllocateSwapchainIm
 void RVRVulkanRenderer::RenderView(const XrCompositionLayerProjectionView &layerView,
                 const XrSwapchainImageBaseHeader *swapchainImage,
                 int64_t /*swapchainFormat*/, const std::vector<Cube> &cubes) {
-CHECK(layerView.subImage.imageArrayIndex == 0);  // Texture arrays not supported.
+    CHECK(layerView.subImage.imageArrayIndex == 0);  // Texture arrays not supported.
 
-auto swapchainContext = m_swapchainImageContextMap[swapchainImage];
-uint32_t imageIndex = swapchainContext->ImageIndex(swapchainImage);
+    auto swapchainContext = m_swapchainImageContextMap[swapchainImage];
+    uint32_t imageIndex = swapchainContext->ImageIndex(swapchainImage);
 
-m_cmdBuffer.
+    m_cmdBuffer.Reset();
+    m_cmdBuffer.Begin();
 
-Reset();
+    // Ensure depth is in the right layout
+    swapchainContext->depthBuffer.
+    TransitionLayout(&m_cmdBuffer, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
-m_cmdBuffer.
+    // Bind and clear eye render target
+    static XrColor4f darkSlateGrey = {0.184313729f, 0.309803933f, 0.309803933f, 1.0f};
+    static std::array<VkClearValue, 2> clearValues;
+    clearValues[0].color.float32[0] = darkSlateGrey.r;
+    clearValues[0].color.float32[1] = darkSlateGrey.g;
+    clearValues[0].color.float32[2] = darkSlateGrey.b;
+    clearValues[0].color.float32[3] = darkSlateGrey.a;
+    clearValues[1].depthStencil.depth = 1.0f;
+    clearValues[1].depthStencil.stencil = 0;
+    VkRenderPassBeginInfo renderPassBeginInfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
+    renderPassBeginInfo.clearValueCount = (uint32_t) clearValues.size();
+    renderPassBeginInfo.pClearValues = clearValues.data();
 
-Begin();
+    swapchainContext->BindRenderTarget(imageIndex, &renderPassBeginInfo);
 
-// Ensure depth is in the right layout
-swapchainContext->depthBuffer.
-TransitionLayout(&m_cmdBuffer, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-);
+    vkCmdBeginRenderPass(m_cmdBuffer.buf, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-// Bind and clear eye render target
-static XrColor4f darkSlateGrey = {0.184313729f, 0.309803933f, 0.309803933f, 1.0f};
-static std::array<VkClearValue, 2> clearValues;
-clearValues[0].color.float32[0] = darkSlateGrey.
-r;
-clearValues[0].color.float32[1] = darkSlateGrey.
-g;
-clearValues[0].color.float32[2] = darkSlateGrey.
-b;
-clearValues[0].color.float32[3] = darkSlateGrey.
-a;
-clearValues[1].depthStencil.
-depth = 1.0f;
-clearValues[1].depthStencil.
-stencil = 0;
-VkRenderPassBeginInfo renderPassBeginInfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
-renderPassBeginInfo.
-clearValueCount = (uint32_t) clearValues.size();
-renderPassBeginInfo.
-pClearValues = clearValues.data();
+    vkCmdBindPipeline(m_cmdBuffer.buf, VK_PIPELINE_BIND_POINT_GRAPHICS, swapchainContext->pipe.pipe);
 
-swapchainContext->
-BindRenderTarget(imageIndex, &renderPassBeginInfo
-);
+    // Bind index and vertex buffers
+    vkCmdBindIndexBuffer(m_cmdBuffer.buf, m_drawBuffer.idxBuf, 0, VK_INDEX_TYPE_UINT16);
+    VkDeviceSize offset = 0;
+    vkCmdBindVertexBuffers(m_cmdBuffer.buf, 0, 1, &m_drawBuffer.vtxBuf, &offset);
 
-vkCmdBeginRenderPass(m_cmdBuffer
-.buf, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+    // Compute the view-projection transform.
+    // Note all matrixes (including OpenXR's) are column-major, right-handed.
+    const auto &pose = layerView.pose;
+    XrMatrix4x4f proj;
+    XrMatrix4x4f_CreateProjectionFov(&proj, GRAPHICS_VULKAN, layerView.fov, 0.05f, 100.0f);
+    XrMatrix4x4f toView;
+    XrVector3f scale{1.f, 1.f, 1.f};
+    XrMatrix4x4f_CreateTranslationRotationScale(&toView, &pose.position, &pose.orientation, &scale);
+    XrMatrix4x4f view;
+    XrMatrix4x4f_InvertRigidBody(&view, &toView);
+    XrMatrix4x4f vp;
 
-vkCmdBindPipeline(m_cmdBuffer
-.buf, VK_PIPELINE_BIND_POINT_GRAPHICS, swapchainContext->pipe.pipe);
+    // Leave this in here so that we can do benchmarks later. For now just use fast_matrix_mul
+    //XrMatrix4x4f_Multiply(&vp, &proj, &view);
+    fast_matrix_mul(vp.m, proj.m, view.m);
 
-// Bind index and vertex buffers
-vkCmdBindIndexBuffer(m_cmdBuffer
-.buf, m_drawBuffer.idxBuf, 0, VK_INDEX_TYPE_UINT16);
-VkDeviceSize offset = 0;
-vkCmdBindVertexBuffers(m_cmdBuffer
-.buf, 0, 1, &m_drawBuffer.vtxBuf, &offset);
+    // Render each cube
+    for (const Cube &cube : cubes) {
+        // Compute the model-view-projection transform and push it.
+        XrMatrix4x4f model;
+        XrMatrix4x4f_CreateTranslationRotationScale(&model, &cube.Pose.position, &cube.Pose.orientation, &cube.Scale);
+        XrMatrix4x4f mvp;
 
-// Compute the view-projection transform.
-// Note all matrixes (including OpenXR's) are column-major, right-handed.
-const auto &pose = layerView.pose;
-XrMatrix4x4f proj;
-XrMatrix4x4f_CreateProjectionFov(&proj, GRAPHICS_VULKAN, layerView
-.fov, 0.05f, 100.0f);
-XrMatrix4x4f toView;
-XrVector3f scale{1.f, 1.f, 1.f};
-XrMatrix4x4f_CreateTranslationRotationScale(&toView, &pose
-.position, &pose.orientation, &scale);
-XrMatrix4x4f view;
-XrMatrix4x4f_InvertRigidBody(&view, &toView
-);
-XrMatrix4x4f vp;
-// Leave this in here so that we can do benchmarks later. For now just use fast_matrix_mul
-//XrMatrix4x4f_Multiply(&vp, &proj, &view);
-fast_matrix_mul(vp
-.m, proj.m, view.m);
+        // Leave this in here so that we can do benchmarks later. For now just use fast_matrix_mul
+        //XrMatrix4x4f_Multiply(&mvp, &vp, &model);
+        fast_matrix_mul(mvp.m, vp.m, model.m);
+        vkCmdPushConstants(m_cmdBuffer.buf, m_pipelineLayout.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(mvp.m), &mvp.m[0]);
 
-// Render each cube
-for (
-const Cube &cube
-: cubes) {
-// Compute the model-view-projection transform and push it.
-XrMatrix4x4f model;
-XrMatrix4x4f_CreateTranslationRotationScale(&model, &cube
-.Pose.position, &cube.Pose.orientation, &cube.Scale);
-XrMatrix4x4f mvp;
+        // Draw the cube.
+        vkCmdDrawIndexed(m_cmdBuffer.buf, m_drawBuffer.count.idx, 1, 0, 0, 0);
+    }
 
-// Leave this in here so that we can do benchmarks later. For now just use fast_matrix_mul
-//XrMatrix4x4f_Multiply(&mvp, &vp, &model);
-fast_matrix_mul(mvp
-.m, vp.m, model.m);
-vkCmdPushConstants(m_cmdBuffer
-.buf, m_pipelineLayout.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(mvp.m), &mvp.m[0]);
+    vkCmdEndRenderPass(m_cmdBuffer.buf);
 
-// Draw the cube.
-vkCmdDrawIndexed(m_cmdBuffer
-.buf, m_drawBuffer.count.idx, 1, 0, 0, 0);
-}
+    m_cmdBuffer.End();
+    m_cmdBuffer.Exec(m_vkQueue);
 
-vkCmdEndRenderPass(m_cmdBuffer
-.buf);
-
-m_cmdBuffer.
-
-End();
-
-m_cmdBuffer.
-Exec(m_vkQueue);
-// XXX Should double-buffer the command buffers, for now just flush
-m_cmdBuffer.
-
-Wait();
+    // XXX Should double-buffer the command buffers, for now just flush
+    m_cmdBuffer.Wait();
 
 #if defined(USE_MIRROR_WINDOW)
-// Cycle the window's swapchain on the last view rendered
-if (swapchainContext == &m_swapchainImageContexts.back()) {
-    m_swapchain.Acquire();
-    m_swapchain.Present(m_vkQueue);
-}
+    // Cycle the window's swapchain on the last view rendered
+    if (swapchainContext == &m_swapchainImageContexts.back()) {
+        m_swapchain.Acquire();
+        m_swapchain.Present(m_vkQueue);
+    }
 #endif
 }
 
