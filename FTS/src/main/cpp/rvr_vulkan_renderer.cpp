@@ -200,8 +200,8 @@ std::vector<char> RVRVulkanRenderer::CreateSPIRVVector(const char *asset_name) {
 }
 
 void RVRVulkanRenderer::InitializeResources() {
-    auto fragmentSPIRV = CreateSPIRVVector("shaders/blarg.frag.spv");
-    auto vertexSPIRV = CreateSPIRVVector("shaders/blarg.vert.spv");
+    auto fragmentSPIRV = CreateSPIRVVector("shaders/basic.frag.spv");
+    auto vertexSPIRV = CreateSPIRVVector("shaders/basic.vert.spv");
 
     if (vertexSPIRV.empty()) THROW("Failed to compile vertex shader");
     if (fragmentSPIRV.empty()) THROW("Failed to compile fragment shader");
