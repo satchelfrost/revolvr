@@ -7,8 +7,6 @@
 #include "vulkan_results.h"
 #include <array>
 
-extern "C" void fast_matrix_mul(float *, float *, float *);
-
 struct MemoryAllocator {
     void Init(VkPhysicalDevice physicalDevice, VkDevice device) {
         m_vkDevice = device;
