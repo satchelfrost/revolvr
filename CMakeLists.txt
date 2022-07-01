@@ -25,7 +25,7 @@ set_target_properties(
 # Find android libraries
 find_library(android-log log REQUIRED)
 find_library(android android REQUIRED)
-find_library(vulkan Vulkan REQUIRED)
+find_library(vulkan vulkan REQUIRED)
 
 # Add the FTS subdirectory
 add_subdirectory("FTS")
