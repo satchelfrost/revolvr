@@ -19,4 +19,4 @@ target_include_directories(
 )
 
 # Adding libraries to link to fts.
-target_link_libraries(fts openxr_loader ${android-log} ${android} ${vulkan})
+target_link_libraries(fts openxr_loader glm ${android-log} ${android} ${vulkan})

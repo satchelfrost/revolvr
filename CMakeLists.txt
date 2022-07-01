@@ -29,3 +29,4 @@ find_library(vulkan vulkan REQUIRED)
 
 # Add the FTS subdirectory
 add_subdirectory("FTS")
+add_subdirectory("libs/glm")
