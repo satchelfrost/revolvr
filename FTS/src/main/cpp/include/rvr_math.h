@@ -10,5 +10,6 @@ XrPosef RotateCCWAboutYAxis(float radians, XrVector3f translation);
 
 namespace Vector {
 XrVector3f Zero();
+XrVector3f One();
 } // namespace Vector
 } // namespace Math

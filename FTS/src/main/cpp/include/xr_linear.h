@@ -189,6 +189,11 @@ inline static void XrVector3f_Scale(XrVector3f* result, const XrVector3f* a, con
 
 inline static float XrVector3f_Dot(const XrVector3f* a, const XrVector3f* b) { return a->x * b->x + a->y * b->y + a->z * b->z; }
 
+static inline float XrVector3f_LengthSquared(const XrVector3f v) {
+    return XrVector3f_Dot(&v, &v);
+}
+
+
 // Compute cross product, which generates a normal vector.
 // Direction vector can be determined by right-hand rule: Pointing index finder in
 // direction a and middle finger in direction b, thumb will point in Cross(a, b).
@@ -316,6 +321,67 @@ inline static void XrMatrix4x4f_Invert(XrMatrix4x4f* result, const XrMatrix4x4f*
     result->m[13] = XrMatrix4x4f_Minor(src, 0, 2, 3, 0, 1, 2) * rcpDet;
     result->m[14] = -XrMatrix4x4f_Minor(src, 0, 1, 3, 0, 1, 2) * rcpDet;
     result->m[15] = XrMatrix4x4f_Minor(src, 0, 1, 2, 0, 1, 2) * rcpDet;
+}
+
+static inline XrQuaternionf XrQuaternionf_Inverse(const XrQuaternionf q) {
+    XrQuaternionf r;
+    r.x = -q.x;
+    r.y = -q.y;
+    r.z = -q.z;
+    r.w = q.w;
+    return r;
+}
+
+static inline XrVector3f XrQuaternionf_Rotate(const XrQuaternionf a, const XrVector3f v) {
+    XrVector3f r;
+    XrQuaternionf q = {v.x, v.y, v.z, 0.0f};
+    XrQuaternionf aq;
+    XrQuaternionf_Multiply(&aq, &a, &q);
+    XrQuaternionf aInv = XrQuaternionf_Inverse(a);
+    XrQuaternionf aqaInv;
+    XrQuaternionf_Multiply(&aqaInv, &aq, &aInv);
+    r.x = aqaInv.x;
+    r.y = aqaInv.y;
+    r.z = aqaInv.z;
+    return r;
+}
+
+static inline XrVector3f XrQuaternionf_Rotate_World(const XrQuaternionf a, const XrVector3f v) {
+    XrVector3f r;
+    XrQuaternionf q = {v.x, v.y, v.z, 0.0f};
+    XrQuaternionf aInv = XrQuaternionf_Inverse(a);
+    XrQuaternionf aInvq;
+    XrQuaternionf_Multiply(&aInvq, &aInv, &q);
+    XrQuaternionf aInvqa;
+    XrQuaternionf_Multiply(&aInvqa, &aInvq, &a);
+    r.x = aInvqa.x;
+    r.y = aInvqa.y;
+    r.z = aInvqa.z;
+    return r;
+}
+
+static inline XrQuaternionf XrQuaternionf_Identity() {
+    XrQuaternionf r;
+    r.x = r.y = r.z = 0.0;
+    r.w = 1.0f;
+    return r;
+}
+
+static inline XrQuaternionf XrQuaternionf_CreateFromVectorAngle(XrVector3f axis,
+                                                                const float angle) {
+    XrQuaternionf r;
+    if (XrVector3f_LengthSquared(axis) == 0.0f) {
+        return XrQuaternionf_Identity();
+    }
+
+    XrVector3f_Normalize(&axis);
+    float sinHalfAngle = sinf(angle * 0.5f);
+
+    r.w = cosf(angle * 0.5f);
+    r.x = axis.x * sinHalfAngle;
+    r.y = axis.y * sinHalfAngle;
+    r.z = axis.z * sinHalfAngle;
+    return r;
 }
 
 // Calculates the inverse of a rigid body transform.
