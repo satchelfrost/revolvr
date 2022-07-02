@@ -20,6 +20,7 @@ RVRSceneTree::RVRSceneTree() {
     auto pointer = new RVRMesh(NewId());
     pointer->scale = {0.01, 0.01, 0.5};
     pointer->pose.position.z = -0.25;
+    pointer->pose.orientation = XrQuaternionf_CreateFromVectorAngle({0, 1, 0}, 3.14 / 4);
     leftHand->AddChild(leftHandMesh);
     rightHand->AddChild(rightHandMesh);
     rightHand->AddChild(pointer);
@@ -72,10 +73,10 @@ void RVRSceneTree::CascadePose_(RVRSpatial* parent, const TrackedSpaceLocations&
             case RVRType::Mesh: {
                 auto child = reinterpret_cast<RVRSpatial*>(objChild);
                 XrQuaternionf_Multiply(&child->worldPose.orientation, &child->pose.orientation, &parent->worldPose.orientation);
-                child->worldPose.position = parent->worldPose.position;
-                XrVector3f offset = XrQuaternionf_Rotate_World(child->worldPose.orientation, child->pose.position);
-                XrVector3f_Add(&child->worldPose.position, &offset, &child->worldPose.position);
-                XrVector3f_Sub(&child->worldPose.position, &child->worldPose.position, &parent->pose.position);
+                XrVector3f offset = XrQuaternionf_Rotate(parent->worldPose.orientation, child->pose.position);
+                XrVector3f_Add(&child->worldPose.position, &offset, &parent->worldPose.position);
+                if (parent->type == RVRType::Origin)
+                    XrVector3f_Sub(&child->worldPose.position, &child->worldPose.position, &parent->pose.position);
                 break;
             }
             default:
