@@ -243,6 +243,17 @@ inline static void XrQuaternionf_Multiply(XrQuaternionf* result, const XrQuatern
     result->w = (b->w * a->w) - (b->x * a->x) - (b->y * a->y) - (b->z * a->z);
 }
 
+static inline XrQuaternionf XrQuaternionf_Normalize(XrQuaternionf& q) {
+    double n = sqrtf(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
+    if (n != 0.0f) {
+        n = 1.0f / n;
+    }
+    q.x = q.x * n;
+    q.y = q.y * n;
+    q.z = q.z * n;
+    q.w = q.w * n;
+}
+
 // Use left-multiplication to accumulate transformations.
 inline static void XrMatrix4x4f_Multiply(XrMatrix4x4f* result, const XrMatrix4x4f* a, const XrMatrix4x4f* b) {
     result->m[0] = a->m[0] * b->m[0] + a->m[4] * b->m[1] + a->m[8] * b->m[2] + a->m[12] * b->m[3];
