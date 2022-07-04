@@ -336,10 +336,10 @@ static inline XrVector3f XrQuaternionf_Rotate(const XrQuaternionf a, const XrVec
     XrVector3f r;
     XrQuaternionf q = {v.x, v.y, v.z, 0.0f};
     XrQuaternionf aq;
-    XrQuaternionf_Multiply(&aq, &a, &q);
+    XrQuaternionf_Multiply(&aq, &q, &a);
     XrQuaternionf aInv = XrQuaternionf_Inverse(a);
     XrQuaternionf aqaInv;
-    XrQuaternionf_Multiply(&aqaInv, &aq, &aInv);
+    XrQuaternionf_Multiply(&aqaInv, &aInv, &aq);
     r.x = aqaInv.x;
     r.y = aqaInv.y;
     r.z = aqaInv.z;
@@ -351,9 +351,9 @@ static inline XrVector3f XrQuaternionf_Rotate_World(const XrQuaternionf a, const
     XrQuaternionf q = {v.x, v.y, v.z, 0.0f};
     XrQuaternionf aInv = XrQuaternionf_Inverse(a);
     XrQuaternionf aInvq;
-    XrQuaternionf_Multiply(&aInvq, &aInv, &q);
+    XrQuaternionf_Multiply(&aInvq, &q, &aInvq);
     XrQuaternionf aInvqa;
-    XrQuaternionf_Multiply(&aInvqa, &aInvq, &a);
+    XrQuaternionf_Multiply(&aInvqa, &a, &aInvq);
     r.x = aInvqa.x;
     r.y = aInvqa.y;
     r.z = aInvqa.z;
