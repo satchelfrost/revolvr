@@ -579,6 +579,7 @@ bool RVRApp::RenderLayer(std::vector<XrCompositionLayerProjectionView>& projecti
     // Refresh tracked spaces and then update scene tree
     RefreshTrackedSpaceLocations();
     sceneTree_.CascadePose(trackedSpaceLocations_);
+    sceneTree_.Update(deltaTime_);
 
     auto renderables = sceneTree_.GatherRenderables();
 
