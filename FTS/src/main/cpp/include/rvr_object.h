@@ -11,6 +11,8 @@ public:
     RVRObject* GetParent() { return parent_; }
     std::list<RVRObject*>& GetChildren() { return children_; }
 
+    void SetName(const std::string& name);
+    std::string GetName();
 
     const int id;
     const RVRType type;
@@ -20,6 +22,8 @@ public:
     virtual void Update(float delta) = 0;
 
 private:
+    void GenerateAndSetName();
     RVRObject* parent_;
     std::list<RVRObject*> children_;
+    std::string name_;
 };
