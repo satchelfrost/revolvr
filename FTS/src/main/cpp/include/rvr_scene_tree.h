@@ -14,13 +14,11 @@
 class RVRSceneTree {
 public:
     RVRSceneTree();
+    ~RVRSceneTree();
     int NewId();
     void CascadePose(const TrackedSpaceLocations& trackedSpaceLocations);
     void Update(float delta);
     std::vector<RVRMesh*> GatherRenderables();
-    RVRSpatial* leftHand;
-    RVRSpatial* rightHand;
-    RVRSpatial* vrOrigin;
 
 private:
     void CascadePose_(RVRSpatial* parent, const TrackedSpaceLocations& trackedSpaceLocations);
