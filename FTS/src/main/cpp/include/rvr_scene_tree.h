@@ -21,9 +21,9 @@ public:
     std::vector<RVRMesh*> GatherRenderables();
 
 private:
-    void CascadePose_(RVRSpatial* parent, const TrackedSpaceLocations& trackedSpaceLocations);
+    void CascadePose_(RVRObject* parent, const TrackedSpaceLocations& trackedSpaceLocations);
     void GatherRenderables_(RVRObject* parent, std::vector<RVRMesh*>& renderables);
-    void Update_(RVRSpatial* parent, float delta);
+    void Update_(RVRObject* parent, float delta);
     RVRSpatial* root_;
     int nodeId_;
 };
