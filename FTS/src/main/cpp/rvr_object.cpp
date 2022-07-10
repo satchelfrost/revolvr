@@ -33,7 +33,7 @@ void RVRObject::Destroy() {
 }
 
 void RVRObject::GenerateAndSetName() {
-    name_ = std::string(toString(type)) + " " + std::to_string(id);
+    name_ = std::string(toString(type)) + "_" + std::to_string(id);
 }
 
 std::string RVRObject::GetName() {
