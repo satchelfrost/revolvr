@@ -1,7 +1,8 @@
 # All whitespace is ignored
 
-rvr_source ::= (heading field*)*
+rvr_source ::= unit*
 
+unit ::= heading field*
 heading ::= '[' heading_type ((number_key '=' number) | (string_key '=' identifier))* ']'
 heading_type ::= 'node' | 'resource'
 number_key ::= 'id' | 'parent'

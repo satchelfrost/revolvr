@@ -1,4 +1,4 @@
-#include <string>
+#pragma once
 
 enum class Token {
   BrackLeft = 0,
@@ -10,26 +10,3 @@ enum class Token {
   Number = 6,
   Equals = 7,
 };
-
-inline std::string to_string(Token t) {
-  switch (t) {
-  case Token::BrackLeft:
-    return "BrackLeft";
-  case Token::BrackRight:
-    return "BrackRight";
-  case Token::Identifier:
-    return "Identifier";
-  case Token::Comma:
-    return "Comma";
-  case Token::CurlLeft:
-    return "CurlLeft";
-  case Token::CurlRight:
-    return "CurlRight";
-  case Token::Number:
-    return "Number";
-  case Token::Equals:
-    return "Equals";
-  default:
-    return "Token \"" + std::to_string((int)t) + "\" unrecognized";
-  }
-}

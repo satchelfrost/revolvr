@@ -1,3 +1,5 @@
+#pragma once
+
 #include <fstream>
 #include <string>
 #include <vector>
@@ -15,14 +17,15 @@ public:
   bool IdentifierScan(std::string& line, int& pos);
   bool NumberScan(std::string& line, int& pos);
 
-  std::vector<Token>& GetTokens() { return tokens_; }
+  std::queue<Token> GetTokens() { return tokens_; }
   std::string GetNextIdentifier();
   double GetNextNumber();
+  static std::string TokToString(Token t);
 
 private:
   std::vector<std::string> lines_;
   std::ifstream inputStream_;
-  std::vector<Token> tokens_;
+  std::queue<Token> tokens_;
   std::queue<std::string> identifierQueue_;
   std::queue<double> numberQueue_;
   int currentLine_;
