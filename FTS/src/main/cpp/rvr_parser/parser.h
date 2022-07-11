@@ -10,13 +10,6 @@ public:
 
 private:
   void ParseHeading();
-  void ParseField();
-  void ParseField1();
-  void ParseField2();
-  void ParseField3();
-  void ParseField4();
-  void ParseResource();
-  void ParseHand();
 
   // Manually define openxr stuff until I can get the project fully linked
   typedef struct XrVector2f {
@@ -71,7 +64,18 @@ private:
 
   std::vector<Unit> units_;
   Scanner& scanner_;
+  std::queue<Token> tokens_;
 
+  void ParseHeadingType(Heading& heading);
+  void ParseHeadingKeyValuePairs(Heading& heading);
+  void ParseField(std::vector<Field>& fields);
+  void ParseField1();
+  void ParseField2();
+  bool ParseField3(Field& field);
+  bool ParseField4(Field& field);
+  void ParseResource();
+  void ParseHand();
+  void PopulateList(float& f, bool skipComma);
 public:
   std::vector<Unit>& GetUnits();
 };
