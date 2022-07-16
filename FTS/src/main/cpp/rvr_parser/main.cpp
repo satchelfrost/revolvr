@@ -2,7 +2,7 @@
 #include "parser.h"
 
 int main() {
-  Scanner scanner("../example.rvr");
-  Parser parser(scanner);
+  Parser parser("../example.rvr");
+  parser.Parse();
   // parser.PrintTokens();
 }

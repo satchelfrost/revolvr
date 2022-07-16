@@ -1,6 +1,6 @@
 #pragma once
 
-enum class Token {
+enum class Tok {
   BrackLeft = 0,
   BrackRight = 1,
   Identifier = 2,
@@ -9,4 +9,10 @@ enum class Token {
   CurlRight = 5,
   Number = 6,
   Equals = 7,
+};
+
+struct Token {
+  Tok tok;
+  int lineNumber;
+  int columNumber;
 };

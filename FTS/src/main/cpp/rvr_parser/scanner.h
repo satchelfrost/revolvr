@@ -20,7 +20,7 @@ public:
   std::queue<Token> GetTokens() { return tokens_; }
   std::string GetNextIdentifier();
   double GetNextNumber();
-  static std::string TokToString(Token t);
+  static std::string TokToString(Tok t);
 
 private:
   std::vector<std::string> lines_;

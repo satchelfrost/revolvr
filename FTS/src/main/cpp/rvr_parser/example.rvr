@@ -3,10 +3,10 @@ position {3, 0, 0}
 orientation {0, 0, 0, 1}
 
 [node id=2 name=Left_Hand type=Hand parent=1]
-side {left}
+hand {left}
 
 [node id=3 name=Right_Hand type=Hand parent=1]
-side {right}
+hand {right}
 
 [node id=5 name=Left_Hand_Mesh type=Mesh parent=2]
 scale {0.1, 0.1, 0.1}
@@ -15,7 +15,7 @@ scale {0.1, 0.1, 0.1}
 scale {0.1, 0.1, 0.1}
 
 [node id=6 name=Pointer parent=3 type=SpinningPointer]
-custom {true}
+custom_type {true}
 
 [node id=7 name=World_Origin_Mesh type=Mesh parent=1]
 scale {0.5, 0.5, 0.5}

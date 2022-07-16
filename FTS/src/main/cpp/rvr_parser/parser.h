@@ -2,14 +2,16 @@
 
 #include "token.h"
 #include "scanner.h"
+#include <map>
 
 class Parser {
 public:
-  Parser(Scanner& scanner);
+  // Parser(Scanner& scanner);
+  Parser(std::string fileName);
+  void Parse();
   void PrintTokens();
 
 private:
-  void ParseHeading();
 
   // Manually define openxr stuff until I can get the project fully linked
   typedef struct XrVector2f {
@@ -32,8 +34,8 @@ private:
 
   struct Heading {
     std::string headingType;
-    std::vector<std::pair<std::string, std::string>> strKeyStrVal;
-    std::vector<std::pair<std::string, double>> strKeyNumVal;
+    std::map<std::string, std::string> strKeyStrVal;
+    std::map<std::string, int> strKeyNumVal;
   };
 
   enum class FieldType {
@@ -46,15 +48,17 @@ private:
     Hand = 5
   };
 
+  // There are multiple field types and they will not fill up this struct alone
   struct Field {
     FieldType type;
     std::string fieldName;
-    bool value;
+    bool visible;
+    bool customType;
     XrVector2f vec2;
     XrVector3f vec3;
     XrQuaternionf quat;
-    int id;
-    int side; // left 0, right 1
+    int hand; // left 0, right 1
+    int resource;
   };
 
   struct Unit {
@@ -63,19 +67,31 @@ private:
   };
 
   std::vector<Unit> units_;
-  Scanner& scanner_;
+  // Scanner& scanner_;
+  Scanner scanner_;
+  std::string fileName_;
   std::queue<Token> tokens_;
 
+  void ParseHeading(Heading& heading);
   void ParseHeadingType(Heading& heading);
   void ParseHeadingKeyValuePairs(Heading& heading);
-  void ParseField(std::vector<Field>& fields);
-  void ParseField1();
-  void ParseField2();
+  std::vector<Field> ParseFields();
+  bool ParseField1(Field& field);
+  bool ParseField2(Field& field);
   bool ParseField3(Field& field);
   bool ParseField4(Field& field);
-  void ParseResource();
-  void ParseHand();
-  void PopulateList(float& f, bool skipComma);
+  bool ParseResource(Field& field);
+  bool ParseHand(Field& field);
+  void ReadCurlyList(float& f, bool commaExpected);
+  void ReadBool(bool& b);
+  void ReadSide(int& side);
+
+  Tok Peek();
+  void Pop();
+  std::string LineColString();
+  void ParseError(std::string errMsg);
+  Token lastToken_;
+
 public:
   std::vector<Unit>& GetUnits();
 };

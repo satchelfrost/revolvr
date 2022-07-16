@@ -30,7 +30,7 @@ bool Scanner::IdentifierScan(std::string& line, int& pos) {
         break;
       }
     } while(pos++ < line.size());
-    tokens_.push(Token::Identifier);
+    tokens_.push({Tok::Identifier, currentLine_, pos + 1});
     identifierQueue_.push(identifier);
     return true;
   }
@@ -50,7 +50,7 @@ bool Scanner::NumberScan(std::string& line, int& pos) {
         break;
       }
     } 
-    tokens_.push(Token::Number);
+    tokens_.push({Tok::Number, currentLine_, pos + 1});
     numberQueue_.push(strtod(numStr.c_str(), nullptr));
     return true;
   }
@@ -75,22 +75,22 @@ void Scanner::Tokenize(std::string line) {
     // Check for remaining characters
     switch (line[pos]) {
       case '[':
-        tokens_.push(Token::BrackLeft);
+        tokens_.push({Tok::BrackLeft, currentLine_, pos + 1});
         break;
       case ']':
-        tokens_.push(Token::BrackRight);
+        tokens_.push({Tok::BrackRight, currentLine_, pos + 1});
         break;
       case ',':
-        tokens_.push(Token::Comma);
+        tokens_.push({Tok::Comma, currentLine_, pos + 1});
         break;
       case '{':
-        tokens_.push(Token::CurlLeft);
+        tokens_.push({Tok::CurlLeft, currentLine_, pos + 1});
         break;
       case '}':
-        tokens_.push(Token::CurlRight);
+        tokens_.push({Tok::CurlRight, currentLine_, pos + 1});
         break;
       case '=':
-        tokens_.push(Token::Equals);
+        tokens_.push({Tok::Equals, currentLine_, pos + 1});
         break;
       default:
         std::cerr << "Token unrecognized: \"" << line[pos] << "\"\n";
@@ -110,23 +110,23 @@ double Scanner::GetNextNumber() {
   return front;
 }
 
-std::string Scanner::TokToString(Token t) {
+std::string Scanner::TokToString(Tok t) {
   switch (t) {
-  case Token::BrackLeft:
+  case Tok::BrackLeft:
     return "BrackLeft";
-  case Token::BrackRight:
+  case Tok::BrackRight:
     return "BrackRight";
-  case Token::Identifier:
+  case Tok::Identifier:
     return "Identifier";
-  case Token::Comma:
+  case Tok::Comma:
     return "Comma";
-  case Token::CurlLeft:
+  case Tok::CurlLeft:
     return "CurlLeft";
-  case Token::CurlRight:
+  case Tok::CurlRight:
     return "CurlRight";
-  case Token::Number:
+  case Tok::Number:
     return "Number";
-  case Token::Equals:
+  case Tok::Equals:
     return "Equals";
   default:
     return "Token \"" + std::to_string((int)t) + "\" unrecognized";
