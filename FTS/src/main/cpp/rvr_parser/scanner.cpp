@@ -30,8 +30,7 @@ bool Scanner::IdentifierScan(std::string& line, int& pos) {
         break;
       }
     } while(pos++ < line.size());
-    tokens_.push({Tok::Identifier, currentLine_, pos + 1});
-    identifierQueue_.push(identifier);
+    tokens_.push({Token::Identifier, currentLine_, pos + 1, identifier});
     return true;
   }
   return false;
@@ -50,8 +49,8 @@ bool Scanner::NumberScan(std::string& line, int& pos) {
         break;
       }
     } 
-    tokens_.push({Tok::Number, currentLine_, pos + 1});
-    numberQueue_.push(strtod(numStr.c_str(), nullptr));
+    double number = strtod(numStr.c_str(), nullptr);
+    tokens_.push({Token::Number, currentLine_, pos + 1, number});
     return true;
   }
   return false;
@@ -75,60 +74,25 @@ void Scanner::Tokenize(std::string line) {
     // Check for remaining characters
     switch (line[pos]) {
       case '[':
-        tokens_.push({Tok::BrackLeft, currentLine_, pos + 1});
+        tokens_.push({Token::BrackLeft, currentLine_, pos + 1});
         break;
       case ']':
-        tokens_.push({Tok::BrackRight, currentLine_, pos + 1});
+        tokens_.push({Token::BrackRight, currentLine_, pos + 1});
         break;
       case ',':
-        tokens_.push({Tok::Comma, currentLine_, pos + 1});
+        tokens_.push({Token::Comma, currentLine_, pos + 1});
         break;
       case '{':
-        tokens_.push({Tok::CurlLeft, currentLine_, pos + 1});
+        tokens_.push({Token::CurlLeft, currentLine_, pos + 1});
         break;
       case '}':
-        tokens_.push({Tok::CurlRight, currentLine_, pos + 1});
+        tokens_.push({Token::CurlRight, currentLine_, pos + 1});
         break;
       case '=':
-        tokens_.push({Tok::Equals, currentLine_, pos + 1});
+        tokens_.push({Token::Equals, currentLine_, pos + 1});
         break;
       default:
         std::cerr << "Token unrecognized: \"" << line[pos] << "\"\n";
     }
-  }
-}
-
-std::string Scanner::GetNextIdentifier() {
-  auto front = identifierQueue_.front();
-  identifierQueue_.pop();
-  return front;
-}
-
-double Scanner::GetNextNumber() {
-  auto front = numberQueue_.front();
-  numberQueue_.pop();
-  return front;
-}
-
-std::string Scanner::TokToString(Tok t) {
-  switch (t) {
-  case Tok::BrackLeft:
-    return "BrackLeft";
-  case Tok::BrackRight:
-    return "BrackRight";
-  case Tok::Identifier:
-    return "Identifier";
-  case Tok::Comma:
-    return "Comma";
-  case Tok::CurlLeft:
-    return "CurlLeft";
-  case Tok::CurlRight:
-    return "CurlRight";
-  case Tok::Number:
-    return "Number";
-  case Tok::Equals:
-    return "Equals";
-  default:
-    return "Token \"" + std::to_string((int)t) + "\" unrecognized";
   }
 }
