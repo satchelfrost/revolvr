@@ -13,7 +13,7 @@ field_1 ::= ('visible' | 'custom_type') '{' bool '}'
 field_2 ::= 'canvas' '{' number ',' number '}'
 field_3 ::= ('scale' | 'position') '{' number ',' number ',' number '}'
 field_4 ::= 'orientation' '{' number ','  number ',' number ',' number '}'
-resource ::= 'resource' '{' number '}'
+resource ::= 'resource_id' '{' number '}'
 hand ::= 'hand' '{' side '}'
 
 identifier ::= [A-Za-z_] [A-Za-z0-9_]*
