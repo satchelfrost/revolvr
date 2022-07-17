@@ -6,13 +6,10 @@
 
 class Parser {
 public:
-  // Parser(Scanner& scanner);
   Parser(std::string fileName);
-  void Parse();
   void PrintTokens();
 
 private:
-
   // Manually define openxr stuff until I can get the project fully linked
   typedef struct XrVector2f {
       float    x;
@@ -48,17 +45,17 @@ private:
     Hand = 5
   };
 
-  // There are multiple field types and they will not fill up this struct alone
   struct Field {
     FieldType type;
     std::string fieldName;
-    bool visible;
-    bool customType;
-    XrVector2f vec2;
-    XrVector3f vec3;
-    XrQuaternionf quat;
-    int hand; // left 0, right 1
-    int resource;
+    union {
+      XrQuaternionf quat;
+      XrVector3f vec3;
+      XrVector2f vec2;
+      int hand; // left 0, right 1
+      int resource_id;
+      bool boolean;
+    };
   };
 
   struct Unit {
@@ -67,11 +64,8 @@ private:
   };
 
   std::vector<Unit> units_;
-  // Scanner& scanner_;
-  Scanner scanner_;
-  std::string fileName_;
-  std::queue<Token> tokens_;
 
+  // Parse methods
   void ParseHeading(Heading& heading);
   void ParseHeadingType(Heading& heading);
   void ParseHeadingKeyValuePairs(Heading& heading);
@@ -80,18 +74,27 @@ private:
   bool ParseField2(Field& field);
   bool ParseField3(Field& field);
   bool ParseField4(Field& field);
-  bool ParseResource(Field& field);
+  bool ParseResourceId(Field& field);
   bool ParseHand(Field& field);
   void ReadCurlyList(float& f, bool commaExpected);
   void ReadBool(bool& b);
   void ReadSide(int& side);
 
-  Tok Peek();
-  void Pop();
-  std::string LineColString();
+  Token::Tok Peek();
+  Token Pop();
+  Token prevToken_;
+  Scanner scanner_;
+  std::string fileName_;
+  std::queue<Token> tokens_;
+
+  // Error & Check methods
+  std::string LineColString(bool currentToken);
   void ParseError(std::string errMsg);
-  Token lastToken_;
+  void ParseErrorPrevToken(std::string errMsg);
+  void TokenError(std::string errMsg, Token::Tok expected);
+  void CheckPeek(const char* errMsg, Token::Tok expected);
+  void CheckPop(const char* errMsg, Token::Tok expected);
 
 public:
-  std::vector<Unit>& GetUnits();
+  std::vector<Unit> Parse();
 };
