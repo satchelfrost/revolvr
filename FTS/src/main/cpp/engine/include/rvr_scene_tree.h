@@ -9,7 +9,7 @@
 #include "xr_linear.h"
 #include "xr_app_helpers.h"
 #include "pch.h"
-#include "spinning_pointer.h"
+#include "../../fts-game/include/spinning_pointer.h"
 
 class RVRSceneTree {
 public:

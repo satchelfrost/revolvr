@@ -1,6 +1,12 @@
 # Creating variables containing source locations
-file(GLOB LOCAL_SOURCE "src/main/cpp/*.cpp")
-file(GLOB LOCAL_ASSEMBLY "src/main/cpp/*.s")
+file(
+  GLOB
+  LOCAL_SOURCE
+  "src/main/cpp/engine/*.cpp"
+  "src/main/cpp/fts-game/*.cpp"
+)
+
+file(GLOB LOCAL_ASSEMBLY "src/main/cpp/engine/*.s")
 
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
@@ -12,8 +18,10 @@ add_library(fts SHARED ${LOCAL_ASSEMBLY} ${LOCAL_SOURCE})
 target_include_directories(
   fts
   PUBLIC
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/engine
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/engine/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/fts-game
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/fts-game/include
   ${CMAKE_CURRENT_SOURCE_DIR}/../libs/khronos/openxr/OpenXR-SDK/include
   ${ANDROID_NDK}/sources/android/native_app_glue/
 )

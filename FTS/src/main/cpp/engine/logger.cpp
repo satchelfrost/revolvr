@@ -5,7 +5,7 @@
 #include "include/pch.h"
 #include "include/logger.h"
 
-#include <sstream>
+#include "../../../../../../../Android/Sdk/ndk/21.0.6113669/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/sstream"
 
 #if defined(ANDROID)
 #define ALOGE(...) __android_log_print(ANDROID_LOG_ERROR, "fts", __VA_ARGS__)
