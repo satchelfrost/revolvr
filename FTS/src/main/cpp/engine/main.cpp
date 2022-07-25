@@ -1,8 +1,7 @@
 #include "include/pch.h"
 #include "include/common.h"
-#include "include/options.h"
 #include "include/rvr_android_platform.h"
-#include "include/rvr_vulkan_renderer.h"
+#include "include/rendering/rvr_vulkan_renderer.h"
 #include "include/rvr_app.h"
 #include "include/rvr_game_loop_timer.h"
 
@@ -10,23 +9,23 @@ namespace {
 
 void ShowHelp() { Log::Write(Log::Level::Info, "adb shell setprop debug.xr.graphicsPlugin OpenGLES|Vulkan"); }
 
-bool UpdateOptionsFromSystemProperties(Options& options) {
-    options.GraphicsPlugin = "Vulkan";
-
-    char value[PROP_VALUE_MAX] = {};
-    if (__system_property_get("debug.xr.graphicsPlugin", value) != 0) {
-        options.GraphicsPlugin = value;
-    }
-
-    // Check for required parameters.
-    if (options.GraphicsPlugin.empty()) {
-        Log::Write(Log::Level::Error, "GraphicsPlugin parameter is required");
-        ShowHelp();
-        return false;
-    }
-
-    return true;
-}
+//bool UpdateOptionsFromSystemProperties(Options& options) {
+//    options.GraphicsPlugin = "Vulkan";
+//
+//    char value[PROP_VALUE_MAX] = {};
+//    if (__system_property_get("debug.xr.graphicsPlugin", value) != 0) {
+//        options.GraphicsPlugin = value;
+//    }
+//
+//    // Check for required parameters.
+//    if (options.GraphicsPlugin.empty()) {
+//        Log::Write(Log::Level::Error, "GraphicsPlugin parameter is required");
+//        ShowHelp();
+//        return false;
+//    }
+//
+//    return true;
+//}
 }  // namespace
 
 struct AndroidAppState {
@@ -101,10 +100,10 @@ void android_main(struct android_app* app) {
     app->userData = &appState;
     app->onAppCmd = app_handle_cmd;
 
-    std::shared_ptr<Options> options = std::make_shared<Options>();
-    if (!UpdateOptionsFromSystemProperties(*options)) {
-        return;
-    }
+//    std::shared_ptr<Options> options = std::make_shared<Options>();
+//    if (!UpdateOptionsFromSystemProperties(*options)) {
+//        return;
+//    }
 
     bool requestRestart = false;
     bool exitRenderLoop = false;
@@ -113,7 +112,7 @@ void android_main(struct android_app* app) {
     RVRAndroidPlatform androidPlatform(app);
 
     // Create graphics API implementation.
-    RVRVulkanRenderer vulkanRenderer(options, &androidPlatform);
+    RVRVulkanRenderer vulkanRenderer(&androidPlatform);
 
     // Initialize the OpenXR program.
     RVRApp rvrApp(&androidPlatform, &vulkanRenderer);

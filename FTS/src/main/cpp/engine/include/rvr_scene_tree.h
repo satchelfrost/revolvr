@@ -1,12 +1,12 @@
 #pragma once
 
-#include "rvr_object.h"
-#include "rvr_spatial.h"
-#include "rvr_hand.h"
-#include "rvr_origin.h"
-#include "rvr_mesh.h"
+#include "include/objects/rvr_object.h"
+#include "include/objects/rvr_spatial.h"
+#include "include/objects/rvr_hand.h"
+#include "include/objects/rvr_origin.h"
+#include "include/objects/rvr_mesh.h"
 #include "rvr_type.h"
-#include "xr_linear.h"
+#include "include/math/xr_linear.h"
 #include "xr_app_helpers.h"
 #include "pch.h"
 #include "../../fts-game/include/spinning_pointer.h"

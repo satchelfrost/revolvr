@@ -1,4 +1,4 @@
-#include "include/rvr_spatial.h"
+#include "include/objects/rvr_spatial.h"
 
 RVRSpatial::RVRSpatial(int id) : RVRObject(id, RVRType::Spatial),
                                  visible(true),

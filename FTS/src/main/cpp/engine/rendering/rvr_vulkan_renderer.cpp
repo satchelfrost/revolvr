@@ -1,10 +1,9 @@
-#include "include/rvr_vulkan_renderer.h"
+#include "include/rendering/rvr_vulkan_renderer.h"
 #include "include/rvr_android_platform.h"
 
 extern "C" void fast_matrix_mul(float *, float *, float *);
 
-RVRVulkanRenderer::RVRVulkanRenderer(const std::shared_ptr<Options> & /*unused*/,
-                                     const RVRAndroidPlatform* android_platform) {
+RVRVulkanRenderer::RVRVulkanRenderer(const RVRAndroidPlatform* android_platform) {
     app_ = android_platform->GetAndroidApp();
     m_graphicsBinding.type = GetGraphicsBindingType();
 };

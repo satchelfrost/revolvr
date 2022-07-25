@@ -1,4 +1,4 @@
-#include "include/rvr_object.h"
+#include "include/objects/rvr_object.h"
 #include "check.h"
 
 RVRObject::RVRObject(int pId, RVRType pType) : id(pId), type(pType), parent_(nullptr), canUpdate(true) {}

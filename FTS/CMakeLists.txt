@@ -1,12 +1,17 @@
 # Creating variables containing source locations
 file(
-  GLOB
+  GLOB_RECURSE
   LOCAL_SOURCE
-  "src/main/cpp/engine/*.cpp"
-  "src/main/cpp/fts-game/*.cpp"
+  CONFIGURE_DEPENDS
+  "src/main/cpp/*.cpp"
 )
 
-file(GLOB LOCAL_ASSEMBLY "src/main/cpp/engine/*.s")
+file(
+  GLOB_RECURSE
+  LOCAL_ASSEMBLY
+  CONFIGURE_DEPENDS
+  "src/main/cpp/*.s"
+)
 
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.

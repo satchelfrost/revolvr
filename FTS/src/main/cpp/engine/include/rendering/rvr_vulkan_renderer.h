@@ -1,6 +1,5 @@
 #pragma once
 
-#include "options.h"
 #include "rvr_vulkan_utilities.h"
 
 class RVRAndroidPlatform;
@@ -13,7 +12,7 @@ struct Cube {
 // Wraps a Vulkan API.
 class RVRVulkanRenderer {
 public:
-    RVRVulkanRenderer(const std::shared_ptr<Options>& /*unused*/, const RVRAndroidPlatform* android_platform);
+    RVRVulkanRenderer(const RVRAndroidPlatform* android_platform);
 
     // OpenXR extensions required by this graphics API.
     virtual std::vector<std::string> GetInstanceExtensions() const;
