@@ -9,23 +9,6 @@ namespace {
 
 void ShowHelp() { Log::Write(Log::Level::Info, "adb shell setprop debug.xr.graphicsPlugin OpenGLES|Vulkan"); }
 
-//bool UpdateOptionsFromSystemProperties(Options& options) {
-//    options.GraphicsPlugin = "Vulkan";
-//
-//    char value[PROP_VALUE_MAX] = {};
-//    if (__system_property_get("debug.xr.graphicsPlugin", value) != 0) {
-//        options.GraphicsPlugin = value;
-//    }
-//
-//    // Check for required parameters.
-//    if (options.GraphicsPlugin.empty()) {
-//        Log::Write(Log::Level::Error, "GraphicsPlugin parameter is required");
-//        ShowHelp();
-//        return false;
-//    }
-//
-//    return true;
-//}
 }  // namespace
 
 struct AndroidAppState {
@@ -99,11 +82,6 @@ void android_main(struct android_app* app) {
 
     app->userData = &appState;
     app->onAppCmd = app_handle_cmd;
-
-//    std::shared_ptr<Options> options = std::make_shared<Options>();
-//    if (!UpdateOptionsFromSystemProperties(*options)) {
-//        return;
-//    }
 
     bool requestRestart = false;
     bool exitRenderLoop = false;
