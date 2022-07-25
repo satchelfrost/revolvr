@@ -69,8 +69,10 @@ public:
 
   void LogActionSourceName(XrAction action, const std::string& actionName) const;
   void RefreshTrackedSpaceLocations();
+  void SetDeltaTime(float dt) { deltaTime_ = dt; }
 
 private:
+    float deltaTime_;
     RVRSceneTree sceneTree_;
     RVRAndroidPlatform* androidPlatform_;
     RVRVulkanRenderer* vulkanRenderer_;

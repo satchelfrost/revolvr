@@ -4,6 +4,7 @@
 #include "include/rvr_android_platform.h"
 #include "include/rvr_vulkan_renderer.h"
 #include "include/rvr_app.h"
+#include "include/rvr_game_loop_timer.h"
 
 namespace {
 
@@ -135,7 +136,11 @@ void android_main(struct android_app* app) {
     rvrApp.InitializeSession();
     rvrApp.CreateSwapchains();
 
+    RVRGameLoopTimer timer;
     while (app->destroyRequested == 0) {
+        float dt = timer.RefreshDeltaTime();
+        rvrApp.SetDeltaTime(dt);
+
         // Read all pending events.
         for (;;) {
             int events;

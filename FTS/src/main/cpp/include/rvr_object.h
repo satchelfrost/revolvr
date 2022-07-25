@@ -14,6 +14,7 @@ public:
 
     const int id;
     const RVRType type;
+    bool canUpdate;
 
     virtual void Begin() = 0;
     virtual void Update(float delta) = 0;

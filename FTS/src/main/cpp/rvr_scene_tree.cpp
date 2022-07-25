@@ -17,10 +17,7 @@ RVRSceneTree::RVRSceneTree() {
     leftHandMesh->UniformScale(0.1);
     auto rightHandMesh = new RVRMesh(NewId());
     rightHandMesh->UniformScale(0.1);
-    auto pointer = new RVRMesh(NewId());
-    pointer->scale = {0.01, 0.01, 0.5};
-    pointer->pose.position.z = -0.25;
-    pointer->pose.orientation = XrQuaternionf_CreateFromVectorAngle({0, 1, 0}, 3.14 / 4);
+    auto pointer = new SpinningPointer(NewId());
     leftHand->AddChild(leftHandMesh);
     rightHand->AddChild(rightHandMesh);
     rightHand->AddChild(pointer);
@@ -92,10 +89,22 @@ std::vector<RVRMesh*> RVRSceneTree::GatherRenderables() {
     return renderables;
 }
 
-void RVRSceneTree::GatherRenderables_(RVRObject* node, std::vector<RVRMesh*>& renderables) {
-    for (auto child : node->GetChildren()) {
+void RVRSceneTree::GatherRenderables_(RVRObject* parent, std::vector<RVRMesh*>& renderables) {
+    for (auto child : parent->GetChildren()) {
         if (child->type == RVRType::Mesh)
             renderables.push_back(reinterpret_cast<RVRMesh*>(child));
         GatherRenderables_(child, renderables);
+    }
+}
+
+void RVRSceneTree::Update(float delta) {
+   Update_(root_, delta);
+}
+
+void RVRSceneTree::Update_(RVRSpatial* parent, float delta) {
+    for (auto child : parent->GetChildren()) {
+        if (child->canUpdate)
+            child->Update(delta);
+        Update_(reinterpret_cast<RVRSpatial*>(child), delta);
     }
 }
