@@ -243,7 +243,7 @@ inline static void XrQuaternionf_Multiply(XrQuaternionf* result, const XrQuatern
     result->w = (b->w * a->w) - (b->x * a->x) - (b->y * a->y) - (b->z * a->z);
 }
 
-static inline XrQuaternionf XrQuaternionf_Normalize(XrQuaternionf& q) {
+static inline void XrQuaternionf_Normalize(XrQuaternionf& q) {
     double n = sqrtf(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
     if (n != 0.0f) {
         n = 1.0f / n;

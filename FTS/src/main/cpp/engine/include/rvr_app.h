@@ -2,7 +2,7 @@
 
 #include "pch.h"
 #include "common.h"
-#include "include/rendering/rvr_vulkan_renderer.h"
+#include "include/renderer/rvr_vulkan_renderer.h"
 #include "include/math/xr_linear.h"
 #include "rvr_android_platform.h"
 #include "rvr_reference_space.h"

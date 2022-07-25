@@ -1,4 +1,4 @@
-#include "include/rendering/rvr_vulkan_renderer.h"
+#include "include/renderer/rvr_vulkan_renderer.h"
 #include "include/rvr_android_platform.h"
 
 extern "C" void fast_matrix_mul(float *, float *, float *);
