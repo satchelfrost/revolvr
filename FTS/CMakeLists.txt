@@ -1,5 +1,8 @@
 # Creating variables containing source locations
-file(GLOB LOCAL_SOURCE "src/main/cpp/*.cpp")
+file(GLOB LOCAL_SOURCE
+  "src/main/cpp/*.cpp"
+  "src/main/cpp/rvr_parser/*.cpp"
+)
 file(GLOB LOCAL_ASSEMBLY "src/main/cpp/*.s")
 
 # Creates and names a library, sets it as either STATIC
