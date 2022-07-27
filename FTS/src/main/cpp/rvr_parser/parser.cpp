@@ -1,6 +1,6 @@
 #include "parser.h"
 
-Parser::Parser(std::string fileName) : scanner_(fileName), fileName_(fileName) {
+Parser::Parser(const std::string& fileName) : scanner_(fileName), fileName_(fileName) {
   tokens_ = scanner_.GetTokens();
   prevToken_ = tokens_.front();
 }
@@ -34,7 +34,7 @@ void Parser::ParseHeading(Heading& heading) {
 }
 
 void Parser::ParseHeadingType(Heading& heading) {
-  CheckPeek("Headying Type", Token::Identifier);
+  CheckPeek("Heading Type", Token::Identifier);
   heading.headingType = Pop().GetIdentifier();
   for (auto keyword : {"node", "resource"})
     if (keyword == heading.headingType)
@@ -78,22 +78,22 @@ std::vector<Parser::Field> Parser::ParseFields() {
     field.fieldName = Pop().GetIdentifier();
 
     if (ParseField1(field)) {
-      field.type = FieldType::Field1;
+      field.type = Field1;
     }
     else if (ParseField2(field)) {
-      field.type = FieldType::Field2;
+      field.type = Field2;
     }
     else if (ParseField3(field)) {
-      field.type = FieldType::Field3;
+      field.type = Field3;
     }
     else if (ParseField4(field)) {
-      field.type = FieldType::Field4;
+      field.type = Field4;
     }
     else if (ParseResourceId(field)) {
-      field.type = FieldType::Resource;
+      field.type = Resource;
     }
     else if (ParseHand(field)) {
-      field.type = FieldType::Hand;
+      field.type = Hand;
     }
     else {
       ParseErrorPrevToken("Unrecognized field \"" + field.fieldName + "\"");
@@ -189,9 +189,9 @@ bool Parser::ParseHand(Field& field) {
   return false;
 }
 
-void Parser::ReadCurlyList(float& f, bool commaExpected) {
+void Parser::ReadCurlyList(float& number, bool commaExpected) {
   CheckPeek("Expected a number", Token::Number);
-  f = Pop().GetNumber();
+  number = (float)Pop().GetNumber();
   if (commaExpected)
     CheckPop("Read Curly List", Token::Comma);
 }
@@ -231,16 +231,8 @@ void Parser::PrintTokens() {
   }
 }
 
-std::string Parser::LineColString(bool currentToken) {
-  return (currentToken) ? tokens_.front().LineColString() : prevToken_.LineColString();
-}
-
-void Parser::ParseError(std::string errMsg) {
-  throw std::runtime_error(errMsg + " " + LineColString(true));
-}
-
-void Parser::ParseErrorPrevToken(std::string errMsg) {
-  throw std::runtime_error(errMsg + " " + LineColString(false));
+void Parser::ParseErrorPrevToken(const std::string& errMsg) {
+  THROW(Fmt("%s %s", errMsg.c_str(), prevToken_.LineColString().c_str()));
 }
 
 void Parser::TokenError(std::string errMsg, Token::Tok expected) {

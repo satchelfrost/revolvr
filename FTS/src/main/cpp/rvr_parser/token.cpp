@@ -10,6 +10,15 @@ Token::Token(const Token& t) : tok(t.tok), line_(t.line_), column_(t.column_) {
     case Identifier:
       identifier_ = t.identifier_;
       break;
+    case BrackLeft:
+    case BrackRight:
+    case Comma:
+    case CurlLeft:
+    case CurlRight:
+    case Equals:
+    case Blank:
+      break;
+
   }
 }
 
@@ -24,6 +33,14 @@ Token& Token::operator=(const Token& t) {
       break;
     case Identifier:
       identifier_ = t.identifier_;
+      break;
+    case BrackLeft:
+    case BrackRight:
+    case Comma:
+    case CurlLeft:
+    case CurlRight:
+    case Equals:
+    case Blank:
       break;
   }
   return *this;

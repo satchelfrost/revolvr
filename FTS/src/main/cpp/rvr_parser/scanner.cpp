@@ -1,12 +1,21 @@
 #include "scanner.h"
 
-Scanner::Scanner(std::string fileName) : currentLine_(1) {
-  inputStream_ = std::ifstream(fileName);
-  if (!inputStream_)
-    std::cerr << "Cannot open file.\n";
+Scanner::Scanner(const std::string& fileName) : currentLine_(1) {
+  Log::Write(Log::Level::Info, Fmt("Preparing to load asset"));
+  AAsset *file = AAssetManager_open(RVRAndroidPlatform::GetInstance()->GetAndroidAssetManager(),
+                                    fileName.c_str(),
+                                    AASSET_MODE_BUFFER);
+  off_t file_length = AAsset_getLength(file);
+  char *file_content = new char[file_length];
+  AAsset_read(file, file_content, file_length);
 
+  inputStream_ = std::istringstream(file_content);
+  if (!inputStream_)
+    THROW(Fmt("Cannot open file %s", fileName.c_str()));
+
+  Log::Write(Log::Level::Info, Fmt("loaded file %s", fileName.c_str()));
   ReadLines();
-  for (auto line : lines_) {
+  for (const auto& line : lines_) {
     Tokenize(line);
     currentLine_++;
   }
