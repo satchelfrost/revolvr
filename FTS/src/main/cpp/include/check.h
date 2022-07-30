@@ -15,7 +15,7 @@
     }
 
     Log::Write(Log::Level::Error, Fmt("%s", failureMessage.c_str()));
-    exit(1);
+    std::terminate();
 }
 
 #define THROW(msg) Throw(msg, nullptr, FILE_AND_LINE);
