@@ -1,6 +1,6 @@
 #include "include/pch.h"
 #include "include/common.h"
-#include "include/rvr_android_platform.h"
+#include "include/platform/rvr_android_platform.h"
 
 RVRAndroidPlatform::RVRAndroidPlatform(android_app* app) {
     app_ = app;

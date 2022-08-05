@@ -1,6 +1,6 @@
 #include "include/pch.h"
 #include "include/common.h"
-#include "include/rvr_android_platform.h"
+#include "include/platform/rvr_android_platform.h"
 #include "include/renderer/rvr_vulkan_renderer.h"
 #include "include/rvr_app.h"
 #include "include/rvr_game_loop_timer.h"

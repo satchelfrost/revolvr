@@ -4,7 +4,7 @@
 #include "common.h"
 #include "include/renderer/rvr_vulkan_renderer.h"
 #include "include/math/xr_linear.h"
-#include "rvr_android_platform.h"
+#include "include/platform/rvr_android_platform.h"
 #include "rvr_reference_space.h"
 #include "rvr_scene_tree.h"
 #include "xr_app_helpers.h"
