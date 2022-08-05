@@ -5,7 +5,12 @@ struct AAssetManager;
 
 class RVRAndroidPlatform {
 public:
-    RVRAndroidPlatform(android_app* app);
+    RVRAndroidPlatform();
+    void Init(android_app* app);
+    static RVRAndroidPlatform* GetInstance();
+
+    void operator=(const RVRAndroidPlatform &) = delete;
+    RVRAndroidPlatform(RVRAndroidPlatform& other) = delete;
 
     // Provide extension to XrInstanceCreateInfo for xrCreateInstance.
     XrBaseInStructure* GetInstanceCreateExtension() const;
@@ -16,6 +21,9 @@ public:
     AAssetManager* GetAndroidAssetManager();
 
     android_app* GetAndroidApp() const;
+
+protected:
+    static RVRAndroidPlatform* instance_;
 
 private:
     XrInstanceCreateInfoAndroidKHR instanceCreateInfoAndroid_;

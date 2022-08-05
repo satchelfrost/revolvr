@@ -1,3 +1,4 @@
+#include <rvr_parser/parser.h>
 #include "include/pch.h"
 #include "include/common.h"
 #include "include/options.h"
@@ -110,13 +111,31 @@ void android_main(struct android_app* app) {
     bool exitRenderLoop = false;
 
     // Create platform abstraction
-    RVRAndroidPlatform androidPlatform(app);
+    RVRAndroidPlatform::GetInstance()->Init(app);
+
+    // Test out the parser
+    Parser parser("example.rvr");
+    auto units = parser.Parse();
+    for (auto& unit : units) {
+        if (unit.heading.strKeyNumVal["id"] == 9) {
+            for (auto& field : unit.fields) {
+                if (field.type == Parser::Field3) {
+                    Log::Write(Log::Level::Info,
+                               Fmt("Check this out: %s = {%.2f, %.2f, %.2f}",
+                                   field.fieldName.c_str(),
+                                   field.vec3.x,
+                                   field.vec3.y,
+                                   field.vec3.z));
+                }
+            }
+        }
+    }
 
     // Create graphics API implementation.
-    RVRVulkanRenderer vulkanRenderer(options, &androidPlatform);
+    RVRVulkanRenderer vulkanRenderer(options, RVRAndroidPlatform::GetInstance());
 
     // Initialize the OpenXR program.
-    RVRApp rvrApp(&androidPlatform, &vulkanRenderer);
+    RVRApp rvrApp(RVRAndroidPlatform::GetInstance(), &vulkanRenderer);
 
     // Initialize the loader for this platform
     PFN_xrInitializeLoaderKHR initializeLoader = nullptr;
