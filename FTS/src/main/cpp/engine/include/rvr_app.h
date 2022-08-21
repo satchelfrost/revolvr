@@ -1,13 +1,16 @@
 #pragma once
 
 #include "pch.h"
-#include "common.h"
-#include "include/renderer/rvr_vulkan_renderer.h"
-#include "include/math/xr_linear.h"
+#include "include/common.h"
 #include "include/platform/rvr_android_platform.h"
+#include "include/renderer/rvr_vulkan_renderer.h"
+#include "include/rvr_game_loop_timer.h"
+#include "include/math/xr_linear.h"
+
 #include "rvr_reference_space.h"
 #include "rvr_scene_tree.h"
 #include "xr_app_helpers.h"
+
 #include <array>
 #include <cmath>
 
@@ -17,12 +20,14 @@ namespace Side {
     const int COUNT = 2;
 };  // namespace Side
 
-
 class RVRApp {
 public:
-  RVRApp(RVRAndroidPlatform* androidPlatform, RVRVulkanRenderer* vulkanRenderer);
-
+  RVRApp() {}
   ~RVRApp();
+
+  void Run(struct android_app* app);
+
+  void HandleAndroidCmd(android_app *app, int32_t cmd);
 
   // Create an Instance and other basic instance-level initialization.
   void CreateInstance();
@@ -118,4 +123,6 @@ private:
     };
     std::vector<Swapchain> swapchains_;
 
+    ANativeWindow* nativeWindow_ = nullptr;
+    bool resumed_ = false;
 };

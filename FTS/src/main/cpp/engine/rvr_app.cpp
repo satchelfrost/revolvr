@@ -1,9 +1,9 @@
 #include "include/rvr_app.h"
 
-
-RVRApp::RVRApp(RVRAndroidPlatform* androidPlatform, RVRVulkanRenderer* vulkanRenderer) :
-    androidPlatform_(androidPlatform),
-    vulkanRenderer_(vulkanRenderer) {}
+static void app_handle_cmd(struct android_app* app, int32_t cmd) {
+    auto* rvrApp = (RVRApp*)app->userData;
+    rvrApp->HandleAndroidCmd(app, cmd);
+}
 
  RVRApp::~RVRApp() {
      if (input_.actionSet != XR_NULL_HANDLE) {
@@ -32,7 +32,128 @@ RVRApp::RVRApp(RVRAndroidPlatform* androidPlatform, RVRVulkanRenderer* vulkanRen
      if (xrInstance_ != XR_NULL_HANDLE) {
          xrDestroyInstance(xrInstance_);
      }
+
+     delete vulkanRenderer_;
+     delete androidPlatform_;
  }
+
+void RVRApp::HandleAndroidCmd(struct android_app* app, int32_t cmd) {
+    switch (cmd) {
+        // There is no APP_CMD_CREATE. The ANativeActivity creates the
+        // application thread from onCreate(). The application thread
+        // then calls android_main().
+        case APP_CMD_START: {
+            Log::Write(Log::Level::Info, "    APP_CMD_START");
+            Log::Write(Log::Level::Info, "onStart()");
+            break;
+        }
+        case APP_CMD_RESUME: {
+            Log::Write(Log::Level::Info, "onResume()");
+            Log::Write(Log::Level::Info, "    APP_CMD_RESUME");
+            resumed_ = true;
+            break;
+        }
+        case APP_CMD_PAUSE: {
+            Log::Write(Log::Level::Info, "onPause()");
+            Log::Write(Log::Level::Info, "    APP_CMD_PAUSE");
+            resumed_ = false;
+            break;
+        }
+        case APP_CMD_STOP: {
+            Log::Write(Log::Level::Info, "onStop()");
+            Log::Write(Log::Level::Info, "    APP_CMD_STOP");
+            break;
+        }
+        case APP_CMD_DESTROY: {
+            Log::Write(Log::Level::Info, "onDestroy()");
+            Log::Write(Log::Level::Info, "    APP_CMD_DESTROY");
+            nativeWindow_ = NULL;
+            break;
+        }
+        case APP_CMD_INIT_WINDOW: {
+            Log::Write(Log::Level::Info, "surfaceCreated()");
+            Log::Write(Log::Level::Info, "    APP_CMD_INIT_WINDOW");
+            nativeWindow_ = app->window;
+            break;
+        }
+        case APP_CMD_TERM_WINDOW: {
+            Log::Write(Log::Level::Info, "surfaceDestroyed()");
+            Log::Write(Log::Level::Info, "    APP_CMD_TERM_WINDOW");
+            nativeWindow_ = NULL;
+            break;
+        }
+    }
+}
+
+void RVRApp::Run(struct android_app *app) {
+     JNIEnv* Env;
+     app->activity->vm->AttachCurrentThread(&Env, nullptr);
+     app->userData = this;
+     app->onAppCmd = app_handle_cmd;
+
+     bool requestRestart = false;
+     bool exitRenderLoop = false;
+
+     // Create platform abstraction
+     androidPlatform_ = new RVRAndroidPlatform(app);
+
+     // Create graphics API implementation.
+     vulkanRenderer_ = new RVRVulkanRenderer(androidPlatform_);
+
+     // Initialize the loader for this platform
+     PFN_xrInitializeLoaderKHR initializeLoader = nullptr;
+     if (XR_SUCCEEDED(
+             xrGetInstanceProcAddr(XR_NULL_HANDLE, "xrInitializeLoaderKHR", (PFN_xrVoidFunction*)(&initializeLoader)))) {
+         XrLoaderInitInfoAndroidKHR loaderInitInfoAndroid;
+         memset(&loaderInitInfoAndroid, 0, sizeof(loaderInitInfoAndroid));
+         loaderInitInfoAndroid.type = XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR;
+         loaderInitInfoAndroid.next = NULL;
+         loaderInitInfoAndroid.applicationVM = app->activity->vm;
+         loaderInitInfoAndroid.applicationContext = app->activity->clazz;
+         initializeLoader((const XrLoaderInitInfoBaseHeaderKHR*)&loaderInitInfoAndroid);
+     }
+
+     CreateInstance();
+     InitializeSystem();
+     InitializeSession();
+     CreateSwapchains();
+
+     RVRGameLoopTimer timer;
+     while (app->destroyRequested == 0) {
+         float dt = timer.RefreshDeltaTime();
+         SetDeltaTime(dt);
+
+         // Read all pending events.
+         for (;;) {
+             int events;
+             struct android_poll_source* source;
+             // If the timeout is zero, returns immediately without blocking.
+             // If the timeout is negative, waits indefinitely until an event appears.
+             const int timeoutMilliseconds =
+                     (!resumed_ && !IsSessionRunning() && app->destroyRequested == 0) ? -1 : 0;
+             if (ALooper_pollAll(timeoutMilliseconds, nullptr, &events, (void**)&source) < 0) {
+                 break;
+             }
+
+             // Process this event.
+             if (source != nullptr) {
+                 source->process(app, source);
+             }
+         }
+
+         PollXrEvents(&exitRenderLoop, &requestRestart);
+         if (!IsSessionRunning()) {
+             // Throttle loop since xrWaitFrame won't be called.
+             std::this_thread::sleep_for(std::chrono::milliseconds(250));
+             continue;
+         }
+
+         PollActions();
+         RenderFrame();
+     }
+
+     app->activity->vm->DetachCurrentThread();
+}
 
 void RVRApp::CreateInstance() {
     CHECK(xrInstance_ == XR_NULL_HANDLE);
@@ -59,7 +180,6 @@ void RVRApp::CreateInstance() {
     CHECK_XRCMD(xrCreateInstance(&createInfo, &xrInstance_));
 
 }
-
 
 void RVRApp::InitializeSystem() {
     CHECK(xrInstance_ != XR_NULL_HANDLE);
