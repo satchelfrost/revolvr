@@ -2,7 +2,7 @@
 
 #include "pch.h"
 #include "include/common.h"
-#include "include/platform/rvr_android_platform.h"
+#include "include/platform/rvr_android_context.h"
 #include "include/renderer/rvr_vulkan_renderer.h"
 #include "include/rvr_game_loop_timer.h"
 #include "include/math/xr_linear.h"
@@ -78,8 +78,9 @@ public:
 private:
     float deltaTime_;
     RVRSceneTree sceneTree_;
-    RVRAndroidPlatform* androidPlatform_;
+    RVRAndroidContext* androidContext_;
     RVRVulkanRenderer* vulkanRenderer_;
+
     XrInstance xrInstance_{XR_NULL_HANDLE};
     XrSession xrSession_{XR_NULL_HANDLE};
     XrSpace appSpace_{XR_NULL_HANDLE};
@@ -122,7 +123,4 @@ private:
         int32_t height;
     };
     std::vector<Swapchain> swapchains_;
-
-    ANativeWindow* nativeWindow_ = nullptr;
-    bool resumed_ = false;
 };

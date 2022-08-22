@@ -34,7 +34,7 @@ static void app_handle_cmd(struct android_app* app, int32_t cmd) {
      }
 
      delete vulkanRenderer_;
-     delete androidPlatform_;
+     delete androidContext_;
  }
 
 void RVRApp::HandleAndroidCmd(struct android_app* app, int32_t cmd) {
@@ -50,13 +50,13 @@ void RVRApp::HandleAndroidCmd(struct android_app* app, int32_t cmd) {
         case APP_CMD_RESUME: {
             Log::Write(Log::Level::Info, "onResume()");
             Log::Write(Log::Level::Info, "    APP_CMD_RESUME");
-            resumed_ = true;
+            androidContext_->resumed = true;
             break;
         }
         case APP_CMD_PAUSE: {
             Log::Write(Log::Level::Info, "onPause()");
             Log::Write(Log::Level::Info, "    APP_CMD_PAUSE");
-            resumed_ = false;
+            androidContext_->resumed = false;
             break;
         }
         case APP_CMD_STOP: {
@@ -67,21 +67,23 @@ void RVRApp::HandleAndroidCmd(struct android_app* app, int32_t cmd) {
         case APP_CMD_DESTROY: {
             Log::Write(Log::Level::Info, "onDestroy()");
             Log::Write(Log::Level::Info, "    APP_CMD_DESTROY");
-            nativeWindow_ = NULL;
+            androidContext_->nativeWindow = nullptr;
             break;
         }
         case APP_CMD_INIT_WINDOW: {
             Log::Write(Log::Level::Info, "surfaceCreated()");
             Log::Write(Log::Level::Info, "    APP_CMD_INIT_WINDOW");
-            nativeWindow_ = app->window;
+            androidContext_->nativeWindow = app->window;
             break;
         }
         case APP_CMD_TERM_WINDOW: {
             Log::Write(Log::Level::Info, "surfaceDestroyed()");
             Log::Write(Log::Level::Info, "    APP_CMD_TERM_WINDOW");
-            nativeWindow_ = NULL;
+            androidContext_->nativeWindow = nullptr;
             break;
         }
+        default:
+            break;
     }
 }
 
@@ -95,10 +97,10 @@ void RVRApp::Run(struct android_app *app) {
      bool exitRenderLoop = false;
 
      // Create platform abstraction
-     androidPlatform_ = new RVRAndroidPlatform(app);
+     androidContext_ = new RVRAndroidContext(app);
 
      // Create graphics API implementation.
-     vulkanRenderer_ = new RVRVulkanRenderer(androidPlatform_);
+     vulkanRenderer_ = new RVRVulkanRenderer(androidContext_);
 
      // Initialize the loader for this platform
      PFN_xrInitializeLoaderKHR initializeLoader = nullptr;
@@ -107,7 +109,7 @@ void RVRApp::Run(struct android_app *app) {
          XrLoaderInitInfoAndroidKHR loaderInitInfoAndroid;
          memset(&loaderInitInfoAndroid, 0, sizeof(loaderInitInfoAndroid));
          loaderInitInfoAndroid.type = XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR;
-         loaderInitInfoAndroid.next = NULL;
+         loaderInitInfoAndroid.next = nullptr;
          loaderInitInfoAndroid.applicationVM = app->activity->vm;
          loaderInitInfoAndroid.applicationContext = app->activity->clazz;
          initializeLoader((const XrLoaderInitInfoBaseHeaderKHR*)&loaderInitInfoAndroid);
@@ -123,23 +125,7 @@ void RVRApp::Run(struct android_app *app) {
          float dt = timer.RefreshDeltaTime();
          SetDeltaTime(dt);
 
-         // Read all pending events.
-         for (;;) {
-             int events;
-             struct android_poll_source* source;
-             // If the timeout is zero, returns immediately without blocking.
-             // If the timeout is negative, waits indefinitely until an event appears.
-             const int timeoutMilliseconds =
-                     (!resumed_ && !IsSessionRunning() && app->destroyRequested == 0) ? -1 : 0;
-             if (ALooper_pollAll(timeoutMilliseconds, nullptr, &events, (void**)&source) < 0) {
-                 break;
-             }
-
-             // Process this event.
-             if (source != nullptr) {
-                 source->process(app, source);
-             }
-         }
+         androidContext_->HandleEvents(xrSessionRunning_);
 
          PollXrEvents(&exitRenderLoop, &requestRestart);
          if (!IsSessionRunning()) {
@@ -162,7 +148,7 @@ void RVRApp::CreateInstance() {
     std::vector<const char*> extensions;
 
     // Transform platform and graphics extension std::strings to C strings.
-    const std::vector<std::string> platformExtensions = androidPlatform_->GetInstanceExtensions();
+    const std::vector<std::string> platformExtensions = androidContext_->GetInstanceExtensions();
     std::transform(platformExtensions.begin(), platformExtensions.end(), std::back_inserter(extensions),
                    [](const std::string& ext) { return ext.c_str(); });
     const std::vector<std::string> graphicsExtensions = vulkanRenderer_->GetInstanceExtensions();
@@ -170,7 +156,7 @@ void RVRApp::CreateInstance() {
                    [](const std::string& ext) { return ext.c_str(); });
 
     XrInstanceCreateInfo createInfo{XR_TYPE_INSTANCE_CREATE_INFO};
-    createInfo.next = androidPlatform_->GetInstanceCreateExtension();
+    createInfo.next = androidContext_->GetInstanceCreateExtension();
     createInfo.enabledExtensionCount = (uint32_t)extensions.size();
     createInfo.enabledExtensionNames = extensions.data();
 
@@ -739,7 +725,7 @@ bool RVRApp::RenderLayer(std::vector<XrCompositionLayerProjectionView>& projecti
         CHECK_XRCMD(xrReleaseSwapchainImage(viewSwapchain.handle, &releaseInfo));
     }
 
-    // Clear the renderbuffer for the next frame
+    // Clear the renderBuffer for the next frame
     renderBuffer_.clear();
 
     layer.space = appSpace_;

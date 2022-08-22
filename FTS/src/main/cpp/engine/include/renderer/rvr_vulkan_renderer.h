@@ -2,7 +2,7 @@
 
 #include "rvr_vulkan_utilities.h"
 
-class RVRAndroidPlatform;
+class RVRAndroidContext;
 
 struct Cube {
     XrPosef Pose;
@@ -12,7 +12,7 @@ struct Cube {
 // Wraps a Vulkan API.
 class RVRVulkanRenderer {
 public:
-    RVRVulkanRenderer(const RVRAndroidPlatform* android_platform);
+    RVRVulkanRenderer(const RVRAndroidContext* android_platform);
 
     // OpenXR extensions required by this graphics API.
     virtual std::vector<std::string> GetInstanceExtensions() const;
