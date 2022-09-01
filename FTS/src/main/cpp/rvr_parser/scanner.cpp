@@ -6,8 +6,9 @@ Scanner::Scanner(const std::string& fileName) : currentLine_(1) {
                                     fileName.c_str(),
                                     AASSET_MODE_BUFFER);
   off_t file_length = AAsset_getLength(file);
-  char *file_content = new char[file_length];
+  char *file_content = new char[file_length + 1];
   AAsset_read(file, file_content, file_length);
+  file_content[file_length] = '\0';
 
   inputStream_ = std::istringstream(file_content);
   if (!inputStream_)

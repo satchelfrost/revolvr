@@ -33,3 +33,23 @@ orientation {-0.38249949727, 0, 0, 0.92395569947}
 [node id=10 name=The_mesh_right_in_front_of_you type=Mesh parent=1]
 scale {4, 0.5, 0.5}
 position {3, 0.25, -5}
+
+[node id=11 type=Mesh parent=1]
+scale {4, 0.5, 0.5}
+position {3, 0.25, -5}
+[node id=12 type=Mesh parent=1]
+scale {4, 0.5, 0.5}
+position {3, 1.25, -5}
+[node id=13 type=Mesh parent=1]
+scale {4, 0.5, 0.5}
+position {3, 2.25, -5}
+[node id=14 type=Mesh parent=1]
+scale {4, 0.5, 0.5}
+position {3, 3.25, -5}
+[node id=15 type=Mesh parent=1]
+scale {4, 0.5, 0.5}
+position {3, 4.25, -5}
+[node id=16 type=Mesh parent=1]
+scale {4, 0.5, 0.5}
+position {3, 5.25, -5}
+
