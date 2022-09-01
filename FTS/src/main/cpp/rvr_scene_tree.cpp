@@ -3,7 +3,7 @@
 RVRSceneTree::RVRSceneTree() {
     // Setup the root node
     nodeId_= 0;
-    auto vrOrigin = root_  = new RVROrigin(NewId());
+    auto vrOrigin = root_ = new RVROrigin(NewId());
     vrOrigin->pose.position.x = 3;
     vrOrigin->SetName("VR_Origin");
 
