@@ -22,7 +22,6 @@ public:
     Hand = 5
   };
 
-private:
   struct Heading {
     std::string headingType;
     std::map<std::string, std::string> strKeyStrVal;
@@ -42,7 +41,6 @@ private:
     };
   };
 
-public:
   struct Unit {
     Heading heading;
     std::vector<Field> fields;
