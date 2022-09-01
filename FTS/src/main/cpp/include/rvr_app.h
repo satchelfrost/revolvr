@@ -7,7 +7,7 @@
 #include "xr_linear.h"
 #include "rvr_android_platform.h"
 #include "rvr_reference_space.h"
-#include "rvr_scene_tree.h"
+#include "rvr_auto_scene_tree.h"
 #include "xr_app_helpers.h"
 #include <array>
 #include <cmath>
@@ -73,7 +73,7 @@ public:
 
 private:
     float deltaTime_;
-    RVRSceneTree sceneTree_;
+    RVRAutoSceneTree sceneTree_;
     RVRAndroidPlatform* androidPlatform_;
     RVRVulkanRenderer* vulkanRenderer_;
     XrInstance xrInstance_{XR_NULL_HANDLE};

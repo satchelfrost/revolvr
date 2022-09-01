@@ -16,7 +16,6 @@ class RVRAutoSceneTree {
 public:
     RVRAutoSceneTree();
     ~RVRAutoSceneTree();
-    int NewId();
     void CascadePose(const TrackedSpaceLocations& trackedSpaceLocations);
     void Update(float delta);
     std::vector<RVRMesh*> GatherRenderables();
@@ -25,9 +24,9 @@ private:
     void CascadePose_(RVRObject* parent, const TrackedSpaceLocations& trackedSpaceLocations);
     void GatherRenderables_(RVRObject* parent, std::vector<RVRMesh*>& renderables);
     void Update_(RVRObject* parent, float delta);
-    RVRObject* ConstructTypeFromUnit(Parser::Unit& unit);
-    RVRObject* ConstructCustomTypeFromUnit(Parser::Unit& unit);
+    static RVRObject* ConstructTypeFromUnit(Parser::Unit& unit);
+    static RVRObject* ConstructCustomTypeFromUnit(Parser::Unit& unit, int id);
+    static void PopulateSpatialFromFields(RVRSpatial* spatial, std::vector<Parser::Field>& fields);
     RVRSpatial* root_;
-    int nodeId_;
-    std::map<int, RVRObject*> objectMap_;
+    std::map<int, RVRObject*> objectMap_; // id -> object
 };
