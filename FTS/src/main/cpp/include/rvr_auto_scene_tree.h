@@ -29,4 +29,6 @@ private:
     static void PopulateSpatialFromFields(RVRSpatial* spatial, std::vector<Parser::Field>& fields);
     RVRSpatial* root_;
     std::map<int, RVRObject*> objectMap_; // id -> object
+    constexpr static int rootId_ = 1;
+    constexpr static int nullId_ = 0;
 };

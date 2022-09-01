@@ -11,14 +11,14 @@ RVRAutoSceneTree::RVRAutoSceneTree() {
     }
 
     // assign the root
-    root_ = dynamic_cast<RVRSpatial*>(objectMap_[1]);
+    root_ = dynamic_cast<RVRSpatial*>(objectMap_[rootId_]);
     if (!root_)
         THROW(Fmt("Failed to construct root, node with id=1 was probably never specified."));
 
     // setup the tree
     for (auto& node : objectMap_) {
         // ignore root node
-        if (node.first == 1)
+        if (node.first == rootId_)
             continue;
 
         auto child = node.second;
@@ -70,10 +70,16 @@ RVRObject* RVRAutoSceneTree::ConstructTypeFromUnit(Parser::Unit& unit) {
 finish:
     std::string name = unit.heading.strKeyStrVal["name"];
     int parentId = unit.heading.strKeyNumVal["parent"];
-    object->SetName(name);
-    object->weakParentId = parentId;
-    PopulateSpatialFromFields(dynamic_cast<RVRSpatial*>(object), unit.fields);
+    if (!name.empty())
+        object->SetName(name);
 
+    // Set the parent id
+    if (id != rootId_ && parentId == nullId_)
+        object->weakParentId = rootId_;
+    else
+        object->weakParentId = parentId;
+
+    PopulateSpatialFromFields(dynamic_cast<RVRSpatial*>(object), unit.fields);
     return object;
 }
 
