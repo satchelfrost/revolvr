@@ -6,8 +6,7 @@
 RVRObject::RVRObject(int pId, RVRType pType) : id(pId), type(pType), parent_(nullptr), canUpdate(true) {}
 
 void RVRObject::AddChild(RVRObject* child) {
-    child->SetParent(child);
-    children_.push_back(child);
+    child->SetParent(this);
 }
 
 void RVRObject::RemoveFromParent() {
@@ -22,6 +21,7 @@ void RVRObject::RemoveFromParent() {
 void RVRObject::SetParent(RVRObject* parent) {
     RemoveFromParent();
     parent_ = parent;
+    parent_->children_.push_back(this);
 }
 
 void RVRObject::Destroy() {

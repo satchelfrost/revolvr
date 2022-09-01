@@ -1,5 +1,7 @@
 #include "token.h"
 
+#include <utility>
+
 Token::Token() : tok(Blank) {}
 
 Token::Token(const Token& t) : tok(t.tok), line_(t.line_), column_(t.column_) {
@@ -56,14 +58,13 @@ tok(tokP), line_(line), column_(column), number_(number) {
 }
 
 Token::Token(Tok tokP, int line, int column, std::string identifier) :
-tok(tokP), line_(line), column_(column), identifier_(identifier) {
+tok(tokP), line_(line), column_(column), identifier_(std::move(identifier)) {
   if (tok != Identifier)
     throw std::runtime_error("Identifier token expected for construction.");
 }
 
-double Token::GetNumber() {
+double Token::GetNumber() const {
   if (tok != Number)
-//    throw std::runtime_error("Cannot get number from " + StringFromTokEnum(tok));
     THROW(Fmt("Cannot get number from %s", StringFromTokEnum(tok).c_str()));
   return number_;
 }
@@ -71,7 +72,6 @@ double Token::GetNumber() {
 std::string Token::GetIdentifier() {
   if (tok != Identifier)
     THROW(Fmt("Cannot get identifier from %s", StringFromTokEnum(tok).c_str()));
-//    throw std::runtime_error("Cannot get identifier from " + StringFromTokEnum(tok));
   return identifier_;
 }
 

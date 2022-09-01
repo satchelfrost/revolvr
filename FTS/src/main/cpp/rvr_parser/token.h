@@ -24,7 +24,7 @@ public:
   Token(Tok tok, int line, int column, std::string identifier);
   Tok tok;
   std::string ToString();
-  double GetNumber();
+  double GetNumber() const;
   std::string GetIdentifier();
   static std::string StringFromTokEnum(Tok token);
   std::string LineColString() const;

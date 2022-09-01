@@ -174,7 +174,7 @@ bool Parser::ParseHand(Field& field) {
   for (auto keyword : {"hand"}) {
     if (field.fieldName == keyword) {
       CheckPop("Field hand", Token::CurlLeft);
-      ReadSide(field.hand);
+      ReadSide(field.handSide);
       CheckPop("Field hand", Token::CurlRight);
       return true;
     }
