@@ -3,10 +3,12 @@
 #include <utility>
 #include "check.h"
 
-RVRObject::RVRObject(int pId, RVRType pType) : id(pId), type(pType), parent_(nullptr), canUpdate(true) {}
+RVRObject::RVRObject(int pId, RVRType pType) : id(pId), type(pType), parent_(nullptr),
+                                               canUpdate(true), weakParentId(0) {}
 
 void RVRObject::AddChild(RVRObject* child) {
     child->SetParent(this);
+    children_.push_back(child);
 }
 
 void RVRObject::RemoveFromParent() {
@@ -21,7 +23,6 @@ void RVRObject::RemoveFromParent() {
 void RVRObject::SetParent(RVRObject* parent) {
     RemoveFromParent();
     parent_ = parent;
-    parent_->children_.push_back(this);
 }
 
 void RVRObject::Destroy() {
