@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <string>
+#include "common.h"
 
 class Token {
 public:
@@ -25,8 +26,8 @@ public:
   std::string ToString();
   double GetNumber();
   std::string GetIdentifier();
-  static std::string TokToString(Tok token);
-  std::string LineColString();
+  static std::string StringFromTokEnum(Tok token);
+  std::string LineColString() const;
 
 private:
   int line_;

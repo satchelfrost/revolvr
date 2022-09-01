@@ -77,27 +77,20 @@ std::vector<Parser::Field> Parser::ParseFields() {
     Field field;
     field.fieldName = Pop().GetIdentifier();
 
-    if (ParseField1(field)) {
+    if (ParseField1(field))
       field.type = Field1;
-    }
-    else if (ParseField2(field)) {
+    else if (ParseField2(field))
       field.type = Field2;
-    }
-    else if (ParseField3(field)) {
+    else if (ParseField3(field))
       field.type = Field3;
-    }
-    else if (ParseField4(field)) {
+    else if (ParseField4(field))
       field.type = Field4;
-    }
-    else if (ParseResourceId(field)) {
+    else if (ParseResourceId(field))
       field.type = Resource;
-    }
-    else if (ParseHand(field)) {
+    else if (ParseHand(field))
       field.type = Hand;
-    }
-    else {
+    else
       ParseErrorPrevToken("Unrecognized field \"" + field.fieldName + "\"");
-    }
     fields.push_back(field);
   }
   return fields;
@@ -219,15 +212,14 @@ void Parser::ReadSide(int& side) {
 }
 
 void Parser::PrintTokens() {
-  auto tokens = Scanner(fileName_).GetTokens();
+  Scanner scanner(fileName_);
+  auto tokens = scanner.GetTokens();
   while (!tokens.empty()) {
-    auto token = Pop();
-    if (token.tok == Token::Identifier)
-      std::cout << token.ToString() << ", " << token.GetIdentifier() << "\n";
-    else if (token.tok == Token::Number)
-      std::cout << token.ToString() << ", " << token.GetNumber() << "\n";
-    else
-      std::cout << token.ToString() << "\n";
+    auto token = tokens.front();
+    tokens.pop();
+    Log::Write(Log::Level::Info, Fmt("Token name: %s", Token::StringFromTokEnum(token.tok).c_str()));
+    Log::Write(Log::Level::Info, Fmt("Token value: %s", token.ToString().c_str()));
+    Log::Write(Log::Level::Info, token.LineColString());
   }
 }
 
@@ -236,8 +228,8 @@ void Parser::ParseErrorPrevToken(const std::string& errMsg) {
 }
 
 void Parser::TokenError(std::string errMsg, Token::Tok expected) {
-  errMsg += " parse error. Expected \"" + Token::TokToString(expected);
-  errMsg += "\", received \"" + Token::TokToString(Peek()) + "\"";
+  errMsg += " parse error. Expected \"" + Token::StringFromTokEnum(expected);
+  errMsg += "\", received \"" + Token::StringFromTokEnum(Peek()) + "\"";
   ParseErrorPrevToken(errMsg);
 }
 

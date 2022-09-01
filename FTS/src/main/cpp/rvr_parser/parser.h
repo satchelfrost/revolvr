@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../include/pch.h"
-#include "../include/check.h"
-
+#include "pch.h"
+#include "check.h"
+#include "logger.h"
 #include "token.h"
 #include "scanner.h"
 #include <map>
