@@ -11,11 +11,12 @@ hand {right}
 [node id=5 name=Left_Hand_Mesh type=Mesh parent=2]
 scale {0.1, 0.1, 0.1}
 
-[node id=4 name=Mesh_4 type=Mesh parent=3]
+[node id=4 name=Right_Hand_Mesh type=Mesh parent=3]
 scale {0.1, 0.1, 0.1}
 
 [node id=6 name=Pointer parent=3 type=SpinningPointer]
 custom_type {true}
+position {0, 0, -0.25}
 
 [node id=7 name=World_Origin_Mesh type=Mesh parent=1]
 scale {0.5, 0.5, 0.5}
