@@ -4,7 +4,7 @@
 #include "check.h"
 
 RVRObject::RVRObject(int pId, RVRType pType) : id(pId), type(pType), parent_(nullptr),
-                                               canUpdate(true) {}
+                                               canUpdate(false) {}
 
 void RVRObject::AddChild(RVRObject* child) {
     child->SetParent(this);
