@@ -114,10 +114,10 @@ void android_main(struct android_app* app) {
     RVRAndroidPlatform::GetInstance()->Init(app);
 
     // Create graphics API implementation.
-    RVRVulkanRenderer vulkanRenderer(options, RVRAndroidPlatform::GetInstance());
+    RVRVulkanRenderer vulkanRenderer(options);
 
     // Initialize the OpenXR program.
-    RVRApp rvrApp(RVRAndroidPlatform::GetInstance(), &vulkanRenderer);
+    RVRApp rvrApp(&vulkanRenderer);
 
     // Initialize the loader for this platform
     PFN_xrInitializeLoaderKHR initializeLoader = nullptr;

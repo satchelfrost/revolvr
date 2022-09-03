@@ -1,9 +1,6 @@
 #include "include/rvr_app.h"
 
-
-RVRApp::RVRApp(RVRAndroidPlatform* androidPlatform, RVRVulkanRenderer* vulkanRenderer) :
-    androidPlatform_(androidPlatform),
-    vulkanRenderer_(vulkanRenderer) {}
+RVRApp::RVRApp(RVRVulkanRenderer* vulkanRenderer) : vulkanRenderer_(vulkanRenderer) {}
 
  RVRApp::~RVRApp() {
      if (input_.actionSet != XR_NULL_HANDLE) {
@@ -41,7 +38,8 @@ void RVRApp::CreateInstance() {
     std::vector<const char*> extensions;
 
     // Transform platform and graphics extension std::strings to C strings.
-    const std::vector<std::string> platformExtensions = androidPlatform_->GetInstanceExtensions();
+    RVRAndroidPlatform* androidPlatform = RVRAndroidPlatform::GetInstance();
+    const std::vector<std::string> platformExtensions = androidPlatform->GetInstanceExtensions();
     std::transform(platformExtensions.begin(), platformExtensions.end(), std::back_inserter(extensions),
                    [](const std::string& ext) { return ext.c_str(); });
     const std::vector<std::string> graphicsExtensions = vulkanRenderer_->GetInstanceExtensions();
@@ -49,7 +47,7 @@ void RVRApp::CreateInstance() {
                    [](const std::string& ext) { return ext.c_str(); });
 
     XrInstanceCreateInfo createInfo{XR_TYPE_INSTANCE_CREATE_INFO};
-    createInfo.next = androidPlatform_->GetInstanceCreateExtension();
+    createInfo.next = androidPlatform->GetInstanceCreateExtension();
     createInfo.enabledExtensionCount = (uint32_t)extensions.size();
     createInfo.enabledExtensionNames = extensions.data();
 
