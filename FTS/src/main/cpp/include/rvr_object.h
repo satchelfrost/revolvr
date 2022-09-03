@@ -17,7 +17,6 @@ public:
     std::string GetName();
 
     const int id;
-    int weakParentId;
     const RVRType type;
     bool canUpdate;
 

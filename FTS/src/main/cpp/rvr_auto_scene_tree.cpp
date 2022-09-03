@@ -21,11 +21,12 @@ RVRAutoSceneTree::RVRAutoSceneTree() {
         if (node.first == rootId_)
             continue;
 
-        auto child = node.second;
-        auto parent = objectMap_[child->weakParentId];
+        RVRObject* child = node.second;
+        int parentId = parentIdMap_[child->id];
+        RVRObject* parent = objectMap_[parentId];
         if (!parent)
-            THROW(Fmt("Could not find parent with id %d for child %s",
-                           child->weakParentId,
+            THROW(Fmt("Could not find parent with id=%d for child %s",
+                           parentId,
                            child->GetName().c_str()));
         parent->AddChild(child);
     }
@@ -68,16 +69,19 @@ RVRObject* RVRAutoSceneTree::ConstructTypeFromUnit(Parser::Unit& unit) {
     }
 
 finish:
+    // Set the name
     std::string name = unit.heading.strKeyStrVal["name"];
-    int parentId = unit.heading.strKeyNumVal["parent"];
     if (!name.empty())
         object->SetName(name);
 
-    // Set the parent id
-    if (id != rootId_ && parentId == nullId_)
-        object->weakParentId = rootId_;
+    // Set the weak parent id
+    int parentId = unit.heading.strKeyNumVal["parent"];
+    if (id == rootId_)
+        parentIdMap_[id] = nullId_;
+    else if (parentId == nullId_)
+        parentIdMap_[id] = rootId_;
     else
-        object->weakParentId = parentId;
+        parentIdMap_[id] = parentId;
 
     PopulateSpatialFromFields(dynamic_cast<RVRSpatial*>(object), unit.fields);
     return object;
