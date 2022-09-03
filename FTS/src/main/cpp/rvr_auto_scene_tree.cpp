@@ -121,7 +121,16 @@ void RVRAutoSceneTree::PopulateSpatialFromFields(RVRSpatial* spatial,
                 else
                     THROW(Fmt("Field4 %s cannot be handled", field.fieldName.c_str()));
                 break;
-            case Parser::Field1:
+            case Parser::Field1: // visible, custom_type, can_update
+                if (field.fieldName == "visible")
+                    spatial->visible = field.boolean;
+                else if (field.fieldName == "custom_type")
+                    break;
+                else if (field.fieldName == "can_update")
+                    spatial->canUpdate = field.boolean;
+                else
+                    THROW(Fmt("Field1 %s cannot be handled", field.fieldName.c_str()));
+                break;
             case Parser::Field2:
             case Parser::Resource:
             case Parser::Hand:
