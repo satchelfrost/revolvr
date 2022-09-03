@@ -1,6 +1,6 @@
 #include "include/rvr_auto_scene_tree.h"
 
-RVRAutoSceneTree::RVRAutoSceneTree() {
+RVRAutoSceneTree::RVRAutoSceneTree() : rootIdFound_(false) {
     Parser parser("example.rvr");
     auto units = parser.Parse();
 
@@ -35,8 +35,17 @@ RVRAutoSceneTree::RVRAutoSceneTree() {
 RVRObject* RVRAutoSceneTree::ConstructTypeFromUnit(Parser::Unit& unit) {
     RVRObject* object;
     int id = unit.heading.strKeyNumVal["id"];
-    std::string typeName = unit.heading.strKeyStrVal["type"];
+    if (id == 0)
+        THROW(Fmt("id=0 not allowed"));
 
+    if (id == 1) {
+        if (!rootIdFound_)
+            rootIdFound_ = true;
+        else
+            THROW(Fmt("id=1 can only be specified once for root node."));
+    }
+
+    std::string typeName = unit.heading.strKeyStrVal["type"];
     if (typeName == "Mesh") {
         object = new RVRMesh(id);
     }
