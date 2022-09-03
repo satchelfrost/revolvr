@@ -98,7 +98,7 @@ std::vector<Parser::Field> Parser::ParseFields() {
 
 bool Parser::ParseField1(Field& field) {
   // keyword '{' bool ''}'
-  for (auto keyword : {"visible", "custom_type"}) {
+  for (auto keyword : {"visible", "custom_type", "can_update"}) {
     if (field.fieldName == keyword) {
       CheckPop("Field1", Token::CurlLeft);
       ReadBool(field.boolean);

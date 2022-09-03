@@ -9,7 +9,7 @@ number_key ::= 'id' | 'parent'
 string_key ::= 'name' | 'type'
 
 field ::= field_1 | field_2 | field_3 | field_4 | resource | hand
-field_1 ::= ('visible' | 'custom_type') '{' bool '}'
+field_1 ::= ('visible' | 'custom_type' | 'can_update') '{' bool '}'
 field_2 ::= 'canvas' '{' number ',' number '}'
 field_3 ::= ('scale' | 'position') '{' number ',' number ',' number '}'
 field_4 ::= 'orientation' '{' number ','  number ',' number ',' number '}'
