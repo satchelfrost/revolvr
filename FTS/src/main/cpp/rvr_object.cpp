@@ -3,10 +3,11 @@
 #include <utility>
 #include "check.h"
 
-RVRObject::RVRObject(int pId, RVRType pType) : id(pId), type(pType), parent_(nullptr), canUpdate(true) {}
+RVRObject::RVRObject(int pId, RVRType pType) : id(pId), type(pType), parent_(nullptr),
+                                               canUpdate(true) {}
 
 void RVRObject::AddChild(RVRObject* child) {
-    child->SetParent(child);
+    child->SetParent(this);
     children_.push_back(child);
 }
 

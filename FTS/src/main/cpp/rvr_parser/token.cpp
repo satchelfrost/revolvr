@@ -1,5 +1,7 @@
 #include "token.h"
 
+#include <utility>
+
 Token::Token() : tok(Blank) {}
 
 Token::Token(const Token& t) : tok(t.tok), line_(t.line_), column_(t.column_) {
@@ -56,50 +58,69 @@ tok(tokP), line_(line), column_(column), number_(number) {
 }
 
 Token::Token(Tok tokP, int line, int column, std::string identifier) :
-tok(tokP), line_(line), column_(column), identifier_(identifier) {
+tok(tokP), line_(line), column_(column), identifier_(std::move(identifier)) {
   if (tok != Identifier)
     throw std::runtime_error("Identifier token expected for construction.");
 }
 
-double Token::GetNumber() {
+double Token::GetNumber() const {
   if (tok != Number)
-    throw std::runtime_error("Cannot get number from " + TokToString(tok));
+    THROW(Fmt("Cannot get number from %s", StringFromTokEnum(tok).c_str()));
   return number_;
 }
 
 std::string Token::GetIdentifier() {
   if (tok != Identifier)
-    throw std::runtime_error("Cannot get identifier from " + TokToString(tok));
+    THROW(Fmt("Cannot get identifier from %s", StringFromTokEnum(tok).c_str()));
   return identifier_;
 }
 
-std::string Token::TokToString(Tok token) {
+std::string Token::StringFromTokEnum(Tok token) {
   switch (token) {
-  case BrackLeft:
-    return "[";
-  case BrackRight:
-    return "]";
-  case Identifier:
-    return "Identifier";
-  case Comma:
-    return ",";
-  case CurlLeft:
-    return "{";
-  case CurlRight:
-    return "}";
-  case Number:
-    return "Number";
-  case Equals:
-    return "=";
-  default:
-    return "Token \"" + std::to_string((int)token) + "\" unrecognized";
+    case BrackLeft:
+      return "Left Bracket";
+    case BrackRight:
+      return "Right Bracket";
+    case Identifier:
+      return "Identifier";
+    case Comma:
+      return "Comma";
+    case CurlLeft:
+      return "Left Curly Brace";
+    case CurlRight:
+      return "Right Curly Brace";
+    case Number:
+      return "Number";
+    case Equals:
+      return "Equals";
+    default:
+      return "Token \"" + std::to_string((int)token) + "\" unrecognized";
   }
 }
 
 std::string Token::ToString() {
-  return TokToString(tok);
+  switch (tok) {
+    case BrackLeft:
+      return "[";
+    case BrackRight:
+      return "]";
+    case Identifier:
+      return GetIdentifier();
+    case Comma:
+      return ",";
+    case CurlLeft:
+      return "{";
+    case CurlRight:
+      return "}";
+    case Number:
+      return std::to_string(GetNumber());
+    case Equals:
+      return "=";
+    default:
+      return "Token \"" + std::to_string((int)tok) + "\" unrecognized";
+  }
 }
 
-std::string Token::LineColString() {
+std::string Token::LineColString() const {
   return "[line: " + std::to_string(line_) + ", column: " + std::to_string(column_) + "]";
 }

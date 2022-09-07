@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../include/pch.h"
-#include "../include/check.h"
-
+#include "pch.h"
+#include "check.h"
+#include "logger.h"
 #include "token.h"
 #include "scanner.h"
 #include <map>
@@ -22,7 +22,6 @@ public:
     Hand = 5
   };
 
-private:
   struct Heading {
     std::string headingType;
     std::map<std::string, std::string> strKeyStrVal;
@@ -36,7 +35,7 @@ private:
       XrQuaternionf quat;
       XrVector3f vec3;
       XrVector2f vec2;
-      int hand; // left 0, right 1
+      int handSide; // left 0, right 1
       int resource_id;
       bool boolean;
     };
@@ -46,6 +45,8 @@ private:
     Heading heading;
     std::vector<Field> fields;
   };
+
+private:
 
   std::vector<Unit> units_;
 
