@@ -13,9 +13,48 @@
 #include <array>
 #include <cmath>
 
+namespace Side {
+    const int LEFT = 0;
+    const int RIGHT = 1;
+    const int COUNT = 2;
+};  // namespace Side
+
+struct InputState {
+    XrActionSet actionSet{XR_NULL_HANDLE};
+    XrAction grabAction{XR_NULL_HANDLE};
+    XrAction poseAction{XR_NULL_HANDLE};
+    XrAction vibrateAction{XR_NULL_HANDLE};
+    XrAction quitAction{XR_NULL_HANDLE};
+    std::array<XrPath, Side::COUNT> handSubactionPath;
+    std::array<XrSpace, Side::COUNT> handSpace;
+    std::array<float, Side::COUNT> handScale = {{1.0f, 1.0f}};
+    std::array<XrBool32, Side::COUNT> handActive;
+};
+
+struct Swapchain {
+    XrSwapchain handle;
+    int32_t width;
+    int32_t height;
+};
+
 class RVRXRContext {
 public:
-    RVRXRContext();
+    RVRXRContext(RVRAndroidContext* androidContext, RVRVulkanRenderer* vulkanRenderer);
+
+    ~RVRXRContext();
+
+    void Initialize();
+
+    // Manage session lifecycle to track if RenderFrame should be called.
+    bool IsSessionRunning() const;
+
+    // Manage session state to track if input should be processed.
+    bool IsSessionFocused() const;
+
+    // Process any events in the event queue.
+    void PollXrEvents(bool* exitRenderLoop, bool* requestRestart);
+
+private:
 
     // Create an Instance and other basic instance-level initialization.
     void CreateInstance();
@@ -31,23 +70,25 @@ public:
 
     void InitializeReferenceSpaces();
 
+    // Create a Swapchain which requires coordinating with the graphics plugin to select the format, getting the system graphics
+    // properties, getting the view configuration and grabbing the resulting swapchain images.
+    void CreateSwapchains();
+
     // Return event if one is available, otherwise return null.
     const XrEventDataBaseHeader* TryReadNextEvent();
-
-    // Process any events in the event queue.
-    void PollXrEvents(bool* exitRenderLoop, bool* requestRestart);
 
     void HandleSessionStateChangedEvent(const XrEventDataSessionStateChanged& stateChangedEvent,
                                         bool* exitRenderLoop,
                                         bool* requestRestart);
 
-    // Manage session lifecycle to track if RenderFrame should be called.
-    bool IsSessionRunning() const;
+    void LogActionSourceName(XrAction action, const std::string& actionName) const;
 
-    // Manage session state to track if input should be processed.
-    bool IsSessionFocused() const;
+    void RefreshTrackedSpaceLocations();
 
 private:
+    const RVRAndroidContext* androidContext_;
+    RVRVulkanRenderer* vulkanRenderer_;
+
     XrInstance xrInstance_{XR_NULL_HANDLE};
     XrSession xrSession_{XR_NULL_HANDLE};
     XrSpace appSpace_{XR_NULL_HANDLE};
@@ -69,5 +110,7 @@ private:
     XrEventDataBuffer xrEventDataBuffer_;
 
     TrackedSpaceLocations trackedSpaceLocations_;
+    InputState input_;
+    std::vector<Swapchain> swapchains_;
 };
 

@@ -1,8 +1,45 @@
 
 #include "include/rvr_xr_context.h"
 
-RVRXRContext::RVRXRContext() {
+RVRXRContext::RVRXRContext(RVRAndroidContext* androidContext, RVRVulkanRenderer* vulkanRenderer)
+: androidContext_(androidContext), vulkanRenderer_(vulkanRenderer) {
 
+}
+
+RVRXRContext::~RVRXRContext() {
+    if (input_.actionSet != XR_NULL_HANDLE) {
+        for (auto hand : {Side::LEFT, Side::RIGHT}) {
+            xrDestroySpace(input_.handSpace[hand]);
+        }
+        xrDestroyActionSet(input_.actionSet);
+    }
+
+    for (Swapchain swapchain : swapchains_) {
+        xrDestroySwapchain(swapchain.handle);
+    }
+
+    for (auto referenceSpace : initializedRefSpaces_) {
+        xrDestroySpace(referenceSpace.second);
+    }
+
+    if (appSpace_ != XR_NULL_HANDLE) {
+        xrDestroySpace(appSpace_);
+    }
+
+    if (xrSession_ != XR_NULL_HANDLE) {
+        xrDestroySession(xrSession_);
+    }
+
+    if (xrInstance_ != XR_NULL_HANDLE) {
+        xrDestroyInstance(xrInstance_);
+    }
+}
+
+void RVRXRContext::Initialize() {
+    CreateInstance();
+    InitializeSystem();
+    InitializeSession();
+    CreateSwapchains();
 }
 
 void RVRXRContext::CreateInstance() {
@@ -12,7 +49,7 @@ void RVRXRContext::CreateInstance() {
     std::vector<const char*> extensions;
 
     // Transform platform and graphics extension std::strings to C strings.
-    const std::vector<std::string> platformExtensions = androidContext_->GetInstanceExtensions();
+    const std::vector<std::string> platformExtensions = RVRAndroidContext::GetInstanceExtensions();
     std::transform(platformExtensions.begin(), platformExtensions.end(), std::back_inserter(extensions),
                    [](const std::string& ext) { return ext.c_str(); });
     const std::vector<std::string> graphicsExtensions = vulkanRenderer_->GetInstanceExtensions();
@@ -28,7 +65,6 @@ void RVRXRContext::CreateInstance() {
     createInfo.applicationInfo.apiVersion = XR_CURRENT_API_VERSION;
 
     CHECK_XRCMD(xrCreateInstance(&createInfo, &xrInstance_));
-
 }
 
 void RVRXRContext::InitializeSystem() {
@@ -197,6 +233,69 @@ void RVRXRContext::InitializeReferenceSpaces() {
     }
 }
 
+void RVRXRContext::CreateSwapchains() {
+    CHECK(xrSession_ != XR_NULL_HANDLE);
+    CHECK(swapchains_.empty());
+    CHECK(xrConfigViews_.empty());
+
+    // Read graphics properties for preferred swapchain length and logging.
+    XrSystemProperties systemProperties{XR_TYPE_SYSTEM_PROPERTIES};
+    CHECK_XRCMD(xrGetSystemProperties(xrInstance_, xrSystemId_, &systemProperties));
+
+    // Query and cache view configuration views.
+    uint32_t viewCount;
+    CHECK_XRCMD(xrEnumerateViewConfigurationViews(xrInstance_, xrSystemId_, xrViewConfigType_, 0, &viewCount, nullptr));
+    xrConfigViews_.resize(viewCount, {XR_TYPE_VIEW_CONFIGURATION_VIEW});
+    CHECK_XRCMD(xrEnumerateViewConfigurationViews(xrInstance_, xrSystemId_, xrViewConfigType_, viewCount, &viewCount,
+                                                  xrConfigViews_.data()));
+
+    // Create and cache view buffer for xrLocateViews later.
+    xrViews_.resize(viewCount, {XR_TYPE_VIEW});
+
+    // Create the swapchain and get the images.
+    if (viewCount > 0) {
+        // Select a swapchain format.
+        uint32_t swapchainFormatCount;
+        CHECK_XRCMD(xrEnumerateSwapchainFormats(xrSession_, 0, &swapchainFormatCount, nullptr));
+        std::vector<int64_t> swapchainFormats(swapchainFormatCount);
+        CHECK_XRCMD(xrEnumerateSwapchainFormats(xrSession_, (uint32_t)swapchainFormats.size(), &swapchainFormatCount,
+                                                swapchainFormats.data()));
+        CHECK(swapchainFormatCount == swapchainFormats.size());
+        xrColorSwapchainFormat_ = vulkanRenderer_->SelectColorSwapchainFormat(swapchainFormats);
+
+        // Create a swapchain for each view.
+        for (uint32_t i = 0; i < viewCount; i++) {
+            const XrViewConfigurationView& vp = xrConfigViews_[i];
+
+            // Create the swapchain.
+            XrSwapchainCreateInfo swapchainCreateInfo{XR_TYPE_SWAPCHAIN_CREATE_INFO};
+            swapchainCreateInfo.arraySize = 1;
+            swapchainCreateInfo.format = xrColorSwapchainFormat_;
+            swapchainCreateInfo.width = vp.recommendedImageRectWidth;
+            swapchainCreateInfo.height = vp.recommendedImageRectHeight;
+            swapchainCreateInfo.mipCount = 1;
+            swapchainCreateInfo.faceCount = 1;
+            swapchainCreateInfo.sampleCount = vulkanRenderer_->GetSupportedSwapchainSampleCount(vp);
+            swapchainCreateInfo.usageFlags = XR_SWAPCHAIN_USAGE_SAMPLED_BIT | XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT;
+            Swapchain swapchain;
+            swapchain.width = swapchainCreateInfo.width;
+            swapchain.height = swapchainCreateInfo.height;
+            CHECK_XRCMD(xrCreateSwapchain(xrSession_, &swapchainCreateInfo, &swapchain.handle));
+
+            swapchains_.push_back(swapchain);
+
+            uint32_t imageCount;
+            CHECK_XRCMD(xrEnumerateSwapchainImages(swapchain.handle, 0, &imageCount, nullptr));
+            // XXX This should really just return XrSwapchainImageBaseHeader*
+            std::vector<XrSwapchainImageBaseHeader*> swapchainImages =
+                    vulkanRenderer_->AllocateSwapchainImageStructs(imageCount, swapchainCreateInfo);
+            CHECK_XRCMD(xrEnumerateSwapchainImages(swapchain.handle, imageCount, &imageCount, swapchainImages[0]));
+
+            xrSwapchainImages_.insert(std::make_pair(swapchain.handle, std::move(swapchainImages)));
+        }
+    }
+}
+
 const XrEventDataBaseHeader* RVRXRContext::TryReadNextEvent() {
     // It is sufficient to clear the just the XrEventDataBuffer header to
     // XR_TYPE_EVENT_DATA_BUFFER
@@ -308,4 +407,69 @@ bool RVRXRContext::IsSessionFocused() const {
     return xrSessionState_ == XR_SESSION_STATE_FOCUSED;
 }
 
+void RVRXRContext::LogActionSourceName(XrAction action, const std::string& actionName) const {
+    XrBoundSourcesForActionEnumerateInfo getInfo = {XR_TYPE_BOUND_SOURCES_FOR_ACTION_ENUMERATE_INFO};
+    getInfo.action = action;
+    uint32_t pathCount = 0;
+    CHECK_XRCMD(xrEnumerateBoundSourcesForAction(xrSession_, &getInfo, 0, &pathCount, nullptr));
+    std::vector<XrPath> paths(pathCount);
+    CHECK_XRCMD(xrEnumerateBoundSourcesForAction(xrSession_, &getInfo, uint32_t(paths.size()), &pathCount, paths.data()));
 
+    std::string sourceName;
+    for (auto& path : paths) {
+        constexpr XrInputSourceLocalizedNameFlags all = XR_INPUT_SOURCE_LOCALIZED_NAME_USER_PATH_BIT |
+                                                        XR_INPUT_SOURCE_LOCALIZED_NAME_INTERACTION_PROFILE_BIT |
+                                                        XR_INPUT_SOURCE_LOCALIZED_NAME_COMPONENT_BIT;
+
+        XrInputSourceLocalizedNameGetInfo nameInfo = {XR_TYPE_INPUT_SOURCE_LOCALIZED_NAME_GET_INFO};
+        nameInfo.sourcePath = path;
+        nameInfo.whichComponents = all;
+
+        uint32_t size = 0;
+        CHECK_XRCMD(xrGetInputSourceLocalizedName(xrSession_, &nameInfo, 0, &size, nullptr));
+        if (size < 1) {
+            continue;
+        }
+        std::vector<char> grabSource(size);
+        CHECK_XRCMD(xrGetInputSourceLocalizedName(xrSession_, &nameInfo, uint32_t(grabSource.size()), &size, grabSource.data()));
+        if (!sourceName.empty()) {
+            sourceName += " and ";
+        }
+        sourceName += "'";
+        sourceName += std::string(grabSource.data(), size - 1);
+        sourceName += "'";
+    }
+
+    Log::Write(Log::Level::Info,
+               Fmt("%s action is bound to %s", actionName.c_str(), ((!sourceName.empty()) ? sourceName.c_str() : "nothing")));
+}
+
+void RVRXRContext::RefreshTrackedSpaceLocations() {
+    for (auto trackedSpaceLocation : trackedSpaceLocations_.locations) {
+        XrSpaceLocation spaceLocation{XR_TYPE_SPACE_LOCATION};
+        XrResult res;
+        switch(trackedSpaceLocation) {
+            case TrackedSpaceLocations::LeftHand:
+                res = xrLocateSpace(input_.handSpace[Side::LEFT],
+                                    appSpace_, predictedDisplayTime_,
+                                    &spaceLocation);
+                if (TrackedSpaceLocations::ValidityCheck(res, spaceLocation))
+                    trackedSpaceLocations_.leftHand = spaceLocation;
+                break;
+            case TrackedSpaceLocations::RightHand:
+                res = xrLocateSpace(input_.handSpace[Side::RIGHT],
+                                    appSpace_, predictedDisplayTime_,
+                                    &spaceLocation);
+                if (TrackedSpaceLocations::ValidityCheck(res, spaceLocation))
+                    trackedSpaceLocations_.rightHand = spaceLocation;
+                break;
+            case TrackedSpaceLocations::VrOrigin:
+                res = xrLocateSpace(initializedRefSpaces_[RVRReferenceSpace::TrackedOrigin],
+                                    appSpace_, predictedDisplayTime_,
+                                    &spaceLocation);
+                if (TrackedSpaceLocations::ValidityCheck(res, spaceLocation))
+                    trackedSpaceLocations_.vrOrigin = spaceLocation;
+                break;
+        }
+    }
+}
