@@ -3,9 +3,7 @@
 
 extern "C" void fast_matrix_mul(float *, float *, float *);
 
-RVRVulkanRenderer::RVRVulkanRenderer(const std::shared_ptr<Options> & /*unused*/,
-                                     const RVRAndroidPlatform* android_platform) {
-    app_ = android_platform->GetAndroidApp();
+RVRVulkanRenderer::RVRVulkanRenderer(const std::shared_ptr<Options> & /*unused*/) {
     m_graphicsBinding.type = GetGraphicsBindingType();
 };
 
@@ -188,7 +186,7 @@ void RVRVulkanRenderer::InitializeDevice(XrInstance instance, XrSystemId systemI
 
 std::vector<char> RVRVulkanRenderer::CreateSPIRVVector(const char *asset_name) {
     // Load in the compiled shader from the apk
-    AAsset *file = AAssetManager_open(app_->activity->assetManager,
+    AAsset *file = AAssetManager_open(RVRAndroidPlatform::GetInstance()->GetAndroidAssetManager(),
                                       asset_name,
                                       AASSET_MODE_BUFFER);
     off_t file_length = AAsset_getLength(file);

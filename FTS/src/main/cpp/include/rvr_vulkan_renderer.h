@@ -2,6 +2,7 @@
 
 #include "options.h"
 #include "rvr_vulkan_utilities.h"
+#include "rvr_android_platform.h"
 
 class RVRAndroidPlatform;
 
@@ -13,7 +14,7 @@ struct Cube {
 // Wraps a Vulkan API.
 class RVRVulkanRenderer {
 public:
-    RVRVulkanRenderer(const std::shared_ptr<Options>& /*unused*/, const RVRAndroidPlatform* android_platform);
+    RVRVulkanRenderer(const std::shared_ptr<Options>& /*unused*/);
 
     // OpenXR extensions required by this graphics API.
     virtual std::vector<std::string> GetInstanceExtensions() const;
@@ -91,7 +92,5 @@ private:
     std::vector<char> CreateSPIRVVector(const char *asset_name);
 
     void InitializeResources();
-
-    const android_app* app_;
 };
 

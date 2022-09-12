@@ -5,10 +5,6 @@ SpinningPointer::SpinningPointer(int id) : RVRMesh(id) {
     turnAmt_ = 0;
     turnSpeed_ = 3;
     transDirection_ = 1;
-
-    // Disable the update in order to not be annoying.
-    // Comment out if you want to see this object in action.
-    canUpdate = false;
 }
 
 void SpinningPointer::Begin() {

@@ -21,7 +21,7 @@ namespace Side {
 
 class RVRApp {
 public:
-  RVRApp(RVRAndroidPlatform* androidPlatform, RVRVulkanRenderer* vulkanRenderer);
+  RVRApp(RVRVulkanRenderer* vulkanRenderer);
 
   ~RVRApp();
 
@@ -74,7 +74,6 @@ public:
 private:
     float deltaTime_;
     RVRAutoSceneTree sceneTree_;
-    RVRAndroidPlatform* androidPlatform_;
     RVRVulkanRenderer* vulkanRenderer_;
     XrInstance xrInstance_{XR_NULL_HANDLE};
     XrSession xrSession_{XR_NULL_HANDLE};
