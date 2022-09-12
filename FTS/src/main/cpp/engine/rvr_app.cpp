@@ -5,6 +5,10 @@ static void app_handle_cmd(struct android_app* app, int32_t cmd) {
     rvrApp->HandleAndroidCmd(app, cmd);
 }
 
+RVRApp::RVRApp() {
+
+}
+
  RVRApp::~RVRApp() {
      delete xrContext_;
      delete vulkanRenderer_;
@@ -111,8 +115,8 @@ void RVRApp::Run(struct android_app *app) {
              std::this_thread::sleep_for(std::chrono::milliseconds(250));
              continue;
          }
+         xrContext_->PollActions();
 
-         PollActions();
          RenderFrame();
      }
 
@@ -168,12 +172,12 @@ void RVRApp::Run(struct android_app *app) {
 //        strcpy_s(actionSetInfo.actionSetName, "gameplay");
 //        strcpy_s(actionSetInfo.localizedActionSetName, "Gameplay");
 //        actionSetInfo.priority = 0;
-//        CHECK_XRCMD(xrCreateActionSet(xrInstance_, &actionSetInfo, &input_.actionSet));
+//        CHECK_XRCMD(xrCreateActionSet(xrInstance_, &actionSetInfo, &input.actionSet));
 //    }
 //
 //    // Get the XrPath for the left and right hands - we will use them as subaction paths.
-//    CHECK_XRCMD(xrStringToPath(xrInstance_, "/user/hand/left", &input_.handSubactionPath[Side::LEFT]));
-//    CHECK_XRCMD(xrStringToPath(xrInstance_, "/user/hand/right", &input_.handSubactionPath[Side::RIGHT]));
+//    CHECK_XRCMD(xrStringToPath(xrInstance_, "/user/hand/left", &input.handSubactionPath[Side::LEFT]));
+//    CHECK_XRCMD(xrStringToPath(xrInstance_, "/user/hand/right", &input.handSubactionPath[Side::RIGHT]));
 //
 //    // Create actions.
 //    {
@@ -182,25 +186,25 @@ void RVRApp::Run(struct android_app *app) {
 //        actionInfo.actionType = XR_ACTION_TYPE_FLOAT_INPUT;
 //        strcpy_s(actionInfo.actionName, "grab_object");
 //        strcpy_s(actionInfo.localizedActionName, "Grab Object");
-//        actionInfo.countSubactionPaths = uint32_t(input_.handSubactionPath.size());
-//        actionInfo.subactionPaths = input_.handSubactionPath.data();
-//        CHECK_XRCMD(xrCreateAction(input_.actionSet, &actionInfo, &input_.grabAction));
+//        actionInfo.countSubactionPaths = uint32_t(input.handSubactionPath.size());
+//        actionInfo.subactionPaths = input.handSubactionPath.data();
+//        CHECK_XRCMD(xrCreateAction(input.actionSet, &actionInfo, &input.grabAction));
 //
 //        // Create an input action getting the left and right hand poses.
 //        actionInfo.actionType = XR_ACTION_TYPE_POSE_INPUT;
 //        strcpy_s(actionInfo.actionName, "hand_pose");
 //        strcpy_s(actionInfo.localizedActionName, "Hand Pose");
-//        actionInfo.countSubactionPaths = uint32_t(input_.handSubactionPath.size());
-//        actionInfo.subactionPaths = input_.handSubactionPath.data();
-//        CHECK_XRCMD(xrCreateAction(input_.actionSet, &actionInfo, &input_.poseAction));
+//        actionInfo.countSubactionPaths = uint32_t(input.handSubactionPath.size());
+//        actionInfo.subactionPaths = input.handSubactionPath.data();
+//        CHECK_XRCMD(xrCreateAction(input.actionSet, &actionInfo, &input.poseAction));
 //
 //        // Create output actions for vibrating the left and right controller.
 //        actionInfo.actionType = XR_ACTION_TYPE_VIBRATION_OUTPUT;
 //        strcpy_s(actionInfo.actionName, "vibrate_hand");
 //        strcpy_s(actionInfo.localizedActionName, "Vibrate Hand");
-//        actionInfo.countSubactionPaths = uint32_t(input_.handSubactionPath.size());
-//        actionInfo.subactionPaths = input_.handSubactionPath.data();
-//        CHECK_XRCMD(xrCreateAction(input_.actionSet, &actionInfo, &input_.vibrateAction));
+//        actionInfo.countSubactionPaths = uint32_t(input.handSubactionPath.size());
+//        actionInfo.subactionPaths = input.handSubactionPath.data();
+//        CHECK_XRCMD(xrCreateAction(input.actionSet, &actionInfo, &input.vibrateAction));
 //
 //        // Create input actions for quitting the session using the left and right controller.
 //        // Since it doesn't matter which hand did this, we do not specify subaction paths for it.
@@ -210,7 +214,7 @@ void RVRApp::Run(struct android_app *app) {
 //        strcpy_s(actionInfo.localizedActionName, "Quit Session");
 //        actionInfo.countSubactionPaths = 0;
 //        actionInfo.subactionPaths = nullptr;
-//        CHECK_XRCMD(xrCreateAction(input_.actionSet, &actionInfo, &input_.quitAction));
+//        CHECK_XRCMD(xrCreateAction(input.actionSet, &actionInfo, &input.quitAction));
 //    }
 //
 //    std::array<XrPath, Side::COUNT> selectPath;
@@ -246,13 +250,13 @@ void RVRApp::Run(struct android_app *app) {
 //        XrPath oculusTouchInteractionProfilePath;
 //        CHECK_XRCMD(
 //            xrStringToPath(xrInstance_, "/interaction_profiles/oculus/touch_controller", &oculusTouchInteractionProfilePath));
-//        std::vector<XrActionSuggestedBinding> bindings{{{input_.grabAction, squeezeValuePath[Side::LEFT]},
-//                                                        {input_.grabAction, squeezeValuePath[Side::RIGHT]},
-//                                                        {input_.poseAction, posePath[Side::LEFT]},
-//                                                        {input_.poseAction, posePath[Side::RIGHT]},
-//                                                        {input_.quitAction, menuClickPath[Side::LEFT]},
-//                                                        {input_.vibrateAction, hapticPath[Side::LEFT]},
-//                                                        {input_.vibrateAction, hapticPath[Side::RIGHT]}}};
+//        std::vector<XrActionSuggestedBinding> bindings{{{input.grabAction, squeezeValuePath[Side::LEFT]},
+//                                                        {input.grabAction, squeezeValuePath[Side::RIGHT]},
+//                                                        {input.poseAction, posePath[Side::LEFT]},
+//                                                        {input.poseAction, posePath[Side::RIGHT]},
+//                                                        {input.quitAction, menuClickPath[Side::LEFT]},
+//                                                        {input.vibrateAction, hapticPath[Side::LEFT]},
+//                                                        {input.vibrateAction, hapticPath[Side::RIGHT]}}};
 //        XrInteractionProfileSuggestedBinding suggestedBindings{XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING};
 //        suggestedBindings.interactionProfile = oculusTouchInteractionProfilePath;
 //        suggestedBindings.suggestedBindings = bindings.data();
@@ -261,21 +265,21 @@ void RVRApp::Run(struct android_app *app) {
 //    }
 //
 //    XrActionSpaceCreateInfo actionSpaceInfo{XR_TYPE_ACTION_SPACE_CREATE_INFO};
-//    actionSpaceInfo.action = input_.poseAction;
+//    actionSpaceInfo.action = input.poseAction;
 //    actionSpaceInfo.poseInActionSpace.orientation.w = 1.f;
-//    actionSpaceInfo.subactionPath = input_.handSubactionPath[Side::LEFT];
-//    CHECK_XRCMD(xrCreateActionSpace(xrSession_, &actionSpaceInfo, &input_.handSpace[Side::LEFT]));
-//    actionSpaceInfo.subactionPath = input_.handSubactionPath[Side::RIGHT];
-//    CHECK_XRCMD(xrCreateActionSpace(xrSession_, &actionSpaceInfo, &input_.handSpace[Side::RIGHT]));
+//    actionSpaceInfo.subactionPath = input.handSubactionPath[Side::LEFT];
+//    CHECK_XRCMD(xrCreateActionSpace(session, &actionSpaceInfo, &input.handSpace[Side::LEFT]));
+//    actionSpaceInfo.subactionPath = input.handSubactionPath[Side::RIGHT];
+//    CHECK_XRCMD(xrCreateActionSpace(session, &actionSpaceInfo, &input.handSpace[Side::RIGHT]));
 //
 //    XrSessionActionSetsAttachInfo attachInfo{XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO};
 //    attachInfo.countActionSets = 1;
-//    attachInfo.actionSets = &input_.actionSet;
-//    CHECK_XRCMD(xrAttachSessionActionSets(xrSession_, &attachInfo));
+//    attachInfo.actionSets = &input.actionSet;
+//    CHECK_XRCMD(xrAttachSessionActionSets(session, &attachInfo));
 //}
 //
 //void RVRApp::InitializeReferenceSpaces() {
-//    CHECK(xrSession_ != XR_NULL_HANDLE);
+//    CHECK(session != XR_NULL_HANDLE);
 //    RVRReferenceSpace referenceSpaces[] = { //RVRReferenceSpace::RVRHead,
 //                                            RVRReferenceSpace::Hud,
 //                                            //RVRReferenceSpace::RVRHeadInitial,
@@ -287,7 +291,7 @@ void RVRApp::Run(struct android_app *app) {
 //    for (const auto& referenceSpace : referenceSpaces) {
 //        XrReferenceSpaceCreateInfo referenceSpaceCreateInfo = GetXrReferenceSpaceCreateInfo(referenceSpace);
 //        XrSpace space;
-//        XrResult res = xrCreateReferenceSpace(xrSession_, &referenceSpaceCreateInfo, &space);
+//        XrResult res = xrCreateReferenceSpace(session, &referenceSpaceCreateInfo, &space);
 //        if (XR_SUCCEEDED(res))
 //            initializedRefSpaces_[referenceSpace] = space;
 //        else
@@ -298,24 +302,24 @@ void RVRApp::Run(struct android_app *app) {
 //
 //void RVRApp::InitializeSession() {
 //    CHECK(xrInstance_ != XR_NULL_HANDLE);
-//    CHECK(xrSession_ == XR_NULL_HANDLE);
+//    CHECK(session == XR_NULL_HANDLE);
 //
 //    XrSessionCreateInfo createInfo{XR_TYPE_SESSION_CREATE_INFO};
 //    createInfo.next = vulkanRenderer_->GetGraphicsBinding();
 //    createInfo.systemId = xrSystemId_;
-//    CHECK_XRCMD(xrCreateSession(xrInstance_, &createInfo, &xrSession_));
+//    CHECK_XRCMD(xrCreateSession(xrInstance_, &createInfo, &session));
 //
 //    InitializeActions();
 //    InitializeReferenceSpaces();
 //
 //    XrReferenceSpaceCreateInfo referenceSpaceCreateInfo = GetXrReferenceSpaceCreateInfo(RVRReferenceSpace::TrackedOrigin);
-//    CHECK_XRCMD(xrCreateReferenceSpace(xrSession_, &referenceSpaceCreateInfo, &appSpace_));
+//    CHECK_XRCMD(xrCreateReferenceSpace(session, &referenceSpaceCreateInfo, &appSpace));
 //}
 //
 //void RVRApp::CreateSwapchains() {
-//    CHECK(xrSession_ != XR_NULL_HANDLE);
-//    CHECK(swapchains_.empty());
-//    CHECK(xrConfigViews_.empty());
+//    CHECK(session != XR_NULL_HANDLE);
+//    CHECK(swapchains.empty());
+//    CHECK(configViews.empty());
 //
 //    // Read graphics properties for preferred swapchain length and logging.
 //    XrSystemProperties systemProperties{XR_TYPE_SYSTEM_PROPERTIES};
@@ -323,33 +327,33 @@ void RVRApp::Run(struct android_app *app) {
 //
 //    // Query and cache view configuration views.
 //    uint32_t viewCount;
-//    CHECK_XRCMD(xrEnumerateViewConfigurationViews(xrInstance_, xrSystemId_, xrViewConfigType_, 0, &viewCount, nullptr));
-//    xrConfigViews_.resize(viewCount, {XR_TYPE_VIEW_CONFIGURATION_VIEW});
-//    CHECK_XRCMD(xrEnumerateViewConfigurationViews(xrInstance_, xrSystemId_, xrViewConfigType_, viewCount, &viewCount,
-//                                                  xrConfigViews_.data()));
+//    CHECK_XRCMD(xrEnumerateViewConfigurationViews(xrInstance_, xrSystemId_, viewConfigType, 0, &viewCount, nullptr));
+//    configViews.resize(viewCount, {XR_TYPE_VIEW_CONFIGURATION_VIEW});
+//    CHECK_XRCMD(xrEnumerateViewConfigurationViews(xrInstance_, xrSystemId_, viewConfigType, viewCount, &viewCount,
+//                                                  configViews.data()));
 //
 //    // Create and cache view buffer for xrLocateViews later.
-//    xrViews_.resize(viewCount, {XR_TYPE_VIEW});
+//    views.resize(viewCount, {XR_TYPE_VIEW});
 //
 //    // Create the swapchain and get the images.
 //    if (viewCount > 0) {
 //        // Select a swapchain format.
 //        uint32_t swapchainFormatCount;
-//        CHECK_XRCMD(xrEnumerateSwapchainFormats(xrSession_, 0, &swapchainFormatCount, nullptr));
+//        CHECK_XRCMD(xrEnumerateSwapchainFormats(session, 0, &swapchainFormatCount, nullptr));
 //        std::vector<int64_t> swapchainFormats(swapchainFormatCount);
-//        CHECK_XRCMD(xrEnumerateSwapchainFormats(xrSession_, (uint32_t)swapchainFormats.size(), &swapchainFormatCount,
+//        CHECK_XRCMD(xrEnumerateSwapchainFormats(session, (uint32_t)swapchainFormats.size(), &swapchainFormatCount,
 //                                                swapchainFormats.data()));
 //        CHECK(swapchainFormatCount == swapchainFormats.size());
-//        xrColorSwapchainFormat_ = vulkanRenderer_->SelectColorSwapchainFormat(swapchainFormats);
+//        colorSwapchainFormat = vulkanRenderer_->SelectColorSwapchainFormat(swapchainFormats);
 //
 //        // Create a swapchain for each view.
 //        for (uint32_t i = 0; i < viewCount; i++) {
-//            const XrViewConfigurationView& vp = xrConfigViews_[i];
+//            const XrViewConfigurationView& vp = configViews[i];
 //
 //            // Create the swapchain.
 //            XrSwapchainCreateInfo swapchainCreateInfo{XR_TYPE_SWAPCHAIN_CREATE_INFO};
 //            swapchainCreateInfo.arraySize = 1;
-//            swapchainCreateInfo.format = xrColorSwapchainFormat_;
+//            swapchainCreateInfo.format = colorSwapchainFormat;
 //            swapchainCreateInfo.width = vp.recommendedImageRectWidth;
 //            swapchainCreateInfo.height = vp.recommendedImageRectHeight;
 //            swapchainCreateInfo.mipCount = 1;
@@ -359,9 +363,9 @@ void RVRApp::Run(struct android_app *app) {
 //            Swapchain swapchain;
 //            swapchain.width = swapchainCreateInfo.width;
 //            swapchain.height = swapchainCreateInfo.height;
-//            CHECK_XRCMD(xrCreateSwapchain(xrSession_, &swapchainCreateInfo, &swapchain.handle));
+//            CHECK_XRCMD(xrCreateSwapchain(session, &swapchainCreateInfo, &swapchain.handle));
 //
-//            swapchains_.push_back(swapchain);
+//            swapchains.push_back(swapchain);
 //
 //            uint32_t imageCount;
 //            CHECK_XRCMD(xrEnumerateSwapchainImages(swapchain.handle, 0, &imageCount, nullptr));
@@ -370,7 +374,7 @@ void RVRApp::Run(struct android_app *app) {
 //                vulkanRenderer_->AllocateSwapchainImageStructs(imageCount, swapchainCreateInfo);
 //            CHECK_XRCMD(xrEnumerateSwapchainImages(swapchain.handle, imageCount, &imageCount, swapchainImages[0]));
 //
-//            xrSwapchainImages_.insert(std::make_pair(swapchain.handle, std::move(swapchainImages)));
+//            swapchainImages.insert(std::make_pair(swapchain.handle, std::move(swapchainImages)));
 //        }
 //    }
 //}
@@ -414,10 +418,10 @@ void RVRApp::Run(struct android_app *app) {
 //                break;
 //            }
 //            case XR_TYPE_EVENT_DATA_INTERACTION_PROFILE_CHANGED:
-//                LogActionSourceName(input_.grabAction, "Grab");
-//                LogActionSourceName(input_.quitAction, "Quit");
-//                LogActionSourceName(input_.poseAction, "Pose");
-//                LogActionSourceName(input_.vibrateAction, "Vibrate");
+//                LogActionSourceName(input.grabAction, "Grab");
+//                LogActionSourceName(input.quitAction, "Quit");
+//                LogActionSourceName(input.poseAction, "Pose");
+//                LogActionSourceName(input.vibrateAction, "Vibrate");
 //                break;
 //            case XR_TYPE_EVENT_DATA_REFERENCE_SPACE_CHANGE_PENDING:
 //            default: {
@@ -441,24 +445,24 @@ void RVRApp::Run(struct android_app *app) {
 //                   stateChangedEvent.session,
 //                   stateChangedEvent.time));
 //
-//    if ((stateChangedEvent.session != XR_NULL_HANDLE) && (stateChangedEvent.session != xrSession_)) {
+//    if ((stateChangedEvent.session != XR_NULL_HANDLE) && (stateChangedEvent.session != session)) {
 //        Log::Write(Log::Level::Info, "XrEventDataSessionStateChanged for unknown session");
 //        return;
 //    }
 //
 //    switch (xrSessionState_) {
 //        case XR_SESSION_STATE_READY: {
-//            CHECK(xrSession_ != XR_NULL_HANDLE);
+//            CHECK(session != XR_NULL_HANDLE);
 //            XrSessionBeginInfo sessionBeginInfo{XR_TYPE_SESSION_BEGIN_INFO};
-//            sessionBeginInfo.primaryViewConfigurationType = xrViewConfigType_;
-//            CHECK_XRCMD(xrBeginSession(xrSession_, &sessionBeginInfo));
+//            sessionBeginInfo.primaryViewConfigurationType = viewConfigType;
+//            CHECK_XRCMD(xrBeginSession(session, &sessionBeginInfo));
 //            xrSessionRunning_ = true;
 //            break;
 //        }
 //        case XR_SESSION_STATE_STOPPING: {
-//            CHECK(xrSession_ != XR_NULL_HANDLE);
+//            CHECK(session != XR_NULL_HANDLE);
 //            xrSessionRunning_ = false;
-//            CHECK_XRCMD(xrEndSession(xrSession_))
+//            CHECK_XRCMD(xrEndSession(session))
 //            break;
 //        }
 //        case XR_SESSION_STATE_EXITING: {
@@ -482,9 +486,9 @@ void RVRApp::Run(struct android_app *app) {
 //    XrBoundSourcesForActionEnumerateInfo getInfo = {XR_TYPE_BOUND_SOURCES_FOR_ACTION_ENUMERATE_INFO};
 //    getInfo.action = action;
 //    uint32_t pathCount = 0;
-//    CHECK_XRCMD(xrEnumerateBoundSourcesForAction(xrSession_, &getInfo, 0, &pathCount, nullptr));
+//    CHECK_XRCMD(xrEnumerateBoundSourcesForAction(session, &getInfo, 0, &pathCount, nullptr));
 //    std::vector<XrPath> paths(pathCount);
-//    CHECK_XRCMD(xrEnumerateBoundSourcesForAction(xrSession_, &getInfo, uint32_t(paths.size()), &pathCount, paths.data()));
+//    CHECK_XRCMD(xrEnumerateBoundSourcesForAction(session, &getInfo, uint32_t(paths.size()), &pathCount, paths.data()));
 //
 //    std::string sourceName;
 //    for (auto& path : paths) {
@@ -497,12 +501,12 @@ void RVRApp::Run(struct android_app *app) {
 //        nameInfo.whichComponents = all;
 //
 //        uint32_t size = 0;
-//        CHECK_XRCMD(xrGetInputSourceLocalizedName(xrSession_, &nameInfo, 0, &size, nullptr));
+//        CHECK_XRCMD(xrGetInputSourceLocalizedName(session, &nameInfo, 0, &size, nullptr));
 //        if (size < 1) {
 //            continue;
 //        }
 //        std::vector<char> grabSource(size);
-//        CHECK_XRCMD(xrGetInputSourceLocalizedName(xrSession_, &nameInfo, uint32_t(grabSource.size()), &size, grabSource.data()));
+//        CHECK_XRCMD(xrGetInputSourceLocalizedName(session, &nameInfo, uint32_t(grabSource.size()), &size, grabSource.data()));
 //        if (!sourceName.empty()) {
 //            sourceName += " and ";
 //        }
@@ -518,68 +522,68 @@ void RVRApp::Run(struct android_app *app) {
 //bool RVRApp::IsSessionRunning() const { return xrSessionRunning_; }
 //
 //bool RVRApp::IsSessionFocused() const { return xrSessionState_ == XR_SESSION_STATE_FOCUSED; }
-
-void RVRApp::PollActions() {
-    input_.handActive = {XR_FALSE, XR_FALSE};
-
-    // Sync actions
-    const XrActiveActionSet activeActionSet{input_.actionSet, XR_NULL_PATH};
-    XrActionsSyncInfo syncInfo{XR_TYPE_ACTIONS_SYNC_INFO};
-    syncInfo.countActiveActionSets = 1;
-    syncInfo.activeActionSets = &activeActionSet;
-    CHECK_XRCMD(xrSyncActions(xrSession_, &syncInfo));
-
-    // Get pose and grab action state and start haptic vibrate when hand is 90% squeezed.
-    for (auto hand : {Side::LEFT, Side::RIGHT}) {
-        XrActionStateGetInfo getInfo{XR_TYPE_ACTION_STATE_GET_INFO};
-        getInfo.action = input_.grabAction;
-        getInfo.subactionPath = input_.handSubactionPath[hand];
-
-        XrActionStateFloat grabValue{XR_TYPE_ACTION_STATE_FLOAT};
-        CHECK_XRCMD(xrGetActionStateFloat(xrSession_, &getInfo, &grabValue));
-        if (grabValue.isActive == XR_TRUE) {
-            // Scale the rendered hand by 1.0f (open) to 0.5f (fully squeezed).
-            input_.handScale[hand] = 1.0f - 0.5f * grabValue.currentState;
-            if (grabValue.currentState > 0.9f) {
-                XrHapticVibration vibration{XR_TYPE_HAPTIC_VIBRATION};
-                vibration.amplitude = 0.5;
-                vibration.duration = XR_MIN_HAPTIC_DURATION;
-                vibration.frequency = XR_FREQUENCY_UNSPECIFIED;
-
-                XrHapticActionInfo hapticActionInfo{XR_TYPE_HAPTIC_ACTION_INFO};
-                hapticActionInfo.action = input_.vibrateAction;
-                hapticActionInfo.subactionPath = input_.handSubactionPath[hand];
-                CHECK_XRCMD(xrApplyHapticFeedback(xrSession_, &hapticActionInfo, (XrHapticBaseHeader*)&vibration));
-            }
-        }
-
-        getInfo.action = input_.poseAction;
-        XrActionStatePose poseState{XR_TYPE_ACTION_STATE_POSE};
-        CHECK_XRCMD(xrGetActionStatePose(xrSession_, &getInfo, &poseState));
-        input_.handActive[hand] = poseState.isActive;
-    }
-
-    // There were no subaction paths specified for the quit action, because we don't care which hand did it.
-    XrActionStateGetInfo getInfo{XR_TYPE_ACTION_STATE_GET_INFO, nullptr, input_.quitAction, XR_NULL_PATH};
-    XrActionStateBoolean quitValue{XR_TYPE_ACTION_STATE_BOOLEAN};
-    CHECK_XRCMD(xrGetActionStateBoolean(xrSession_, &getInfo, &quitValue));
-    if ((quitValue.isActive == XR_TRUE) && (quitValue.changedSinceLastSync == XR_TRUE) && (quitValue.currentState == XR_TRUE)) {
-        CHECK_XRCMD(xrRequestExitSession(xrSession_));
-    }
-}
+//
+//void RVRApp::PollActions() {
+//    xrContext_->input.handActive = {XR_FALSE, XR_FALSE};
+//
+//    // Sync actions
+//    const XrActiveActionSet activeActionSet{xrContext_->input.actionSet, XR_NULL_PATH};
+//    XrActionsSyncInfo syncInfo{XR_TYPE_ACTIONS_SYNC_INFO};
+//    syncInfo.countActiveActionSets = 1;
+//    syncInfo.activeActionSets = &activeActionSet;
+//    CHECK_XRCMD(xrSyncActions(xrContext_->session, &syncInfo));
+//
+//    // Get pose and grab action state and start haptic vibrate when hand is 90% squeezed.
+//    for (auto hand : {Side::LEFT, Side::RIGHT}) {
+//        XrActionStateGetInfo getInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+//        getInfo.action = xrContext_->input.grabAction;
+//        getInfo.subactionPath = xrContext_->input.handSubactionPath[hand];
+//
+//        XrActionStateFloat grabValue{XR_TYPE_ACTION_STATE_FLOAT};
+//        CHECK_XRCMD(xrGetActionStateFloat(xrContext_->session, &getInfo, &grabValue));
+//        if (grabValue.isActive == XR_TRUE) {
+//            // Scale the rendered hand by 1.0f (open) to 0.5f (fully squeezed).
+//            xrContext_->input.handScale[hand] = 1.0f - 0.5f * grabValue.currentState;
+//            if (grabValue.currentState > 0.9f) {
+//                XrHapticVibration vibration{XR_TYPE_HAPTIC_VIBRATION};
+//                vibration.amplitude = 0.5;
+//                vibration.duration = XR_MIN_HAPTIC_DURATION;
+//                vibration.frequency = XR_FREQUENCY_UNSPECIFIED;
+//
+//                XrHapticActionInfo hapticActionInfo{XR_TYPE_HAPTIC_ACTION_INFO};
+//                hapticActionInfo.action = xrContext_->input.vibrateAction;
+//                hapticActionInfo.subactionPath = xrContext_->input.handSubactionPath[hand];
+//                CHECK_XRCMD(xrApplyHapticFeedback(xrContext_->session, &hapticActionInfo, (XrHapticBaseHeader*)&vibration));
+//            }
+//        }
+//
+//        getInfo.action = xrContext_->input.poseAction;
+//        XrActionStatePose poseState{XR_TYPE_ACTION_STATE_POSE};
+//        CHECK_XRCMD(xrGetActionStatePose(xrContext_->session, &getInfo, &poseState));
+//        input.handActive[hand] = poseState.isActive;
+//    }
+//
+//    // There were no subaction paths specified for the quit action, because we don't care which hand did it.
+//    XrActionStateGetInfo getInfo{XR_TYPE_ACTION_STATE_GET_INFO, nullptr, xrContext_->input.quitAction, XR_NULL_PATH};
+//    XrActionStateBoolean quitValue{XR_TYPE_ACTION_STATE_BOOLEAN};
+//    CHECK_XRCMD(xrGetActionStateBoolean(xrContext_->session, &getInfo, &quitValue));
+//    if ((quitValue.isActive == XR_TRUE) && (quitValue.changedSinceLastSync == XR_TRUE) && (quitValue.currentState == XR_TRUE)) {
+//        CHECK_XRCMD(xrRequestExitSession(xrContext_->session));
+//    }
+//}
 
 void RVRApp::RenderFrame() {
-    CHECK(xrSession_ != XR_NULL_HANDLE);
+    CHECK(xrContext_->session != XR_NULL_HANDLE);
 
     XrFrameWaitInfo frameWaitInfo{XR_TYPE_FRAME_WAIT_INFO};
     XrFrameState frameState{XR_TYPE_FRAME_STATE};
-    CHECK_XRCMD(xrWaitFrame(xrSession_, &frameWaitInfo, &frameState));
+    CHECK_XRCMD(xrWaitFrame(xrContext_->session, &frameWaitInfo, &frameState));
 
     XrFrameBeginInfo frameBeginInfo{XR_TYPE_FRAME_BEGIN_INFO};
-    CHECK_XRCMD(xrBeginFrame(xrSession_, &frameBeginInfo));
+    CHECK_XRCMD(xrBeginFrame(xrContext_->session, &frameBeginInfo));
 
     // Save the predicted display time for various xrLocateSpace calls
-    predictedDisplayTime_ = frameState.predictedDisplayTime;
+    xrContext_->predictedDisplayTime = frameState.predictedDisplayTime;
 
     std::vector<XrCompositionLayerBaseHeader*> layers;
     XrCompositionLayerProjection layer{XR_TYPE_COMPOSITION_LAYER_PROJECTION};
@@ -591,11 +595,11 @@ void RVRApp::RenderFrame() {
     }
 
     XrFrameEndInfo frameEndInfo{XR_TYPE_FRAME_END_INFO};
-    frameEndInfo.displayTime = predictedDisplayTime_;
+    frameEndInfo.displayTime = xrContext_->predictedDisplayTime;
     frameEndInfo.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
     frameEndInfo.layerCount = (uint32_t)layers.size();
     frameEndInfo.layers = layers.data();
-    CHECK_XRCMD(xrEndFrame(xrSession_, &frameEndInfo));
+    CHECK_XRCMD(xrEndFrame(xrContext_->session, &frameEndInfo));
 }
 
 Cube MakeCube(float scale, XrVector3f position) {
@@ -609,16 +613,16 @@ Cube MakeCube(float scale, XrVector3f position) {
 bool RVRApp::RenderLayer(std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
                          XrCompositionLayerProjection& layer) {
     XrViewState viewState{XR_TYPE_VIEW_STATE};
-    uint32_t viewCapacityInput = (uint32_t)xrViews_.size();
+    uint32_t viewCapacityInput = (uint32_t)xrContext_->views.size();
     uint32_t viewCountOutput;
 
     XrViewLocateInfo viewLocateInfo{XR_TYPE_VIEW_LOCATE_INFO};
-    viewLocateInfo.viewConfigurationType = xrViewConfigType_;
-    viewLocateInfo.displayTime = predictedDisplayTime_;
-    viewLocateInfo.space = appSpace_;
+    viewLocateInfo.viewConfigurationType = xrContext_->viewConfigType;
+    viewLocateInfo.displayTime = xrContext_->predictedDisplayTime;
+    viewLocateInfo.space = xrContext_->appSpace;
 
-    XrResult res = xrLocateViews(xrSession_, &viewLocateInfo, &viewState, viewCapacityInput,
-                                 &viewCountOutput, xrViews_.data());
+    XrResult res = xrLocateViews(xrContext_->session, &viewLocateInfo, &viewState, viewCapacityInput,
+                                 &viewCountOutput, xrContext_->views.data());
     CHECK_XRRESULT(res, "xrLocateViews");
     if ((viewState.viewStateFlags & XR_VIEW_STATE_POSITION_VALID_BIT) == 0 ||
         (viewState.viewStateFlags & XR_VIEW_STATE_ORIENTATION_VALID_BIT) == 0) {
@@ -626,14 +630,14 @@ bool RVRApp::RenderLayer(std::vector<XrCompositionLayerProjectionView>& projecti
     }
 
     CHECK(viewCountOutput == viewCapacityInput);
-    CHECK(viewCountOutput == xrConfigViews_.size());
-    CHECK(viewCountOutput == swapchains_.size());
+    CHECK(viewCountOutput == xrContext_->configViews.size());
+    CHECK(viewCountOutput == xrContext_->swapchains.size());
 
     projectionLayerViews.resize(viewCountOutput);
 
     // Refresh tracked spaces and then update scene tree
-    RefreshTrackedSpaceLocations();
-    sceneTree_.CascadePose(trackedSpaceLocations_);
+    xrContext_->RefreshTrackedSpaceLocations();
+    sceneTree_.CascadePose(xrContext_->trackedSpaceLocations);
     sceneTree_.Update(deltaTime_);
 
     auto renderables = sceneTree_.GatherRenderables();
@@ -649,7 +653,7 @@ bool RVRApp::RenderLayer(std::vector<XrCompositionLayerProjectionView>& projecti
     // Render view to the appropriate part of the swapchain image.
     for (uint32_t i = 0; i < viewCountOutput; i++) {
         // Each view has a separate swapchain which is acquired, rendered to, and released.
-        const Swapchain viewSwapchain = swapchains_[i];
+        const Swapchain viewSwapchain = xrContext_->swapchains[i];
 
         XrSwapchainImageAcquireInfo acquireInfo{XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO};
 
@@ -661,14 +665,14 @@ bool RVRApp::RenderLayer(std::vector<XrCompositionLayerProjectionView>& projecti
         CHECK_XRCMD(xrWaitSwapchainImage(viewSwapchain.handle, &waitInfo));
 
         projectionLayerViews[i] = {XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW};
-        projectionLayerViews[i].pose = xrViews_[i].pose;
-        projectionLayerViews[i].fov = xrViews_[i].fov;
+        projectionLayerViews[i].pose = xrContext_->views[i].pose;
+        projectionLayerViews[i].fov = xrContext_->views[i].fov;
         projectionLayerViews[i].subImage.swapchain = viewSwapchain.handle;
         projectionLayerViews[i].subImage.imageRect.offset = {0, 0};
         projectionLayerViews[i].subImage.imageRect.extent = {viewSwapchain.width, viewSwapchain.height};
 
-        const XrSwapchainImageBaseHeader* const swapchainImage = xrSwapchainImages_[viewSwapchain.handle][swapchainImageIndex];
-        vulkanRenderer_->RenderView(projectionLayerViews[i], swapchainImage, xrColorSwapchainFormat_, renderBuffer_);
+        const XrSwapchainImageBaseHeader* const swapchainImage = xrContext_->swapchainImageMap[viewSwapchain.handle][swapchainImageIndex];
+        vulkanRenderer_->RenderView(projectionLayerViews[i], swapchainImage, xrContext_->colorSwapchainFormat, renderBuffer_);
 
         XrSwapchainImageReleaseInfo releaseInfo{XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO};
         CHECK_XRCMD(xrReleaseSwapchainImage(viewSwapchain.handle, &releaseInfo));
@@ -677,8 +681,9 @@ bool RVRApp::RenderLayer(std::vector<XrCompositionLayerProjectionView>& projecti
     // Clear the renderBuffer for the next frame
     renderBuffer_.clear();
 
-    layer.space = appSpace_;
+    layer.space = xrContext_->appSpace;
     layer.viewCount = (uint32_t)projectionLayerViews.size();
     layer.views = projectionLayerViews.data();
     return true;
 }
+

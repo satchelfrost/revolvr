@@ -54,6 +54,11 @@ public:
     // Process any events in the event queue.
     void PollXrEvents(bool* exitRenderLoop, bool* requestRestart);
 
+    // Sample input actions and generate haptic feedback.
+    void PollActions();
+
+    void RefreshTrackedSpaceLocations();
+
 private:
 
     // Create an Instance and other basic instance-level initialization.
@@ -83,23 +88,11 @@ private:
 
     void LogActionSourceName(XrAction action, const std::string& actionName) const;
 
-    void RefreshTrackedSpaceLocations();
-
-private:
     const RVRAndroidContext* androidContext_;
     RVRVulkanRenderer* vulkanRenderer_;
 
     XrInstance xrInstance_{XR_NULL_HANDLE};
-    XrSession xrSession_{XR_NULL_HANDLE};
-    XrSpace appSpace_{XR_NULL_HANDLE};
-    XrViewConfigurationType xrViewConfigType_{XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO};
     XrSystemId xrSystemId_{XR_NULL_SYSTEM_ID};
-    XrTime predictedDisplayTime_{XR_NO_DURATION};
-
-    std::vector<XrViewConfigurationView> xrConfigViews_;
-    std::map<XrSwapchain, std::vector<XrSwapchainImageBaseHeader*>> xrSwapchainImages_;
-    std::vector<XrView> xrViews_;
-    int64_t xrColorSwapchainFormat_{-1};
 
     std::map<RVRReferenceSpace, XrSpace> initializedRefSpaces_;
 
@@ -109,8 +102,20 @@ private:
 
     XrEventDataBuffer xrEventDataBuffer_;
 
-    TrackedSpaceLocations trackedSpaceLocations_;
-    InputState input_;
-    std::vector<Swapchain> swapchains_;
+public:
+    XrSession session{XR_NULL_HANDLE};
+    XrTime predictedDisplayTime{XR_NO_DURATION};
+    XrSpace appSpace{XR_NULL_HANDLE};
+
+    std::vector<XrView> views;
+    std::vector<XrViewConfigurationView> configViews;
+    XrViewConfigurationType viewConfigType{XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO};
+
+    std::vector<Swapchain> swapchains;
+    std::map<XrSwapchain, std::vector<XrSwapchainImageBaseHeader*>> swapchainImageMap;
+    int64_t colorSwapchainFormat{-1};
+
+    InputState input;
+    TrackedSpaceLocations trackedSpaceLocations;
 };
 

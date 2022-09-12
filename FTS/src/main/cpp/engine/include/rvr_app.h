@@ -17,13 +17,25 @@
 
 class RVRApp {
 public:
-  RVRApp() {}
+  RVRApp();
   ~RVRApp();
 
   void Run(struct android_app* app);
 
   void HandleAndroidCmd(android_app *app, int32_t cmd);
 
+protected:
+    virtual void OnInitialize() {}
+
+    virtual void OnShutdown() {}
+
+    virtual void OnUpdate() {}
+
+    virtual void OnInput() {}
+
+    virtual void OnRender() {}
+
+private:
 //  // Create an Instance and other basic instance-level initialization.
 //  void CreateInstance();
 //
@@ -48,9 +60,9 @@ public:
 //
 //  // Manage session state to track if input should be processed.
 //  bool IsSessionFocused() const;
-
-  // Sample input actions and generate haptic feedback.
-  void PollActions();
+//
+//  // Sample input actions and generate haptic feedback.
+//  void PollActions();
 
   // Create and submit a frame.
   void RenderFrame();
@@ -80,16 +92,16 @@ private:
     std::vector<Cube> renderBuffer_;
 
 //    XrInstance xrInstance_{XR_NULL_HANDLE};
-//    XrSession xrSession_{XR_NULL_HANDLE};
-//    XrSpace appSpace_{XR_NULL_HANDLE};
-//    XrViewConfigurationType xrViewConfigType_{XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO};
+//    XrSession session{XR_NULL_HANDLE};
+//    XrSpace appSpace{XR_NULL_HANDLE};
+//    XrViewConfigurationType viewConfigType{XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO};
 //    XrSystemId xrSystemId_{XR_NULL_SYSTEM_ID};
-//    XrTime predictedDisplayTime_{XR_NO_DURATION};
+//    XrTime predictedDisplayTime{XR_NO_DURATION};
 
-//    std::vector<XrViewConfigurationView> xrConfigViews_;
-//    std::map<XrSwapchain, std::vector<XrSwapchainImageBaseHeader*>> xrSwapchainImages_;
-//    std::vector<XrView> xrViews_;
-//    int64_t xrColorSwapchainFormat_{-1};
+//    std::vector<XrViewConfigurationView> configViews;
+//    std::map<XrSwapchain, std::vector<XrSwapchainImageBaseHeader*>> swapchainImages;
+//    std::vector<XrView> views;
+//    int64_t colorSwapchainFormat{-1};
 //
 //    std::map<RVRReferenceSpace, XrSpace> initializedRefSpaces_;
 
@@ -98,5 +110,5 @@ private:
 //    bool xrSessionRunning_{false};
 
 //    XrEventDataBuffer xrEventDataBuffer_;
-//    TrackedSpaceLocations trackedSpaceLocations_;
+//    TrackedSpaceLocations trackedSpaceLocations;
 };
