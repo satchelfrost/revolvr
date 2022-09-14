@@ -1,6 +1,7 @@
 #pragma once
 
 #include "rvr_vulkan_utilities.h"
+#include "rvr_android_platform.h"
 
 class RVRAndroidContext;
 
@@ -90,7 +91,5 @@ private:
     std::vector<char> CreateSPIRVVector(const char *asset_name);
 
     void InitializeResources();
-
-    const android_app* app_;
 };
 

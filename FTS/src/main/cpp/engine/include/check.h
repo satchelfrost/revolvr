@@ -1,7 +1,3 @@
-// Copyright (c) 2017-2022, The Khronos Group Inc.
-//
-// SPDX-License-Identifier: Apache-2.0
-
 #pragma once
 
 #include "common.h"
@@ -19,7 +15,7 @@
     }
 
     Log::Write(Log::Level::Error, Fmt("%s", failureMessage.c_str()));
-    exit(1);
+    std::terminate();
 }
 
 #define THROW(msg) Throw(msg, nullptr, FILE_AND_LINE);

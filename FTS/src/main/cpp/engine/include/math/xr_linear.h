@@ -251,7 +251,6 @@ static inline void XrQuaternionf_Normalize(XrQuaternionf& q) {
     q.x = q.x * n;
     q.y = q.y * n;
     q.z = q.z * n;
-    q.w = q.w * n;
 }
 
 // Use left-multiplication to accumulate transformations.
