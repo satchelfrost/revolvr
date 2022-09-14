@@ -17,6 +17,7 @@
 
 class RVRApp {
 public:
+
   RVRApp();
   ~RVRApp();
 
@@ -25,62 +26,30 @@ public:
   void HandleAndroidCmd(android_app *app, int32_t cmd);
 
 protected:
-    virtual void OnInitialize() {}
 
+    virtual void OnInitialize() {}
     virtual void OnShutdown() {}
 
     virtual void OnUpdate() {}
-
     virtual void OnInput() {}
 
     virtual void OnRender() {}
 
 private:
-//  // Create an Instance and other basic instance-level initialization.
-//  void CreateInstance();
-//
-//  // Select a System for the view configuration specified in the Options and initialize the graphics device for the selected
-//  // system.
-//  void InitializeSystem();
-//
-//  // Create a Session and other basic session-level initialization.
-//  void InitializeSession();
-//
-//  void InitializeActions();
-//
-//  // Create a Swapchain which requires coordinating with the graphics plugin to select the format, getting the system graphics
-//  // properties, getting the view configuration and grabbing the resulting swapchain images.
-//  void CreateSwapchains();
 
-//  // Process any events in the event queue.
-//  void PollXrEvents(bool* exitRenderLoop, bool* requestRestart);
-//
-//  // Manage session lifecycle to track if RenderFrame should be called.
-//  bool IsSessionRunning() const;
-//
-//  // Manage session state to track if input should be processed.
-//  bool IsSessionFocused() const;
-//
-//  // Sample input actions and generate haptic feedback.
-//  void PollActions();
+  // Process and react to input
+  // TODO: This method needs to reevaluated
+  void Input();
+
+  // Update game state
+  void Update();
 
   // Create and submit a frame.
-  void RenderFrame();
+  void Render();
 
   bool RenderLayer(std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
                    XrCompositionLayerProjection& layer);
 
-//  void InitializeReferenceSpaces();
-//
-//  // Return event if one is available, otherwise return null.
-//  const XrEventDataBaseHeader* TryReadNextEvent();
-//
-//  void HandleSessionStateChangedEvent(const XrEventDataSessionStateChanged& stateChangedEvent, bool* exitRenderLoop,
-//                                      bool* requestRestart);
-//
-//  void LogActionSourceName(XrAction action, const std::string& actionName) const;
-//
-//  void RefreshTrackedSpaceLocations();
   void SetDeltaTime(float dt) { deltaTime_ = dt; }
 
 private:
@@ -90,25 +59,4 @@ private:
     RVRVulkanRenderer* vulkanRenderer_;
     RVRXRContext* xrContext_;
     std::vector<Cube> renderBuffer_;
-
-//    XrInstance xrInstance_{XR_NULL_HANDLE};
-//    XrSession session{XR_NULL_HANDLE};
-//    XrSpace appSpace{XR_NULL_HANDLE};
-//    XrViewConfigurationType viewConfigType{XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO};
-//    XrSystemId xrSystemId_{XR_NULL_SYSTEM_ID};
-//    XrTime predictedDisplayTime{XR_NO_DURATION};
-
-//    std::vector<XrViewConfigurationView> configViews;
-//    std::map<XrSwapchain, std::vector<XrSwapchainImageBaseHeader*>> swapchainImages;
-//    std::vector<XrView> views;
-//    int64_t colorSwapchainFormat{-1};
-//
-//    std::map<RVRReferenceSpace, XrSpace> initializedRefSpaces_;
-
-//    // Application's current lifecycle state according to the runtime
-//    XrSessionState xrSessionState_{XR_SESSION_STATE_UNKNOWN};
-//    bool xrSessionRunning_{false};
-
-//    XrEventDataBuffer xrEventDataBuffer_;
-//    TrackedSpaceLocations trackedSpaceLocations;
 };

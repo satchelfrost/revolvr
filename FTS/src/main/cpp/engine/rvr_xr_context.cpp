@@ -36,10 +36,26 @@ RVRXRContext::~RVRXRContext() {
 }
 
 void RVRXRContext::Initialize() {
+    InitializePlatformLoader();
     CreateInstance();
     InitializeSystem();
     InitializeSession();
     CreateSwapchains();
+}
+
+void RVRXRContext::InitializePlatformLoader() {
+    // Initialize the loader for this platform
+    PFN_xrInitializeLoaderKHR initializeLoader = nullptr;
+    if (XR_SUCCEEDED(
+            xrGetInstanceProcAddr(XR_NULL_HANDLE, "xrInitializeLoaderKHR", (PFN_xrVoidFunction*)(&initializeLoader)))) {
+        XrLoaderInitInfoAndroidKHR loaderInitInfoAndroid;
+        memset(&loaderInitInfoAndroid, 0, sizeof(loaderInitInfoAndroid));
+        loaderInitInfoAndroid.type = XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR;
+        loaderInitInfoAndroid.next = nullptr;
+        loaderInitInfoAndroid.applicationVM = androidContext_->GetAndroidApp()->activity->vm;
+        loaderInitInfoAndroid.applicationContext = androidContext_->GetAndroidApp()->activity->clazz;
+        initializeLoader((const XrLoaderInitInfoBaseHeaderKHR*)&loaderInitInfoAndroid);
+    }
 }
 
 void RVRXRContext::CreateInstance() {

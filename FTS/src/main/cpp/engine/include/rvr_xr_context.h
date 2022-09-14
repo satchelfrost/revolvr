@@ -45,7 +45,7 @@ public:
 
     void Initialize();
 
-    // Manage session lifecycle to track if RenderFrame should be called.
+    // Manage session lifecycle to track if Render should be called.
     bool IsSessionRunning() const;
 
     // Manage session state to track if input should be processed.
@@ -60,6 +60,8 @@ public:
     void RefreshTrackedSpaceLocations();
 
 private:
+
+    void InitializePlatformLoader();
 
     // Create an Instance and other basic instance-level initialization.
     void CreateInstance();
