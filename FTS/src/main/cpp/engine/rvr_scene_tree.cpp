@@ -1,4 +1,4 @@
-#include "include/rvr_scene_tree.h"
+#include "rvr_scene_tree.h"
 
 RVRSceneTree::RVRSceneTree() {
     // Setup the root node

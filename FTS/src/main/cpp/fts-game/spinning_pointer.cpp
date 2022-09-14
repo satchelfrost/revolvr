@@ -1,4 +1,4 @@
-#include "include/spinning_pointer.h"
+#include "spinning_pointer.h"
 
 SpinningPointer::SpinningPointer(int id) : RVRMesh(id) {
     scale = {0.01, 0.01, 0.5};

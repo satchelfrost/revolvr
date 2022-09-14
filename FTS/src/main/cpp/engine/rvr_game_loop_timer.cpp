@@ -1,4 +1,4 @@
-#include "include/rvr_game_loop_timer.h"
+#include "rvr_game_loop_timer.h"
 
 RVRGameLoopTimer::RVRGameLoopTimer() {
     start_ = std::chrono::high_resolution_clock::now();

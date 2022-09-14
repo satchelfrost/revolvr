@@ -1,8 +1,8 @@
-#include "scanner.h"
+#include "rvr_parser/scanner.h"
 
 Scanner::Scanner(const std::string& fileName) : currentLine_(1) {
   Log::Write(Log::Level::Info, Fmt("Preparing to load asset"));
-  AAsset *file = AAssetManager_open(RVRAndroidPlatform::GetInstance()->GetAndroidAssetManager(),
+  AAsset *file = AAssetManager_open(RVRAndroidContext::GetInstance()->GetAndroidAssetManager(),
                                     fileName.c_str(),
                                     AASSET_MODE_BUFFER);
   off_t file_length = AAsset_getLength(file);

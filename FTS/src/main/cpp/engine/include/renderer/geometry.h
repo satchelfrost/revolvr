@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "pch.h"
+
 namespace Geometry {
 
 struct Vertex {

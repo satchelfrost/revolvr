@@ -1,5 +1,7 @@
-#include <include/objects/rvr_mesh.h>
-#include <include/math/xr_linear.h>
+#pragma once
+
+#include <objects/rvr_mesh.h>
+#include <math/xr_linear.h>
 
 class SpinningPointer : public RVRMesh {
 public:

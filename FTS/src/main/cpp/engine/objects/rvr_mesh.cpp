@@ -1,4 +1,4 @@
-#include "include/objects/rvr_mesh.h"
+#include "objects/rvr_mesh.h"
 
 RVRMesh::RVRMesh(int id) : RVRSpatial(id, RVRType::Mesh) {}
 

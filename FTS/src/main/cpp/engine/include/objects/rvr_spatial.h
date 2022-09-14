@@ -1,8 +1,8 @@
 #pragma once
 
-#include "rvr_object.h"
-#include "include/math/rvr_math.h"
 #include "pch.h"
+#include "rvr_object.h"
+#include "math/rvr_math.h"
 
 class RVRSpatial : public RVRObject {
 public:

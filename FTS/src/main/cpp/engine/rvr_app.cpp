@@ -1,4 +1,4 @@
-#include "include/rvr_app.h"
+#include "rvr_app.h"
 
 Cube MakeCube(float scale, XrVector3f position) {
     Cube cube{};
@@ -83,7 +83,8 @@ void RVRApp::Run(struct android_app *app) {
      bool exitRenderLoop = false;
 
      // Create platform abstraction
-     androidContext_ = new RVRAndroidContext(app);
+     androidContext_ = RVRAndroidContext::GetInstance();
+     androidContext_->Init(app);
 
      // Create graphics API implementation.
      vulkanRenderer_ = new RVRVulkanRenderer(androidContext_);
@@ -91,6 +92,8 @@ void RVRApp::Run(struct android_app *app) {
      // Create xr abstraction
      xrContext_ = new RVRXRContext(androidContext_, vulkanRenderer_);
      xrContext_->Initialize();
+
+     sceneTree_.Load("example.rvr");
      OnInitialize();
 
      RVRGameLoopTimer timer;

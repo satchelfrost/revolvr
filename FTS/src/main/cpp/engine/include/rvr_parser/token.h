@@ -1,7 +1,8 @@
 #pragma once
+
+#include "common.h"
 #include <iostream>
 #include <string>
-#include "common.h"
 
 class Token {
 public:

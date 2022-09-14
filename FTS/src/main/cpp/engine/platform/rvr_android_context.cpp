@@ -1,8 +1,17 @@
-#include "include/pch.h"
-#include "include/common.h"
-#include "include/platform/rvr_android_context.h"
+#include "pch.h"
+#include "common.h"
+#include "platform/rvr_android_context.h"
 
-RVRAndroidContext::RVRAndroidContext(android_app* app) : app_(app) {
+RVRAndroidContext* RVRAndroidContext::instance_ = nullptr;
+
+RVRAndroidContext* RVRAndroidContext::GetInstance() {
+    if (!instance_)
+        instance_ = new RVRAndroidContext();
+    return instance_;
+}
+
+void RVRAndroidContext::Init(android_app *app) {
+    app_ = app;
     instanceCreateInfoAndroid_ = {XR_TYPE_INSTANCE_CREATE_INFO_ANDROID_KHR};
     instanceCreateInfoAndroid_.applicationVM = app->activity->vm;
     instanceCreateInfoAndroid_.applicationActivity = app->activity->clazz;

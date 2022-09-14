@@ -1,15 +1,14 @@
 #pragma once
 
 #include "pch.h"
-#include "include/common.h"
-#include "include/platform/rvr_android_context.h"
-#include "include/renderer/rvr_vulkan_renderer.h"
-#include "include/rvr_xr_context.h"
-#include "include/rvr_game_loop_timer.h"
-#include "include/math/xr_linear.h"
-
+#include "common.h"
+#include "math/xr_linear.h"
+#include "platform/rvr_android_context.h"
+#include "renderer/rvr_vulkan_renderer.h"
+#include "rvr_xr_context.h"
+#include "rvr_game_loop_timer.h"
 #include "rvr_reference_space.h"
-#include "rvr_scene_tree.h"
+#include "rvr_auto_scene_tree.h"
 #include "xr_app_helpers.h"
 
 #include <array>
@@ -54,7 +53,7 @@ private:
 
 private:
     float deltaTime_;
-    RVRSceneTree sceneTree_;
+    RVRAutoSceneTree sceneTree_;
     RVRAndroidContext* androidContext_;
     RVRVulkanRenderer* vulkanRenderer_;
     RVRXRContext* xrContext_;

@@ -2,9 +2,8 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "include/pch.h"
-#include "include/logger.h"
-
+#include "pch.h"
+#include "logger.h"
 #include <sstream>
 
 #if defined(ANDROID)

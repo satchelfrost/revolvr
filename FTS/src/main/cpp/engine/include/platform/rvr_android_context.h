@@ -1,15 +1,10 @@
 #pragma once
 
-struct android_app;
-struct AAssetManager;
+#include "pch.h"
 
 class RVRAndroidContext {
 public:
-    RVRAndroidContext();
     static RVRAndroidContext* GetInstance();
-
-    void operator=(const RVRAndroidContext &) = delete;
-    RVRAndroidContext(RVRAndroidContext& other) = delete;
 
     void Init(android_app* app);
     void HandleEvents(bool isSessionRunning);
@@ -18,7 +13,7 @@ public:
     XrBaseInStructure* GetInstanceCreateExtension() const;
 
     // OpenXR instance-level extensions required by this platform.
-    std::vector<std::string> GetInstanceExtensions() const;
+    static std::vector<std::string> GetInstanceExtensions();
 
     AAssetManager* GetAndroidAssetManager();
 
@@ -28,9 +23,13 @@ public:
     ANativeWindow* nativeWindow = nullptr;
 
 protected:
-    static RVRAndroidPlatform* instance_;
+    static RVRAndroidContext* instance_;
 
 private:
+    RVRAndroidContext() = default;
+    void operator=(const RVRAndroidContext &) = delete;
+    RVRAndroidContext(const RVRAndroidContext& other) = delete;
+
     android_app* app_ = nullptr;
     XrInstanceCreateInfoAndroidKHR instanceCreateInfoAndroid_;
 };

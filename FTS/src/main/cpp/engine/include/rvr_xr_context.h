@@ -1,10 +1,10 @@
 #pragma once
 
 #include "pch.h"
-#include "include/common.h"
-#include "include/platform/rvr_android_context.h"
-#include "include/renderer/rvr_vulkan_renderer.h"
-#include "include/math/xr_linear.h"
+#include "common.h"
+#include "platform/rvr_android_context.h"
+#include "renderer/rvr_vulkan_renderer.h"
+#include "math/xr_linear.h"
 
 #include "rvr_reference_space.h"
 #include "rvr_scene_tree.h"

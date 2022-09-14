@@ -1,5 +1,4 @@
-
-#include "include/rvr_xr_context.h"
+#include "rvr_xr_context.h"
 
 RVRXRContext::RVRXRContext(RVRAndroidContext* androidContext, RVRVulkanRenderer* vulkanRenderer)
 : androidContext_(androidContext), vulkanRenderer_(vulkanRenderer) {

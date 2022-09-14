@@ -1,5 +1,6 @@
 #pragma once
 
+#include "pch.h"
 #include "common.h"
 
 #define CHK_STRINGIFY(x) #x

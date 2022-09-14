@@ -1,7 +1,11 @@
-#include "include/rvr_auto_scene_tree.h"
+#include "rvr_auto_scene_tree.h"
 
 RVRAutoSceneTree::RVRAutoSceneTree() : rootIdFound_(false) {
-    Parser parser("example.rvr");
+
+}
+
+void RVRAutoSceneTree::Load(const std::string &fileName) {
+    Parser parser(fileName);
     auto units = parser.Parse();
 
     // load up units into the object map
@@ -26,8 +30,8 @@ RVRAutoSceneTree::RVRAutoSceneTree() : rootIdFound_(false) {
         RVRObject* parent = objectMap_[parentId];
         if (!parent)
             THROW(Fmt("Could not find parent with id=%d for child %s",
-                           parentId,
-                           child->GetName().c_str()));
+                      parentId,
+                      child->GetName().c_str()));
         parent->AddChild(child);
     }
 }
@@ -103,6 +107,7 @@ RVRObject* RVRAutoSceneTree::ConstructCustomTypeFromUnit(Parser::Unit& unit, int
    THROW(Fmt("Failed to construct custom type from string name %s", typeName.c_str()));
 }
 
+
 void RVRAutoSceneTree::PopulateSpatialFromFields(RVRSpatial* spatial,
                                                  std::vector<Parser::Field>& fields) {
     for (auto& field : fields) {
@@ -138,7 +143,6 @@ void RVRAutoSceneTree::PopulateSpatialFromFields(RVRSpatial* spatial,
         }
     }
 }
-
 
 RVRAutoSceneTree::~RVRAutoSceneTree() {
     root_->Destroy();

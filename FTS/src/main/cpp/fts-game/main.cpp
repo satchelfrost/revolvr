@@ -2,7 +2,7 @@
 // Created by cris on 7/24/22.
 //
 
-#include "include/rvr_app.h"
+#include "rvr_app.h"
 
 class FTSApp : public RVRApp {
 protected:
@@ -35,6 +35,6 @@ private:
  * event loop for receiving input events and doing other things.
  */
 void android_main(struct android_app* app) {
-    auto rvrApp = std::make_unique<FTSApp>();
-    rvrApp->Run(app);
+    auto ftsApp = std::make_unique<FTSApp>();
+    ftsApp->Run(app);
 }

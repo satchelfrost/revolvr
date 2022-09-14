@@ -1,21 +1,23 @@
 #pragma once
 
-#include "rvr_object.h"
-#include "rvr_spatial.h"
-#include "rvr_hand.h"
-#include "rvr_origin.h"
-#include "rvr_mesh.h"
-#include "rvr_type.h"
-#include "xr_linear.h"
-#include "xr_app_helpers.h"
 #include "pch.h"
-#include "spinning_pointer.h"
+#include "objects/rvr_object.h"
+#include "objects/rvr_spatial.h"
+#include "objects/rvr_hand.h"
+#include "objects/rvr_origin.h"
+#include "objects/rvr_mesh.h"
+#include "objects/rvr_type.h"
+#include "math/xr_linear.h"
+#include "xr_app_helpers.h"
+#include "../../fts-game/include/spinning_pointer.h"
 #include "rvr_parser/parser.h"
 
 class RVRAutoSceneTree {
 public:
     RVRAutoSceneTree();
     ~RVRAutoSceneTree();
+
+    void Load(const std::string& fileName);
     void CascadePose(const TrackedSpaceLocations& trackedSpaceLocations);
     void Update(float delta);
     std::vector<RVRMesh*> GatherRenderables();

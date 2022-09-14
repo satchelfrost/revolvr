@@ -2,7 +2,7 @@
 
 #include "pch.h"
 #include "check.h"
-#include "rvr_android_platform.h"
+#include "platform/rvr_android_context.h"
 
 #include <fstream>
 #include <string>
