@@ -1,0 +1,71 @@
+[entity id=1 name=VR_Origin]
+Spatial.position {3, 0, 0}
+Spatial.orientation {0, 0, 0, 1}
+
+[entity id=2 name=Left_Hand]
+Hand.side {left}
+
+[entity id=3 name=Right_Hand]
+Hand.side {right}
+
+[entity id=5 name=LeftHandMesh parent=2]
+Mesh.scale {0.1, 0.1, 0.1}
+
+[entity id=4 name=RightHandMesh parent=3]
+Mesh.scale {0.1, 0.1, 0.1}
+Mesh.resource {id : 1}
+
+[entity id=6 name=Pointer parent=3]
+Mesh.position {0, 0, -0.25}
+Ritual.name {SpinningPointer}
+Ritual.repeating {true}
+
+[entity id=7 name=WorldOriginMesh]
+Mesh.scale {0.5, 0.5, 0.5}
+Mesh.position {0, 0.5, 0}
+
+[entity id=8 name=Back_Mesh]
+Mesh.scale {0.5, 3, 0.5}
+Mesh.position {3, 1.5, 4}
+
+[entity id=9 name=MeshOnYourRight]
+Mesh.scale {0.5, 3, 0.5}
+Mesh.position {6, 1.247, 0}
+Mesh.orientation {-0.38249949727, 0, 0, 0.92395569947}
+
+[entity id=10 name=The_mesh_right_in_front_of_you]
+Mesh.scale {4, 0.5, 0.5}
+Mesh.position {3, 0.25, -5}
+
+[entity id=11]
+Mesh.scale {4, 0.5, 0.5}
+Mesh.position {3, 0.25, -5}
+
+[entity id=12]
+Mesh.scale {4, 0.5, 0.5}
+Mesh.position {3, 1.25, -5}
+
+[entity id=13]
+Mesh.scale {4, 0.5, 0.5}
+Mesh.position {3, 2.25, -5}
+
+[entity id=14]
+Mesh.scale {4, 0.5, 0.5}
+Mesh.position {3, 3.25, -5}
+
+[entity id=15]
+Mesh.scale {4, 0.5, 0.5}
+Mesh.position {3, 4.25, -5}
+
+[entity id=16]
+Mesh.scale {4, 0.5, 0.5}
+Mesh.position {3, 5.25, -5}
+
+[entity id=17 name=Floor_Mesh parent=7]
+Mesh.scale {4, 0.125, 4}
+Mesh.position {3, 0, 0}
+
+**************RESOURCE SECTION***********************
+
+[resource id=2 name=YourFace type=Audio]
+path{ballsack.mp3}
