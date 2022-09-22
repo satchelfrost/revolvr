@@ -1,20 +1,15 @@
 #pragma once
 
-
-#include "ecs/ecs.h"
-#include "component.h"
 #include "check.h"
 #include "logger.h"
-
-// BLARG - CODE GENERATION START
-#include "spatial.h"
-// BLARG - CODE GENERATION END
+#include "ecs/component/all_components.h"
 
 namespace rvr {
 class ComponentPool {
 public:
     ComponentPool(ComponentType cType);
     ~ComponentPool();
+    Component* GetComponent(type::EntityId entityId);
     bool CreateComponent(type::EntityId entityId);
 private:
     std::vector<Component*> components_;

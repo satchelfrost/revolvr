@@ -1,5 +1,7 @@
 #include "ecs/component/component_pool.h"
 
+#define ALLOC_CASE_STR(TYPE, NUM) case ComponentType::TYPE: component = new TYPE(); break;
+
 namespace rvr {
 ComponentPool::ComponentPool(ComponentType cType) : poolType_(cType) {
     components_.resize(constants::MAX_ENTITIES);
@@ -11,24 +13,20 @@ ComponentPool::~ComponentPool() {
 }
 
 bool ComponentPool::CreateComponent(type::EntityId entityId) {
-    Component* component = nullptr;
+    Component* component;
     switch (poolType_) {
-        case ComponentType::Spatial:
-            component = new Spatial();
-            break;
-        case ComponentType::Mesh:
-        case ComponentType::Origin:
-        case ComponentType::Hand:
-            break;
+        COMPONENT_LIST(ALLOC_CASE_STR)
+        default:
+            Log::Write(Log::Level::Warning,
+                       Fmt("Component %s has no implementation",
+                           toString(ComponentType(poolType_))));
+            return false;
     }
-
-    if (!component) {
-        Log::Write(Log::Level::Warning, Fmt("Component id %d has no implementation", poolType_));
-        return false;
-    }
-
     components_.at(entityId) = component;
     return true;
 }
-}
 
+Component *ComponentPool::GetComponent(type::EntityId entityId) {
+    return components_.at(entityId);
+}
+}
