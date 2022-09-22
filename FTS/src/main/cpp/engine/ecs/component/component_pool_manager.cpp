@@ -11,14 +11,35 @@ ComponentPoolManager::~ComponentPoolManager() {
 }
 
 bool ComponentPoolManager::Assign(type::EntityId entityId, ComponentType cType) {
-    // Use the component type as index into component pool
+    // Get component pool
+    auto componentPool = GetPool(cType);
+
+    // Add the component to the pool
+    return componentPool->CreateComponent(entityId);
+}
+
+ComponentPool* ComponentPoolManager::GetPool(ComponentType cType) {
+    // Use the component type as index into component pools
     auto componentPool = componentPools_.at((int)cType);
 
     // First check if the component pool exists
     if (!componentPool)
         componentPool = new ComponentPool(cType);
 
-    // Add the component to the pool
-    return componentPool->CreateComponent(entityId);
+    return componentPool;
+}
+
+
+Component* ComponentPoolManager::GetComponent(Entity* entity, ComponentType cType) {
+    ComponentPool* pool = GetPool(cType);
+    return pool->GetComponent(entity->id);
+}
+
+std::vector<Component*> ComponentPoolManager::GetComponents(Entity *entity) {
+    auto componentTypes = entity->GetComponentTypes();
+    std::vector<Component*> components(componentTypes.size());
+    for (auto& componentType : componentTypes)
+        components.push_back(GetComponent(entity, componentType));
+    return components;
 }
 }
