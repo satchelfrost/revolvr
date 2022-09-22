@@ -1,16 +1,11 @@
 #include "ecs/ecs.h"
 
+#define COMPONENT_TYPE_CASE_STR(ENUM, NUM) case ComponentType::ENUM: return #ENUM;
+
 namespace rvr {
 const char* toString(ComponentType cType) {
     switch (cType) {
-        case ComponentType::Spatial:
-            return "Spatial";
-        case ComponentType::Mesh:
-            return "Mesh";
-        case ComponentType::Origin:
-            return "Origin";
-        case ComponentType::Hand:
-            return "Hand";
+        COMPONENT_LIST(COMPONENT_TYPE_CASE_STR)
         default:
             return "ComponentType unrecognized";
     }
