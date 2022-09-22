@@ -11,8 +11,12 @@ public:
     std::vector<ComponentType> GetComponentTypes();
     void InitMask(const std::vector<ComponentType>& cTypes);
     void ResetMask();
+    void SetName(std::string name);
+    std::string GetName();
     const int id;
 private:
+    void GenerateAndSetName();
+    std::string name_;
     type::ComponentMask mask_;
 };
 }

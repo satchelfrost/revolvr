@@ -21,4 +21,22 @@ void Entity::InitMask(const std::vector<ComponentType> &cTypes) {
 void Entity::ResetMask() {
     mask_.reset();
 }
+
+void Entity::GenerateAndSetName() {
+    name_ = "entity_" + std::to_string(id);
+}
+
+std::string Entity::GetName() {
+    if (!name_.empty()) {
+        return name_;
+    }
+    else {
+        GenerateAndSetName();
+        return name_;
+    }
+}
+
+void Entity::SetName(std::string name) {
+    name_ = std::move(name);
+}
 }
