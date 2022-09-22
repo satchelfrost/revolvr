@@ -1,4 +1,7 @@
 #include "ecs/component/component_pool.h"
+#include "check.h"
+#include "logger.h"
+#include "ecs/component/all_components.h"
 
 #define ALLOC_CASE_STR(TYPE, NUM) case ComponentType::TYPE: component = new TYPE(); break;
 
@@ -22,6 +25,7 @@ bool ComponentPool::CreateComponent(type::EntityId entityId) {
                            toString(ComponentType(poolType_))));
             return false;
     }
+
     components_.at(entityId) = component;
     return true;
 }

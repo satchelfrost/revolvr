@@ -1,8 +1,6 @@
 #pragma once
 
-#include "ecs/ecs.h"
 #include "ecs/entity/entity.h"
-#include "logger.h"
 
 namespace rvr {
 class EntityPool {

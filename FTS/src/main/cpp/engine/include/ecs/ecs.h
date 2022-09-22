@@ -16,14 +16,9 @@ namespace constants {
     const int ROOT_ID = 0;
 }
 
-#define BUILD_ENUM(ENUM, NUM) ENUM = NUM,
 namespace type {
     typedef int EntityId;
     typedef std::bitset<constants::IMPLEMENTED_COMPONENTS> ComponentMask;
 }
-
-enum class ComponentType {
-    COMPONENT_LIST(BUILD_ENUM)
-};
-const char* toString(ComponentType cType);
 }
+

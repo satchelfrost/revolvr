@@ -1,8 +1,12 @@
 #include "ecs/component/component_pool_manager.h"
+#include "ecs/component/all_components.h"
+
+#define TYPE_TO_ENUM(ENUM, NUM) typeToEnum.insert({std::type_index(typeid(ENUM)), ComponentType::ENUM});
 
 namespace rvr {
 ComponentPoolManager::ComponentPoolManager() {
     componentPools_.resize(constants::IMPLEMENTED_COMPONENTS);
+    COMPONENT_LIST(TYPE_TO_ENUM)
 }
 
 ComponentPoolManager::~ComponentPoolManager() {
@@ -35,7 +39,7 @@ Component* ComponentPoolManager::GetComponent(Entity* entity, ComponentType cTyp
     return pool->GetComponent(entity->id);
 }
 
-std::vector<Component*> ComponentPoolManager::GetComponents(Entity *entity) {
+std::vector<Component*> ComponentPoolManager::GetAllComponents(Entity *entity) {
     auto componentTypes = entity->GetComponentTypes();
     std::vector<Component*> components(componentTypes.size());
     for (auto& componentType : componentTypes)

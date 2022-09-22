@@ -1,9 +1,6 @@
 #pragma once
 
-#include "ecs/ecs.h"
 #include "ecs/component/component.h"
-#include "math/rvr_math.h"
-#include "check.h"
 
 namespace rvr {
 class Spatial : public Component {

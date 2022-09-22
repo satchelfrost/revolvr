@@ -1,6 +1,5 @@
 #pragma once
 
-#include "ecs/ecs.h"
 #include "ecs/component/component.h"
 
 namespace rvr {

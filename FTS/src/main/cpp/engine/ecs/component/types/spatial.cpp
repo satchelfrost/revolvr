@@ -1,4 +1,6 @@
 #include "include/ecs/component/types/spatial.h"
+#include "math/rvr_math.h"
+#include "check.h"
 
 namespace rvr {
 Spatial::Spatial() : Component(ComponentType::Spatial),

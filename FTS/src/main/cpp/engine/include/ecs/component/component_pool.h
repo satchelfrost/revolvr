@@ -1,8 +1,6 @@
 #pragma once
 
-#include "check.h"
-#include "logger.h"
-#include "ecs/component/all_components.h"
+#include "ecs/component/component.h"
 
 namespace rvr {
 class ComponentPool {

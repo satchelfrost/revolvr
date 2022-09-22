@@ -1,8 +1,7 @@
 #pragma once
 
 #include "pch.h"
-#include "check.h"
-#include "ecs/ecs.h"
+#include "ecs/component/component_type.h"
 
 namespace rvr {
 class Entity {

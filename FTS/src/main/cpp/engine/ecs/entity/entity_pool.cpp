@@ -1,4 +1,6 @@
 #include "ecs/entity/entity_pool.h"
+#include "ecs/ecs.h"
+#include "common.h"
 
 namespace rvr {
 EntityPool::EntityPool() : nextEntityId_(0) {
