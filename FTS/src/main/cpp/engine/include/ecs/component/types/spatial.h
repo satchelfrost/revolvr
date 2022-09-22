@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ecs/ecs.h"
-#include "component.h"
+#include "ecs/component/component.h"
 #include "math/rvr_math.h"
 
 namespace rvr {

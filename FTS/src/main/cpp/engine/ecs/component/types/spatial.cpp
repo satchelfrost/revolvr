@@ -1,4 +1,4 @@
-#include "ecs/component/spatial.h"
+#include "include/ecs/component/types/Spatial.h"
 
 namespace rvr {
 Spatial::Spatial() : Component(ComponentType::Spatial),
