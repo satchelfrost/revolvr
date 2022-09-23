@@ -10,6 +10,8 @@ public:
     Entity* GetNextEntity(const std::vector<ComponentType>& cTypes);
     bool FreeEntity(int entityId);
     Entity* GetRoot();
+    std::vector<Entity*> GetEntities() { return entities_; }
+
 private:
     int nextEntityId_;
     std::vector<Entity*> entities_;

@@ -24,7 +24,7 @@ bool ComponentPoolManager::Assign(type::EntityId entityId, ComponentType cType) 
 
 ComponentPool* ComponentPoolManager::GetPool(ComponentType cType) {
     // Use the component type as index into component pools
-    auto componentPool = componentPools_.at((int)cType);
+    auto& componentPool = componentPools_.at((int)cType);
 
     // First check if the component pool exists
     if (!componentPool)

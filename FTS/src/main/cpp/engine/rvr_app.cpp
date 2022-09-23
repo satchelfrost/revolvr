@@ -1,4 +1,8 @@
 #include "rvr_app.h"
+#include "ecs/system/spatial_system.h"
+#include "ecs/system/render_system.h"
+#include "ecs/component/types/spatial.h"
+#include "ecs/ecs.h"
 
 Cube MakeCube(float scale, XrVector3f position) {
     Cube cube{};
@@ -93,6 +97,12 @@ void RVRApp::Run(struct android_app *app) {
      xrContext_ = new RVRXRContext(androidContext_, vulkanRenderer_);
      xrContext_->Initialize();
 
+     // Initialize ECS
+     rvr::ECS::GetInstance()->Init();
+
+     // Initialize Scene
+     scene_.Init();
+
      sceneTree_.Load("example.rvr");
      OnInitialize();
 
@@ -126,9 +136,7 @@ void RVRApp::Input() {
 void RVRApp::Update() {
     // Refresh tracked spaces and then update scene tree
     xrContext_->RefreshTrackedSpaceLocations();
-    sceneTree_.CascadePose(xrContext_->trackedSpaceLocations);
-    sceneTree_.Update(deltaTime_);
-
+    rvr::SpatialSystem::UpdateTrackedSpaces(xrContext_->trackedSpaceLocations);
     OnUpdate();
 }
 
@@ -190,17 +198,22 @@ bool RVRApp::RenderLayer(std::vector<XrCompositionLayerProjectionView>& projecti
 
     projectionLayerViews.resize(viewCountOutput);
 
-    auto renderables = sceneTree_.GatherRenderables();
+//    auto renderables = sceneTree_.GatherRenderables();
 
     // TODO: The actual rendering code needs to be refactored.
     //       OnRender() is called here as a stopgap solution.
     OnRender();
 
+
+    auto renderables = rvr::RenderSystem::GatherRenderables();
+
     // Convert renderable to a cube for now
-    for (auto renderable : renderables) {
+    for (auto& renderable : renderables) {
+        rvr::SpatialSystem::CalculateWorldPosition(renderable);
+        auto spatial = rvr::ECS::GetInstance()->GetComponent<rvr::Spatial>(renderable);
         Cube cube{};
-        cube.Pose = renderable->worldPose;
-        cube.Scale = renderable->scale;
+        cube.Pose = spatial->worldPose;
+        cube.Scale = spatial->scale;
         renderBuffer_.push_back(cube);
     }
 

@@ -23,6 +23,7 @@ public:
 
 private:
     std::vector<ComponentPool*> componentPools_;
+    std::map<std::type_index, ComponentType> typeToEnum;
 };
 
 template<typename T>

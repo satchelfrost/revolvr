@@ -1,5 +1,5 @@
 #include "ecs/entity/entity_pool.h"
-#include "ecs/ecs.h"
+#include "ecs/ecs_info.h"
 #include "common.h"
 
 namespace rvr {

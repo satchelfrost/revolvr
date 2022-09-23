@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ecs/ecs.h"
+#include "ecs/ecs_info.h"
 #include <map>
 #include <typeindex>
 
@@ -13,5 +13,5 @@ enum class ComponentType {
 
 const char* toString(ComponentType cType);
 
-static std::map<std::type_index, ComponentType> typeToEnum;
+//static std::map<std::type_index, ComponentType> typeToEnum;
 }

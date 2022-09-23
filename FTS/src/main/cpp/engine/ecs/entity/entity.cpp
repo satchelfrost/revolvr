@@ -1,7 +1,9 @@
 #include "include/ecs/entity/entity.h"
+#include "check.h"
 
 namespace rvr {
-Entity::Entity(int entityId, const std::vector<ComponentType>& cTypes) : id(entityId) {
+Entity::Entity(int entityId, const std::vector<ComponentType>& cTypes) :
+id(entityId), parent_(nullptr){
     InitMask(cTypes);
 }
 
@@ -42,5 +44,32 @@ void Entity::SetName(std::string name) {
 
 bool Entity::HasComponent(ComponentType cType) {
     return mask_.test((int)cType);
+}
+
+void Entity::AddChild(Entity* child) {
+    child->SetParent(this);
+    children_.push_back(child);
+}
+
+void Entity::RemoveFromParent() {
+    if (parent_) {
+        auto& children = parent_->GetChildren();
+        auto childItr = std::find(children.begin(), children.end(), this);
+        CHECK(childItr != children.end());
+        children.erase(childItr);
+    }
+}
+
+void Entity::SetParent(Entity* parent) {
+    RemoveFromParent();
+    parent_ = parent;
+}
+
+Entity* Entity::GetParent() {
+    return parent_;
+}
+
+std::list<Entity*>& Entity::GetChildren() {
+    return children_;
 }
 }

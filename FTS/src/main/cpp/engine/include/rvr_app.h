@@ -10,6 +10,7 @@
 #include "rvr_reference_space.h"
 #include "rvr_auto_scene_tree.h"
 #include "xr_app_helpers.h"
+#include "scene.h"
 
 #include <array>
 #include <cmath>
@@ -54,6 +55,7 @@ private:
 private:
     float deltaTime_;
     RVRAutoSceneTree sceneTree_;
+    rvr::Scene scene_;
     RVRAndroidContext* androidContext_;
     RVRVulkanRenderer* vulkanRenderer_;
     RVRXRContext* xrContext_;

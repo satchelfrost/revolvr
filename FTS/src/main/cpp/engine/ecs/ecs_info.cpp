@@ -1,5 +1,5 @@
-#include "ecs/ecs.h"
-
+//#include "ecs/ecs_info.h"
+//
 //#define COMPONENT_TYPE_CASE_STR(ENUM, NUM) case ComponentType::ENUM: return #ENUM;
 //
 //namespace rvr {
