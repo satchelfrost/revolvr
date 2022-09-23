@@ -11,7 +11,7 @@
 
 namespace rvr {
 namespace constants {
-    const int MAX_ENTITIES = 1000;
+    const int MAX_ENTITIES = 10;
     const int IMPLEMENTED_COMPONENTS = LAST_ENUM;
     const int ROOT_ID = 0;
 }

@@ -4,7 +4,7 @@
 
 namespace rvr {
 enum class TrackedSpaceType {
-    Origin,
+    VROrigin,
     LeftHand,
     RightHand,
     Nil

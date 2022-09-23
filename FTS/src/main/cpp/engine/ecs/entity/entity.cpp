@@ -39,4 +39,8 @@ std::string Entity::GetName() {
 void Entity::SetName(std::string name) {
     name_ = std::move(name);
 }
+
+bool Entity::HasComponent(ComponentType cType) {
+    return mask_.test((int)cType);
+}
 }

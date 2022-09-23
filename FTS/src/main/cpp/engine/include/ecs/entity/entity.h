@@ -10,6 +10,7 @@ public:
     std::vector<ComponentType> GetComponentTypes();
     void InitMask(const std::vector<ComponentType>& cTypes);
     void ResetMask();
+    bool HasComponent(ComponentType cType);
     void SetName(std::string name);
     std::string GetName();
     const int id;
