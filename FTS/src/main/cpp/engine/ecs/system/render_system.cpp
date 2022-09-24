@@ -1,16 +1,14 @@
 #include "ecs/system/render_system.h"
+#include "ecs/system/spatial_system.h"
 #include "ecs/ecs.h"
 
 namespace rvr {
-std::vector<Entity*> RenderSystem::GatherRenderables() {
-    std::vector<Entity*> entities;
-    EntityPool* entityPool = rvr::ECS::GetInstance()->GetEntityPool();
-    for (auto& entity : entityPool->GetEntities()) {
-        if (!entity)
-            continue;
-        if (entity->HasComponent(rvr::ComponentType::Mesh))
-            entities.push_back(entity);
+std::vector<Spatial *> RenderSystem::GetRenderSpatials() {
+    std::vector<Spatial*> spatials;
+    for (auto id : ECS::Instance()->GetEids(ComponentType::Mesh)) {
+        SpatialSystem::CalculateWorldPosition(id);
+        spatials.push_back(ECS::Instance()->GetComponent<Spatial>(id));
     }
-    return entities;
+    return spatials;
 }
 }

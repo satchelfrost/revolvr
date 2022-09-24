@@ -7,6 +7,6 @@ namespace rvr {
 class SpatialSystem {
 public:
     static void UpdateTrackedSpaces(const TrackedSpaceLocations& trackedSpaceLocations);
-    static void CalculateWorldPosition(Entity* entity);
+    static void CalculateWorldPosition(type::EntityId id);
 };
 }

@@ -98,7 +98,7 @@ void RVRApp::Run(struct android_app *app) {
      xrContext_->Initialize();
 
      // Initialize ECS
-     rvr::ECS::GetInstance()->Init();
+    rvr::ECS::Instance()->Init();
 
      // Initialize Scene
      scene_.Init();
@@ -198,19 +198,12 @@ bool RVRApp::RenderLayer(std::vector<XrCompositionLayerProjectionView>& projecti
 
     projectionLayerViews.resize(viewCountOutput);
 
-//    auto renderables = sceneTree_.GatherRenderables();
-
     // TODO: The actual rendering code needs to be refactored.
     //       OnRender() is called here as a stopgap solution.
     OnRender();
 
-
-    auto renderables = rvr::RenderSystem::GatherRenderables();
-
     // Convert renderable to a cube for now
-    for (auto& renderable : renderables) {
-        rvr::SpatialSystem::CalculateWorldPosition(renderable);
-        auto spatial = rvr::ECS::GetInstance()->GetComponent<rvr::Spatial>(renderable);
+    for (auto spatial : rvr::RenderSystem::GetRenderSpatials()) {
         Cube cube{};
         cube.Pose = spatial->worldPose;
         cube.Scale = spatial->scale;

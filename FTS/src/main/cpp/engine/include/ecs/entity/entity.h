@@ -12,16 +12,17 @@ public:
     void InitMask(const std::vector<ComponentType>& cTypes);
     void ResetMask();
     bool HasComponent(ComponentType cType);
+    bool Active();
     void SetName(std::string name);
     std::string GetName();
 
-    // TODO: Destroy(), needs reference to entity pool
 
     // Tree related methods
     void AddChild(Entity* child);
     void SetParent(Entity* parent);
     Entity* GetParent();
     std::list<Entity*>& GetChildren();
+    void Destroy();
 
     const int id;
 

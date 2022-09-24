@@ -6,14 +6,10 @@
 
 namespace rvr {
 void SpatialSystem::UpdateTrackedSpaces(const TrackedSpaceLocations& trackedSpaceLocations) {
-    auto trackedSpacePool = ECS::GetInstance()->GetComponentPoolManager()->GetPool(ComponentType::TrackedSpace);
-    auto spatialPool = ECS::GetInstance()->GetComponentPoolManager()->GetPool(ComponentType::Spatial);
-    for (type::EntityId eid = 0; eid < constants::MAX_ENTITIES; eid++) {
-        auto trackedSpace = dynamic_cast<TrackedSpace*>(trackedSpacePool->GetComponent(eid));
-        auto spatial = dynamic_cast<Spatial*>(spatialPool->GetComponent(eid));
-        if ((!trackedSpace) || (!spatial))
-            continue;
-        switch (trackedSpace->trackedSpaceType) {
+    auto entityIds = ECS::Instance()->GetEids(ComponentType::TrackedSpace);
+    for (auto entityId : entityIds) {
+        auto [spatial, tracked] = ECS::Instance()->GetComponentPair<Spatial, TrackedSpace>(entityId);
+        switch (tracked->trackedSpaceType) {
             case TrackedSpaceType::VROrigin:
                 spatial->worldPose = trackedSpaceLocations.vrOrigin.pose;
                 break;
@@ -29,14 +25,15 @@ void SpatialSystem::UpdateTrackedSpaces(const TrackedSpaceLocations& trackedSpac
     }
 }
 
-void SpatialSystem::CalculateWorldPosition(Entity* entity) {
-    if (entity->HasComponent(ComponentType::TrackedSpace) || (entity->id == constants::ROOT_ID))
+void SpatialSystem::CalculateWorldPosition(type::EntityId id) {
+    Entity* child = ECS::Instance()->GetEntity(id);
+    if (child->HasComponent(ComponentType::TrackedSpace) || (id == constants::ROOT_ID))
         return;
 
-    auto parent = entity->GetParent();
-    CalculateWorldPosition(parent);
-    auto childSpatial = ECS::GetInstance()->GetComponent<Spatial>(entity);
-    auto parentSpatial = ECS::GetInstance()->GetComponent<Spatial>(parent);
+    auto parent = child->GetParent();
+    CalculateWorldPosition(parent->id);
+    auto childSpatial = ECS::Instance()->GetComponent<Spatial>(child->id);
+    auto parentSpatial = ECS::Instance()->GetComponent<Spatial>(parent->id);
 
     // Calculate position based on parent
     XrQuaternionf_Multiply(&childSpatial->worldPose.orientation, &childSpatial->pose.orientation,
@@ -46,10 +43,11 @@ void SpatialSystem::CalculateWorldPosition(Entity* entity) {
 
     // Place objects relative to the origin
     if (parent->HasComponent(ComponentType::TrackedSpace)) {
-        auto ts = ECS::GetInstance()->GetComponent<TrackedSpace>(parent);
-        if (ts->trackedSpaceType != TrackedSpaceType::VROrigin)
+        auto ts = ECS::Instance()->GetComponent<TrackedSpace>(parent->id);
+        if (ts->trackedSpaceType == TrackedSpaceType::VROrigin) {
             XrVector3f_Sub(&childSpatial->worldPose.position, &childSpatial->worldPose.position,
                            &parentSpatial->pose.position);
+        }
     }
 }
 }

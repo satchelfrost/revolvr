@@ -12,6 +12,4 @@ enum class ComponentType {
 };
 
 const char* toString(ComponentType cType);
-
-//static std::map<std::type_index, ComponentType> typeToEnum;
 }

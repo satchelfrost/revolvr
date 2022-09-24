@@ -12,17 +12,13 @@ EntityPool::~EntityPool() {
         delete entity;
 }
 
-Entity *EntityPool::GetNextEntity(const std::vector<ComponentType> &cTypes) {
-    // First check for inactive entity IDs
+Entity *EntityPool::GetNewEntity(const std::vector<ComponentType> &cTypes) {
+    // First recycle old entities if possible
     if (!inactiveIds_.empty()) {
         auto index = inactiveIds_.back();
         inactiveIds_.pop_back();
         auto entity = entities_.at(index);
-        if (!entity) {
-            Log::Write(Log::Level::Warning,
-                       Fmt("Expected inactive entity at index %d, found nullptr instead.", index));
-            entity = new Entity(index, cTypes);
-        }
+        CHECK_MSG(entity, Fmt("Expected inactive entity at index %d, found nullptr instead.", index))
         entity->InitMask(cTypes);
         return entity;
     }
@@ -33,32 +29,23 @@ Entity *EntityPool::GetNextEntity(const std::vector<ComponentType> &cTypes) {
     return entity;
 }
 
-bool EntityPool::FreeEntity(int entityId) {
-    if (entityId == 0) {
-        Log::Write(Log::Level::Warning, "Unable to free root node.");
-        return false;
-    }
+void EntityPool::FreeEntity(int entityId) {
+    CHECK_MSG((entityId != 0), "Unable to free root node.")
     Entity* entity = entities_.at(entityId);
-    if (!entity) {
-        Log::Write(Log::Level::Warning, "Attempting to free nonexistent entity.");
-        return false;
-    }
-    else {
-        entity->ResetMask();
-        inactiveIds_.push_back(entity->id);
-        return true;
-    }
+    CHECK_MSG(entity, "Attempting to free nonexistent entity.")
+    entity->ResetMask();
+    inactiveIds_.push_back(entity->id);
 }
 
 Entity *EntityPool::GetRoot() {
-    Entity* entity = entities_.at(constants::ROOT_ID);
-    if (!entity) {
-         Log::Write(Log::Level::Warning, "Root entity is nullptr");
-    }
-    else if (entity->id != constants::ROOT_ID) {
-        Log::Write(Log::Level::Warning,
-                   "rvr::EntityPool::entities_[ROOT_ID]->id != ROOT_ID");
-    }
+    Entity* entity = GetEntity(constants::ROOT_ID);
+    CHECK_MSG((entity->id == constants::ROOT_ID), "rvr::EntityPool::entities_[ROOT_ID]->id != ROOT_ID")
+    return entity;
+}
+
+Entity *EntityPool::GetEntity(type::EntityId id) {
+    Entity* entity = entities_.at(id);
+    CHECK_MSG(entity, Fmt("Entity %d is nullptr", id))
     return entity;
 }
 }

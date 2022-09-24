@@ -1,4 +1,5 @@
 #include "include/ecs/entity/entity.h"
+#include "include/ecs/ecs.h"
 #include "check.h"
 
 namespace rvr {
@@ -71,5 +72,17 @@ Entity* Entity::GetParent() {
 
 std::list<Entity*>& Entity::GetChildren() {
     return children_;
+}
+
+void Entity::Destroy() {
+    RemoveFromParent();
+    for (auto child : GetChildren()) {
+        child->Destroy();
+    }
+    ECS::Instance()->FreeEntity(id);
+}
+
+bool Entity::Active() {
+    return mask_.any();
 }
 }

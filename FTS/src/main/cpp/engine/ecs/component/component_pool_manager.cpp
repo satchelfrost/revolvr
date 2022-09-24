@@ -14,12 +14,12 @@ ComponentPoolManager::~ComponentPoolManager() {
         delete pool;
 }
 
-bool ComponentPoolManager::Assign(type::EntityId entityId, ComponentType cType) {
+void ComponentPoolManager::Assign(type::EntityId id, ComponentType cType) {
     // Get component pool
     auto componentPool = GetPool(cType);
 
     // Add the component to the pool
-    return componentPool->CreateComponent(entityId);
+    componentPool->CreateComponent(id);
 }
 
 ComponentPool* ComponentPoolManager::GetPool(ComponentType cType) {
@@ -34,16 +34,16 @@ ComponentPool* ComponentPoolManager::GetPool(ComponentType cType) {
 }
 
 
-Component* ComponentPoolManager::GetComponent(Entity* entity, ComponentType cType) {
+Component* ComponentPoolManager::GetComponent(type::EntityId id, ComponentType cType) {
     ComponentPool* pool = GetPool(cType);
-    return pool->GetComponent(entity->id);
+    return pool->GetComponent(id);
 }
 
 std::vector<Component*> ComponentPoolManager::GetAllComponents(Entity *entity) {
     auto componentTypes = entity->GetComponentTypes();
     std::vector<Component*> components(componentTypes.size());
     for (auto& componentType : componentTypes)
-        components.push_back(GetComponent(entity, componentType));
+        components.push_back(GetComponent(entity->id, componentType));
     return components;
 }
 }
