@@ -13,7 +13,6 @@ public:
     void Assign(type::EntityId, ComponentType cType);
     ComponentPool *GetPool(ComponentType cType);
     Component* GetComponent(type::EntityId id, ComponentType cType);
-    std::vector<Component*> GetAllComponents(Entity *entity);
 
     template<typename T>
     T *GetComponent(type::EntityId id);

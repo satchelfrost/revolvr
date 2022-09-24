@@ -33,17 +33,8 @@ ComponentPool* ComponentPoolManager::GetPool(ComponentType cType) {
     return componentPool;
 }
 
-
 Component* ComponentPoolManager::GetComponent(type::EntityId id, ComponentType cType) {
     ComponentPool* pool = GetPool(cType);
     return pool->GetComponent(id);
-}
-
-std::vector<Component*> ComponentPoolManager::GetAllComponents(Entity *entity) {
-    auto componentTypes = entity->GetComponentTypes();
-    std::vector<Component*> components(componentTypes.size());
-    for (auto& componentType : componentTypes)
-        components.push_back(GetComponent(entity->id, componentType));
-    return components;
 }
 }

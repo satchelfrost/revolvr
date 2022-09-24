@@ -35,4 +35,10 @@ std::vector<type::EntityId> ComponentPool::GetEids() {
         eids_.push_back(item.first);
     return eids_;
 }
+
+void ComponentPool::FreeComponent(type::EntityId id) {
+    Component* component = GetComponent(id);
+    delete component;
+    components_.erase(id);
+}
 }

@@ -9,6 +9,7 @@ public:
     ComponentPool(ComponentType cType);
     ~ComponentPool();
     Component* GetComponent(type::EntityId id);
+    void FreeComponent(type::EntityId id);
     void CreateComponent(type::EntityId id);
     std::vector<type::EntityId> GetEids();
 private:

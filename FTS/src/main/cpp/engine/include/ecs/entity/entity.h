@@ -23,6 +23,7 @@ public:
     Entity* GetParent();
     std::list<Entity*>& GetChildren();
     void Destroy();
+    void FreeComponents();
 
     const int id;
 

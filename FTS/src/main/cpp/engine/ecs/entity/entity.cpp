@@ -79,10 +79,16 @@ void Entity::Destroy() {
     for (auto child : GetChildren()) {
         child->Destroy();
     }
+    FreeComponents();
     ECS::Instance()->FreeEntity(id);
 }
 
 bool Entity::Active() {
     return mask_.any();
+}
+
+void Entity::FreeComponents() {
+    for (auto componentType : GetComponentTypes())
+        ECS::Instance()->GetPool(componentType)->FreeComponent(id);
 }
 }
