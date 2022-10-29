@@ -4,19 +4,19 @@ rvr_source ::= unit*
 
 unit ::= heading field*
 heading ::= '[' heading_type ((number_key '=' number) | (string_key '=' identifier))* ']'
-heading_type ::= 'node' | 'resource'
+heading_type ::= 'entity' | 'resource'
 number_key ::= 'id' | 'parent'
-string_key ::= 'name' | 'type'
+string_key ::= 'name'
 
-field ::= field_1 | field_2 | field_3 | field_4 | resource | hand
-field_1 ::= ('visible' | 'custom_type' | 'can_update') '{' bool '}'
-field_2 ::= 'canvas' '{' number ',' number '}'
-field_3 ::= ('scale' | 'position') '{' number ',' number ',' number '}'
-field_4 ::= 'orientation' '{' number ','  number ',' number ',' number '}'
-resource ::= 'resource_id' '{' number '}'
-hand ::= 'hand' '{' side '}'
+** field ::= field_1 | field_2 | field_3 | field_4 | resource | hand
+** field_1 ::= ('visible' | 'custom_type' | 'can_update') '{' bool '}'
+** field_2 ::= 'canvas' '{' number ',' number '}'
+** field_3 ::= ('scale' | 'position') '{' number ',' number ',' number '}'
+** field_4 ::= 'orientation' '{' number ','  number ',' number ',' number '}'
+** resource ::= 'resource_id' '{' number '}'
+** hand ::= 'hand' '{' side '}'
 
-identifier ::= [A-Za-z_] [A-Za-z0-9_]*
-number ::= [-]? [0-9]+ ('.' [0-9]+)?
-bool ::= 'true' | 'false' 
-side ::= 'left' | 'right'
+** identifier ::= [A-Za-z_] [A-Za-z0-9_]*
+** number ::= [-]? [0-9]+ ('.' [0-9]+)?
+** bool ::= 'true' | 'false'
+** side ::= 'left' | 'right'
