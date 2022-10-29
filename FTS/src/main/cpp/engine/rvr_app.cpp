@@ -98,7 +98,7 @@ void RVRApp::Run(struct android_app *app) {
      xrContext_->Initialize();
 
      // Initialize ECS
-    rvr::ECS::Instance()->Init();
+     rvr::ECS::Instance()->Init();
 
      // Initialize Scene
      scene_.Init();
