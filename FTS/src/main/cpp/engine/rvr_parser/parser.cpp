@@ -36,7 +36,7 @@ void Parser::ParseHeading(Heading& heading) {
 void Parser::ParseHeadingType(Heading& heading) {
   CheckPeek("Heading Type", Token::Identifier);
   heading.headingType = Pop().GetIdentifier();
-  for (auto keyword : {"node", "resource"})
+  for (auto keyword : {"entity", "resource"})
     if (keyword == heading.headingType)
       return;
   ParseErrorPrevToken("Heading type \"" + heading.headingType + "\" unrecognized");
@@ -55,7 +55,7 @@ void Parser::ParseHeadingKeyValuePairs(Heading& heading) {
     }
   }
   // Check for string as value
-  for (auto keyword : {"name", "type"}) {
+  for (auto keyword : {"name"}) {
     if (key == keyword) {
       CheckPop("Heading", Token::Equals);
       CheckPeek("Heading", Token::Identifier);
