@@ -7,15 +7,17 @@
 class Token {
 public:
   enum Tok {
-    BrackLeft = 0,
+    BrackLeft  = 0,
     BrackRight = 1,
     Identifier = 2,
-    Comma = 3,
-    CurlLeft = 4,
-    CurlRight = 5,
-    Number = 6,
-    Equals = 7,
-    Blank = 8
+    Comma      = 3,
+    CurlLeft   = 4,
+    CurlRight  = 5,
+    Number     = 6,
+    Equals     = 7,
+    Dot        = 8,
+    Comment    = 9,
+    Blank      = 10
   };
   Token& operator=(const Token& token);
   Token(const Token& token);
