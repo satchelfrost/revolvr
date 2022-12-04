@@ -7,7 +7,7 @@
     _(Spatial, 0) \
     _(Mesh, 1) \
     _(TrackedSpace, 2) \
-    _(Ritual, LAST_ENUM)
+    _(Ritual, LAST_ENUM) // TODO: instead of having a last enum just create a dummy enum
 
 namespace rvr {
 namespace constants {
