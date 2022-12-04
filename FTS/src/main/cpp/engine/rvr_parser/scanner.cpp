@@ -101,6 +101,12 @@ void Scanner::Tokenize(std::string line) {
       case '=':
         tokens_.push({Token::Equals, currentLine_, pos + 1});
         break;
+      case '.':
+        tokens_.push({Token::Dot, currentLine_, pos + 1});
+        break;
+      case '#':
+        tokens_.push({Token::Comment, currentLine_, pos + 1});
+        return; // return here because comments ignore any further characters
       default:
         std::cerr << "Token unrecognized: \"" << line[pos] << "\"\n";
     }
