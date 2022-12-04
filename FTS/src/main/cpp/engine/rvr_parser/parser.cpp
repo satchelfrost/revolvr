@@ -1,5 +1,6 @@
 #include "rvr_parser/parser.h"
 
+namespace rvr {
 Parser::Parser(const std::string& fileName) : scanner_(fileName), fileName_(fileName) {
   tokens_ = scanner_.GetTokens();
   prevToken_ = tokens_.front();
@@ -66,34 +67,71 @@ void Parser::ParseHeadingKeyValuePairs(Heading& heading) {
   ParseErrorPrevToken("Header key \"" + key + "\" unrecognized");
 }
 
+//std::vector<Parser::Field> Parser::ParseFields() {
+//  std::vector<Field> fields;
+//  // While we haven't reached another heading or the end of tokens
+//  while (Peek() != Token::BrackLeft && !tokens_.empty()) {
+//    // All fields begin with identifier
+//    CheckPeek("Parsing fields", Token::Identifier);
+//
+//    // Begin parsing various fields
+//    Field field;
+//    field.fieldName = Pop().GetIdentifier();
+//
+//    if (ParseField1(field))
+//      field.type = Field1;
+//    else if (ParseField2(field))
+//      field.type = Field2;
+//    else if (ParseField3(field))
+//      field.type = Field3;
+//    else if (ParseField4(field))
+//      field.type = Field4;
+//    else if (ParseResourceId(field))
+//      field.type = Resource;
+//    else if (ParseHand(field))
+//      field.type = Hand;
+//    else
+//      ParseErrorPrevToken("Unrecognized field \"" + field.fieldName + "\"");
+//    fields.push_back(field);
+//  }
+//  return fields;
+//}
+
 std::vector<Parser::Field> Parser::ParseFields() {
   std::vector<Field> fields;
-  // While we haven't reached another heading or the end of tokens
-  while (Peek() != Token::BrackLeft && !tokens_.empty()) {
-    // All fields begin with identifier
-    CheckPeek("Parsing fields", Token::Identifier);
-
-    // Begin parsing various fields
-    Field field;
-    field.fieldName = Pop().GetIdentifier();
-
-    if (ParseField1(field))
-      field.type = Field1;
-    else if (ParseField2(field))
-      field.type = Field2;
-    else if (ParseField3(field))
-      field.type = Field3;
-    else if (ParseField4(field))
-      field.type = Field4;
-    else if (ParseResourceId(field))
-      field.type = Resource;
-    else if (ParseHand(field))
-      field.type = Hand;
-    else
-      ParseErrorPrevToken("Unrecognized field \"" + field.fieldName + "\"");
-    fields.push_back(field);
-  }
+  while (Peek() != Token::BrackLeft && !tokens_.empty())
+      fields.push_back(ParseField());
   return fields;
+}
+
+Parser::Field Parser::ParseField() {
+  // All fields begin with identifier which is the component type
+  CheckPeek("Parsing fields", Token::Identifier);
+
+  Field field{};
+  field.cType = toComponentTypeEnum(Pop().GetIdentifier());
+  field.access = nullptr;
+  ParseAccess(field.access);
+  CheckPop("Field Curly Left", Token::CurlLeft);
+  
+  CheckPop("Field Curly Right", Token::CurlRight);
+
+  return field;
+}
+
+void Parser::ParseAccess(Access* access) {
+    // avoid overwriting pre-allocated memory
+    if (access != nullptr)
+      return;
+
+    if (Peek() == Token::Dot) {
+        Pop();
+        CheckPeek("Parsing Access", Token::Identifier);
+        access = new Access();
+        access->accessName = Pop().GetIdentifier();
+        access->access = nullptr;
+        ParseAccess(access->access);
+    }
 }
 
 bool Parser::ParseField1(Field& field) {
@@ -242,4 +280,5 @@ void Parser::CheckPop(const char* context, Token::Tok expected) {
   if (Peek() != expected)
     TokenError(context, expected);
   Pop();
+}
 }

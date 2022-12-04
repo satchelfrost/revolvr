@@ -5,21 +5,18 @@
 #include "logger.h"
 #include "token.h"
 #include "scanner.h"
+#include "include/ecs/component/component_type.h"
 #include <map>
 
+namespace rvr {
 class Parser {
 public:
   Parser(const std::string& fileName);
   void PrintTokens();
 
-  enum FieldType {
-    // names based on grammar definition
-    Field1 = 0,
-    Field2 = 1,
-    Field3 = 2,
-    Field4 = 3,
-    Resource = 4,
-    Hand = 5
+  enum FieldValueType {
+      Number = 0,
+      String = 1
   };
 
   struct Heading {
@@ -28,17 +25,24 @@ public:
     std::map<std::string, int> strKeyNumVal;
   };
 
+  struct Any {
+      std::string typeName;
+      void* any;
+  };
+
+  struct Access {
+      std::string accessName;
+      union {
+          Access* access;
+          float floatValue;
+          bool boolValue;
+          Any* any;
+      };
+  };
+
   struct Field {
-    FieldType type;
-    std::string fieldName;
-    union {
-      XrQuaternionf quat;
-      XrVector3f vec3;
-      XrVector2f vec2;
-      int handSide; // left 0, right 1
-      int resource_id;
-      bool boolean;
-    };
+      rvr::ComponentType cType;
+      Access* access;
   };
 
   struct Unit {
@@ -54,7 +58,9 @@ private:
   void ParseHeading(Heading& heading);
   void ParseHeadingType(Heading& heading);
   void ParseHeadingKeyValuePairs(Heading& heading);
+  void ParseAccess(Access* access);
   std::vector<Field> ParseFields();
+  Field ParseField();
   bool ParseField1(Field& field);
   bool ParseField2(Field& field);
   bool ParseField3(Field& field);
@@ -81,3 +87,4 @@ private:
 public:
   std::vector<Unit> Parse();
 };
+}
