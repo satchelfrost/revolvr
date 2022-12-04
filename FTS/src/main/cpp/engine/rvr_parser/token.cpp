@@ -11,15 +11,8 @@ Token::Token(const Token& t) : tok(t.tok), line_(t.line_), column_(t.column_) {
     case Identifier:
       identifier_ = t.identifier_;
       break;
-    case BrackLeft:
-    case BrackRight:
-    case Comma:
-    case CurlLeft:
-    case CurlRight:
-    case Equals:
-    case Blank:
+    default:
       break;
-
   }
 }
 
@@ -35,13 +28,7 @@ Token& Token::operator=(const Token& t) {
     case Identifier:
       identifier_ = t.identifier_;
       break;
-    case BrackLeft:
-    case BrackRight:
-    case Comma:
-    case CurlLeft:
-    case CurlRight:
-    case Equals:
-    case Blank:
+    default:
       break;
   }
   return *this;
@@ -92,6 +79,10 @@ std::string Token::StringFromTokEnum(Tok token) {
       return "Number";
     case Equals:
       return "Equals";
+    case Dot:
+      return "Dot";
+    case Comment:
+      return "Comment";
     default:
       return "Token \"" + std::to_string((int)token) + "\" unrecognized";
   }
@@ -115,6 +106,10 @@ std::string Token::ToString() {
       return std::to_string(GetNumber());
     case Equals:
       return "=";
+    case Comment:
+      return "#";
+    case Dot:
+      return ".";
     default:
       return "Token \"" + std::to_string((int)tok) + "\" unrecognized";
   }
