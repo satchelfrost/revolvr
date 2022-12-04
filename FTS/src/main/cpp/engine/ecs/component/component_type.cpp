@@ -10,4 +10,16 @@ const char *toString(ComponentType cType) {
             return "ComponentType unrecognized";
     }
 }
+
+ComponentType toComponentTypeEnum(const std::string& str) {
+    for (int i = 0; i < constants::IMPLEMENTED_COMPONENTS; i++) {
+        std::string enumStr = toString((ComponentType)i);
+        if (enumStr == str)
+            return (ComponentType)i;
+    }
+
+    // TODO: throw an exception
+
+    return (ComponentType)0;
+}
 }
