@@ -12,12 +12,6 @@ namespace rvr {
 class Parser {
 public:
   Parser(const std::string& fileName);
-  void PrintTokens();
-
-  enum FieldValueType {
-      Number = 0,
-      String = 1
-  };
 
   struct Heading {
     std::string headingType;
@@ -25,19 +19,11 @@ public:
     std::map<std::string, int> strKeyNumVal;
   };
 
-  struct Any {
-      std::string typeName;
-      void* any;
-  };
-
   struct Access {
       std::string accessName;
-      union {
-          Access* access;
-          float floatValue;
-          bool boolValue;
-          Any* any;
-      };
+      Access* access;
+      std::vector<std::string> strValues;
+      std::vector<float> floatValues;
   };
 
   struct Field {
@@ -51,38 +37,29 @@ public:
   };
 
 private:
-
   std::vector<Unit> units_;
 
-  // Parse methods
+  // helper methods
   void ParseHeading(Heading& heading);
   void ParseHeadingType(Heading& heading);
   void ParseHeadingKeyValuePairs(Heading& heading);
   void ParseAccess(Access* access);
+  void ParseAccessStrValues(Access* access);
+  void ParseAccessFloatValues(Access* access);
   std::vector<Field> ParseFields();
   Field ParseField();
-  bool ParseField1(Field& field);
-  bool ParseField2(Field& field);
-  bool ParseField3(Field& field);
-  bool ParseField4(Field& field);
-  bool ParseResourceId(Field& field);
-  bool ParseHand(Field& field);
-  void ReadCurlyList(float& number, bool commaExpected);
-  void ReadBool(bool& b);
-  void ReadSide(int& side);
-
   Token::Tok Peek();
   Token Pop();
-  Token prevToken_;
-  Scanner scanner_;
-  std::string fileName_;
-  std::queue<Token> tokens_;
 
   // Error & Check methods
   void ParseErrorPrevToken(const std::string& errMsg);
   void TokenError(std::string errMsg, Token::Tok expected);
   void CheckPeek(const char* errMsg, Token::Tok expected);
   void CheckPop(const char* errMsg, Token::Tok expected);
+
+  Token prevToken_;
+  Scanner scanner_;
+  std::queue<Token> tokens_;
 
 public:
   std::vector<Unit> Parse();
