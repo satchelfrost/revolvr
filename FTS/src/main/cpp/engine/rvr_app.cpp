@@ -103,7 +103,6 @@ void RVRApp::Run(struct android_app *app) {
      // Initialize Scene
      scene_.Init();
 
-     sceneTree_.Load("example.rvr");
      OnInitialize();
 
      RVRGameLoopTimer timer;
