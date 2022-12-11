@@ -25,6 +25,8 @@ Entity *EntityPool::GetNewEntity(const std::vector<ComponentType> &cTypes) {
 
     // If no available entities create one
     auto entity = new Entity(nextEntityId_++, cTypes);
+    if (entity->id >= constants::MAX_ENTITIES)
+        THROW(Fmt("[Entity id %d, MAX_ENTITIES %d] - Adjust max entities in ecs_info.h.", entity->id, constants::MAX_ENTITIES));
     entities_.at(entity->id) = entity;
     return entity;
 }
