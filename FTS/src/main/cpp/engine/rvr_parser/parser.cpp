@@ -80,32 +80,26 @@ Parser::Field Parser::ParseField() {
 
   Field field{};
   field.cType = toComponentTypeEnum(Pop().GetIdentifier());
-  field.access = nullptr;
+  field.access = new Access();
   ParseAccess(field.access);
 
   // Parse left curly brace
   CheckPop("Field Curly Left", Token::CurlLeft);
 
-  if (field.access == nullptr) {
-    // In this case we are not assigning a value e.g. "Mesh {}"
-    CheckPop("Field Curly Right", Token::CurlRight);
-    return field;
-  }
-
   // Get last access that will contain value
-  Access* accessWithValue = field.access;
-  while (accessWithValue->access != nullptr)
-    accessWithValue = accessWithValue->access;
+  Access* tailAccess = field.access;
+  while (tailAccess->access != nullptr)
+        tailAccess = tailAccess->access;
 
   // Access can either have a list of strings or floats e.g. {SomeClass}, {true}, {1, 1, 1}, etc.
   if (Peek() == Token::Identifier) {
-      ParseAccessStrValues(accessWithValue);
+      ParseAccessStrValues(tailAccess);
   }
   else if (Peek() == Token::Number) {
-      ParseAccessFloatValues(accessWithValue);
+      ParseAccessFloatValues(tailAccess);
   }
   else {
-      ParseErrorPrevToken("Expected either a string or a value");
+//      ParseErrorPrevToken("Expected either a string or a value");
   }
 
   // value should end with a right curly
@@ -115,37 +109,37 @@ Parser::Field Parser::ParseField() {
 
 void Parser::ParseAccessStrValues(Access* access) {
   CheckPeek("Expected an access string value", Token::Identifier);
-  access->strValues.push_back(Pop().GetIdentifier());
-  while (Peek() != Token::Comma) {
+  access->accessInfo.strValues.push_back(Pop().GetIdentifier());
+  while (Peek() == Token::Comma) {
     CheckPop("Read String Curly List", Token::Comma);
     CheckPeek("Expected an access string value", Token::Identifier);
-    access->strValues.push_back(Pop().GetIdentifier());
+    access->accessInfo.strValues.push_back(Pop().GetIdentifier());
   }
 }
 
 void Parser::ParseAccessFloatValues(Access* access) {
   CheckPeek("Expected a number", Token::Number);
-  access->floatValues.push_back((float)Pop().GetNumber());
-  while (Peek() != Token::Comma) {
+  access->accessInfo.floatValues.push_back((float)Pop().GetNumber());
+  while (Peek() == Token::Comma) {
     CheckPop("Read Number Curly List", Token::Comma);
     CheckPeek("Expected a number", Token::Number);
-    access->floatValues.push_back((float)Pop().GetNumber());
+    access->accessInfo.floatValues.push_back((float)Pop().GetNumber());
   }
 }
 
 void Parser::ParseAccess(Access* access) {
-    // avoid overwriting pre-allocated memory
-    if (access != nullptr)
-      return;
+  if (access->access != nullptr)
+      THROW("attempting to overwrite pre-allocated memory");
 
-    if (Peek() == Token::Dot) {
+  if (Peek() == Token::Dot) {
         Pop();
         CheckPeek("Parsing Access", Token::Identifier);
-        access = new Access();
-        access->accessName = Pop().GetIdentifier();
-        access->access = nullptr;
+        access->accessInfo.accessName = Pop().GetIdentifier();
+        if (Peek() != Token::Dot)
+          return;
+        access->access = new Access();
         ParseAccess(access->access);
-    }
+  }
 }
 
 void Parser::ParseErrorPrevToken(const std::string& errMsg) {
@@ -167,5 +161,12 @@ void Parser::CheckPop(const char* context, Token::Tok expected) {
   if (Peek() != expected)
     TokenError(context, expected);
   Pop();
+}
+
+Parser::AccessInfo Parser::GetTailAccessInfo(Parser::Access* access) {
+  if (access->access == nullptr)
+    return access->accessInfo;
+  else
+    return GetTailAccessInfo(access->access);
 }
 }

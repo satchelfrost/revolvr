@@ -19,11 +19,15 @@ public:
     std::map<std::string, int> strKeyNumVal;
   };
 
-  struct Access {
+  struct AccessInfo {
       std::string accessName;
-      Access* access;
       std::vector<std::string> strValues;
       std::vector<float> floatValues;
+  };
+
+  struct Access {
+      Access* access;
+      AccessInfo accessInfo;
   };
 
   struct Field {
@@ -63,5 +67,6 @@ private:
 
 public:
   std::vector<Unit> Parse();
+  static AccessInfo GetTailAccessInfo(Parser::Access* access);
 };
 }
