@@ -1,4 +1,5 @@
 #include "ecs/component/component_type.h"
+#include "common.h"
 
 #define COMPONENT_TYPE_CASE_STR(ENUM, NUM) case ComponentType::ENUM: return #ENUM;
 
@@ -17,9 +18,6 @@ ComponentType toComponentTypeEnum(const std::string& str) {
         if (enumStr == str)
             return (ComponentType)i;
     }
-
-    // TODO: throw an exception
-
-    return (ComponentType)0;
+    THROW(Fmt("No tracked space found for %s", str.c_str()));
 }
 }
