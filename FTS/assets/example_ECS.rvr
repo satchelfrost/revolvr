@@ -1,21 +1,21 @@
 [entity id=0 name=VR_Origin]
-TrackedSpace {VROrigin}
+TrackedSpace.type {VROrigin}
 Spatial.position {3, 0, 0}
 Spatial.orientation {0, 0, 0, 1}
 
 [entity id=1 name=Left_Hand]
-TrackedSpace {LeftHand}
-Spatial.scale {0.1. 0.1. 0.1}
+TrackedSpace.type {LeftHand}
+Spatial.scale {0.1, 0.1, 0.1}
 Mesh {}
 
 [entity id=2 name=Right_Hand]
-TrackedSpace {RightHand}
+TrackedSpace.type {RightHand}
 Spatial.scale {0.1, 0.1, 0.1}
 Mesh {}
 
 [entity id=3 name=Pointer parent=2]
-Spatial.scale = {0.01, 0.01, 0.5};
-Spatial.position = {0, 0, -0.25};
+Spatial.scale  {0.01, 0.01, 0.5};
+Spatial.position  {0, 0, -0.25};
 Mesh {}
 Ritual.name {SpinningPointer}
 Ritual.can_update {true}
@@ -71,7 +71,7 @@ Mesh {}
 Spatial.scale {4, 0.5, 0.5}
 Spatial.position {3, 5.25, -5}
 
-[entity id=14 name=Floor_Mesh parent=6]
+[entity id=14 name=Floor_Mesh]
 Mesh {}
 Spatial.scale {4, 0.125, 4}
 Spatial.position {3, 0, 0}
