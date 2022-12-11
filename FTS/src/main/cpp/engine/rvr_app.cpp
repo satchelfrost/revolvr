@@ -100,8 +100,8 @@ void RVRApp::Run(struct android_app *app) {
      // Initialize ECS
      rvr::ECS::Instance()->Init();
 
-     // Initialize Scene
-     scene_.Init();
+     // Load and Initialize Scene
+     scene_.LoadScene("example_ECS");
 
      OnInitialize();
 
