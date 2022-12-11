@@ -9,7 +9,7 @@ void SpatialSystem::UpdateTrackedSpaces(const TrackedSpaceLocations& trackedSpac
     auto entityIds = ECS::Instance()->GetEids(ComponentType::TrackedSpace);
     for (auto entityId : entityIds) {
         auto [spatial, tracked] = ECS::Instance()->GetComponentPair<Spatial, TrackedSpace>(entityId);
-        switch (tracked->trackedSpaceType) {
+        switch (tracked->type) {
             case TrackedSpaceType::VROrigin:
                 spatial->worldPose = trackedSpaceLocations.vrOrigin.pose;
                 break;
@@ -44,7 +44,7 @@ void SpatialSystem::CalculateWorldPosition(type::EntityId id) {
     // Place objects relative to the origin
     if (parent->HasComponent(ComponentType::TrackedSpace)) {
         auto ts = ECS::Instance()->GetComponent<TrackedSpace>(parent->id);
-        if (ts->trackedSpaceType == TrackedSpaceType::VROrigin) {
+        if (ts->type == TrackedSpaceType::VROrigin) {
             XrVector3f_Sub(&childSpatial->worldPose.position, &childSpatial->worldPose.position,
                            &parentSpatial->pose.position);
         }
