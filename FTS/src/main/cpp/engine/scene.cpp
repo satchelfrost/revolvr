@@ -17,6 +17,9 @@ void Scene::LoadScene(const std::string &sceneName) {
     for (const auto& unit : units)
         InitUnit(unit);
 
+    // Fill any holes potentially created by scene description
+    ECS::Instance()->FillHoles();
+
     // Create hierarchy
     for (auto [childId, parentId] : parentIdMap_) {
         auto parent = ECS::Instance()->GetEntity(parentId);
@@ -59,7 +62,14 @@ Entity* Scene::CreateEntity(const std::vector<Parser::Field>& fields, const Pars
         cTypes.push_back(field.cType);
 
     // Use the component types to construct a new entity
-    auto entity = EntityFactory::CreateEntity(cTypes);
+    Entity* entity;
+    try {
+        type::EntityId id = heading.strKeyNumVal.at("id");
+        entity = EntityFactory::CreateEntity(id, cTypes);
+    }
+    catch (std::out_of_range& e) {
+        THROW("Entity did not contain id");
+    }
 
     // Get and set entity name, if any
     try {
@@ -94,6 +104,4 @@ void Scene::SaveHierarchyInfo(Entity* entity, const Parser::Heading& heading) {
         parentIdMap_[entity->id] = 0;
     }
 }
-
-
 }
