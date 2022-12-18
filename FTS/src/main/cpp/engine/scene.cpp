@@ -4,30 +4,26 @@
 #include "rvr_parser/parser.h"
 #include <ecs/entity/entity_factory.h>
 #include <ecs/component/component_init.h>
+#include <spinning_pointer.h>
 
 #define INIT_COMPONENT_CASE(TYPE, NUM) case ComponentType::TYPE: componentInit::Init ## TYPE(entity, field); break;
 
 namespace rvr {
 void Scene::LoadScene(const std::string &sceneName) {
-    // Parse file
     Parser parser(sceneName + ".rvr");
     auto units = parser.Parse();
+    InitUnits(units);
+    CreateHierarchy();
+    AttachRitualBehavior();
+}
 
+void Scene::InitUnits(const std::vector<Parser::Unit> &units) {
     // Init each unit
     for (const auto& unit : units)
         InitUnit(unit);
 
     // Fill any holes potentially created by scene description
     ECS::Instance()->FillHoles();
-
-    // Create hierarchy
-    for (auto [childId, parentId] : parentIdMap_) {
-        auto parent = ECS::Instance()->GetEntity(parentId);
-        auto child = ECS::Instance()->GetEntity(childId);
-        CHECK_MSG(parent, Fmt("Parent id %d was null", parentId));
-        CHECK_MSG(child, Fmt("Child id %d was null", parentId));
-        parent->AddChild(child);
-    }
 }
 
 void Scene::InitUnit(const Parser::Unit& unit) {
@@ -89,6 +85,10 @@ void Scene::InitComponent(Entity* entity, Parser::Field field) {
     default:
         THROW(Fmt("Component type %s unrecognized", toString(field.cType)))
     }
+
+    // Save ritual ids for attachment later
+    if (field.cType == ComponentType::Ritual)
+        ritualIds_.emplace(entity->id);
 }
 
 void Scene::SaveHierarchyInfo(Entity* entity, const Parser::Heading& heading) {
@@ -104,4 +104,24 @@ void Scene::SaveHierarchyInfo(Entity* entity, const Parser::Heading& heading) {
         parentIdMap_[entity->id] = 0;
     }
 }
+
+void Scene::CreateHierarchy() {
+    for (auto [childId, parentId] : parentIdMap_) {
+        auto parent = ECS::Instance()->GetEntity(parentId);
+        auto child = ECS::Instance()->GetEntity(childId);
+        CHECK_MSG(parent, Fmt("Parent id %d was null", parentId));
+        CHECK_MSG(child, Fmt("Child id %d was null", childId));
+        parent->AddChild(child);
+    }
+}
+
+void Scene::AttachRitualBehavior() {
+    for (auto rId : ritualIds_) {
+        auto ritual = ECS::Instance()->GetComponent<Ritual>(rId);
+        if (ritual->ritualName == "SpinningPointer") {
+            ritual->SetImplementation(new SpinningPointer(rId));
+        }
+    }
+}
+
 }
