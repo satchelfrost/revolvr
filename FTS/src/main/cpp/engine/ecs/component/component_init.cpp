@@ -57,9 +57,9 @@ void InitMesh(Entity *entity, const Parser::Field& field) {
 
 void InitRitual(Entity *entity, const Parser::Field& field) {
     auto ritual = ECS::Instance()->GetComponent<Ritual>(entity->id);
-    if (field.fullyQualifiedName == "Ritual.name") {
+    if (field.fullyQualifiedName == "Ritual.behavior") {
         if (field.strValues.size() != 1)
-            THROW(Fmt("[entity: %s] - Ritual.name was expecting 1 string", entity->GetName().c_str()));
+            THROW(Fmt("[entity: %s] - Ritual.behavior was expecting 1 string", entity->GetName().c_str()));
         ritual->behavior = game::toRitualBehaviorEnum(field.strValues[0]);
     }
     else if (field.fullyQualifiedName == "Ritual.can_update") {
