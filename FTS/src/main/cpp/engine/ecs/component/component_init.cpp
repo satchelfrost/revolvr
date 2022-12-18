@@ -60,7 +60,7 @@ void InitRitual(Entity *entity, const Parser::Field& field) {
     if (field.fullyQualifiedName == "Ritual.name") {
         if (field.strValues.size() != 1)
             THROW(Fmt("[entity: %s] - Ritual.name was expecting 1 string", entity->GetName().c_str()));
-        ritual->ritualName = field.fullyQualifiedName[0];
+        ritual->behavior = game::toRitualBehaviorEnum(field.strValues[0]);
     }
     else if (field.fullyQualifiedName == "Ritual.can_update") {
         if (field.strValues.size() != 1)

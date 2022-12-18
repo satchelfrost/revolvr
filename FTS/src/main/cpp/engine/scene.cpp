@@ -4,9 +4,10 @@
 #include "rvr_parser/parser.h"
 #include <ecs/entity/entity_factory.h>
 #include <ecs/component/component_init.h>
-#include <spinning_pointer.h>
+#include <ritual_behaviors_all.h>
 
 #define INIT_COMPONENT_CASE(TYPE, NUM) case ComponentType::TYPE: componentInit::Init ## TYPE(entity, field); break;
+#define INIT_RITUAL_CASE(TYPE, NUM) case game::RitualBehavior::TYPE: ritual->SetImplementation(new TYPE(rId)); break;
 
 namespace rvr {
 void Scene::LoadScene(const std::string &sceneName) {
@@ -120,8 +121,10 @@ void Scene::CreateHierarchy() {
 void Scene::AttachRitualBehavior() {
     for (auto rId : ritualIds_) {
         auto ritual = ECS::Instance()->GetComponent<Ritual>(rId);
-        if (ritual->ritualName == "SpinningPointer") {
-            ritual->SetImplementation(new SpinningPointer(rId));
+        switch (ritual->behavior) {
+            RITUAL_BEHAVIORS(INIT_RITUAL_CASE)
+            default:
+                THROW("Error initializing ritual behavior")
         }
     }
 }

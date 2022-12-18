@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ecs/component/component.h"
+#include <ritual_behaviors.h>
 
 namespace rvr {
 class RitualBehavior {
@@ -21,7 +22,7 @@ public:
     void SetImplementation(RitualBehavior* impl);
     bool HasImpl();
     bool canUpdate;
-    std::string ritualName;
+    game::RitualBehavior behavior;
     type::EntityId id;
 
 private:
