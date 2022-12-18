@@ -54,5 +54,41 @@ void InitTrackedSpace(Entity *entity, Parser::Field field) {
 }
 
 void InitMesh(Entity *entity, Parser::Field field) {}
-void InitRitual(Entity *entity, Parser::Field field) {}
+
+void InitRitual(Entity *entity, Parser::Field field) {
+    auto [name, sVals, fVals] = Parser::GetTailAccessInfo(field.access);
+
+    // This is the case when we are simply initializing a component with default values
+    if (sVals.empty() && fVals.empty())
+        return;
+
+    auto ritual = ECS::Instance()->GetComponent<Ritual>(entity->id);
+
+    // Attach concrete ritual if it does not already exist
+    if (name == "name") {
+        if (sVals.size() != 1)
+            THROW(Fmt("[entity: %s] - Ritual.name was expecting 1 string", entity->GetName().c_str()));
+        ritual->ritualName = sVals[0];
+    }
+    else if (name == "can_update") {
+        if (sVals.size() != 1)
+            THROW(Fmt("[entity: %s] - Ritual.can_update was expecting 1 string", entity->GetName().c_str()));
+        std::string strBool = sVals[0];
+        if (strBool == "true") {
+            ritual->canUpdate = true;
+        }
+        else if (strBool == "false") {
+            ritual->canUpdate = false;
+        }
+        else {
+            THROW(Fmt("[entity: %s] - Ritual.can_update was expecting true or false", entity->GetName().c_str()));
+        }
+
+    }
+    else {
+        THROW(Fmt("[entity: %s] - No interface exists for component member %s.",
+                  entity->GetName().c_str(),
+                  name.c_str()));
+    }
+}
 }
