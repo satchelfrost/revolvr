@@ -32,10 +32,9 @@ Entity *EntityPool::CreateNewEntity(type::EntityId id, const std::vector<Compone
                         id,
                         constants::MAX_ENTITIES));
 
-//    // Ensure entity does not already exist
-//    CHECK_MSG(entities_.at(id), Fmt("[Entity id %d] - Already exists.", id));
-    if (entities_.at(id) != nullptr)
-        THROW(Fmt("[Entity id %d] - Already exists.", id))
+    // Ensure entity does not already exist
+    if(entities_.at(id) != nullptr)
+        THROW(Fmt("[Entity id %d] - Already exists.", id));
 
     // Highest id so far
     if (id > nextEntityId_)
