@@ -3,6 +3,7 @@
 #include "ecs/system/render_system.h"
 #include "ecs/component/types/spatial.h"
 #include "ecs/ecs.h"
+#include <ecs/system/ritual_system.h>
 
 Cube MakeCube(float scale, XrVector3f position) {
     Cube cube{};
@@ -17,7 +18,7 @@ static void app_handle_cmd(struct android_app* app, int32_t cmd) {
     rvrApp->HandleAndroidCmd(app, cmd);
 }
 
-RVRApp::RVRApp() {
+RVRApp::RVRApp() : shouldCallBegin_(true) {
 
 }
 
@@ -136,6 +137,14 @@ void RVRApp::Update() {
     // Refresh tracked spaces and then update scene tree
     xrContext_->RefreshTrackedSpaceLocations();
     rvr::SpatialSystem::UpdateTrackedSpaces(xrContext_->trackedSpaceLocations);
+    rvr::RitualSystem::Update(deltaTime_);
+
+    // We should call begin whenever new scenes are loaded
+    if (shouldCallBegin_) {
+        rvr::RitualSystem::Begin();
+        shouldCallBegin_ = false;
+    }
+
     OnUpdate();
 }
 
