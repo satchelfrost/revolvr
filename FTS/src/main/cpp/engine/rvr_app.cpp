@@ -102,7 +102,7 @@ void RVRApp::Run(struct android_app *app) {
      rvr::ECS::Instance()->Init();
 
      // Load and Initialize Scene
-     scene_.LoadScene("example_ECS");
+     scene_.LoadScene("test_scene");
 
      OnInitialize();
 
