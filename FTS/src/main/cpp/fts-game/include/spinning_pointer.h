@@ -1,15 +1,19 @@
 #pragma once
 
-//#include <objects/rvr_mesh.h>
-//#include <math/xr_linear.h>
-//
-//class SpinningPointer : public RVRMesh {
-//public:
-//    SpinningPointer(int id);
-//    virtual void Begin() override;
-//    virtual void Update(float delta) override;
-//private:
-//    int turnAmt_;
-//    int turnSpeed_;
-//    int transDirection_;
-//};
+#include <math/xr_linear.h>
+#include <ecs/ecs_info.h>
+#include <ecs/component/types/spatial.h>
+#include <ecs/component/types/ritual.h>
+
+
+class SpinningPointer : public rvr::RitualBehavior {
+public:
+    SpinningPointer(rvr::type::EntityId id);
+    virtual void Begin() override;
+    virtual void Update(float delta) override;
+private:
+    rvr::Spatial* spatial_;
+    int turnAmt_;
+    int turnSpeed_;
+    int transDirection_;
+};
