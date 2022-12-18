@@ -1,7 +1,6 @@
 #include "rvr_parser/scanner.h"
 
 Scanner::Scanner(const std::string& fileName) : currentLine_(1) {
-  Log::Write(Log::Level::Info, Fmt("Preparing to load asset"));
   AAsset *file = AAssetManager_open(RVRAndroidContext::GetInstance()->GetAndroidAssetManager(),
                                     fileName.c_str(),
                                     AASSET_MODE_BUFFER);
@@ -14,7 +13,6 @@ Scanner::Scanner(const std::string& fileName) : currentLine_(1) {
   if (!inputStream_)
     THROW(Fmt("Cannot open file %s", fileName.c_str()));
 
-  Log::Write(Log::Level::Info, Fmt("loaded file %s", fileName.c_str()));
   ReadLines();
   for (const auto& line : lines_) {
     Tokenize(line);

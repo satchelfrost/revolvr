@@ -10,11 +10,13 @@
 
 namespace rvr {
 void Scene::LoadScene(const std::string &sceneName) {
+    Log::Write(Log::Level::Info, Fmt("Loading scene %s", sceneName.c_str()));
     Parser parser(sceneName + ".rvr");
     auto units = parser.Parse();
     InitUnits(units);
     CreateHierarchy();
     AttachRitualBehavior();
+    Log::Write(Log::Level::Info, Fmt("Loaded scene %s", sceneName.c_str()));
 }
 
 void Scene::InitUnits(const std::vector<Parser::Unit> &units) {
@@ -78,7 +80,7 @@ Entity* Scene::CreateEntity(const std::vector<Parser::Field>& fields, const Pars
     return entity;
 }
 
-void Scene::InitComponent(Entity* entity, Parser::Field field) {
+void Scene::InitComponent(Entity* entity, const Parser::Field& field) {
     switch (field.cType) {
         // See implementations in <ecs/component/component_init.cpp>
         COMPONENT_LIST(INIT_COMPONENT_CASE)
@@ -123,5 +125,4 @@ void Scene::AttachRitualBehavior() {
         }
     }
 }
-
 }
