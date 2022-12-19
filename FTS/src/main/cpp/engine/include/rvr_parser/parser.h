@@ -5,22 +5,13 @@
 #include "logger.h"
 #include "token.h"
 #include "scanner.h"
+#include "include/ecs/component/component_type.h"
 #include <map>
 
+namespace rvr {
 class Parser {
 public:
   Parser(const std::string& fileName);
-  void PrintTokens();
-
-  enum FieldType {
-    // names based on grammar definition
-    Field1 = 0,
-    Field2 = 1,
-    Field3 = 2,
-    Field4 = 3,
-    Resource = 4,
-    Hand = 5
-  };
 
   struct Heading {
     std::string headingType;
@@ -28,17 +19,20 @@ public:
     std::map<std::string, int> strKeyNumVal;
   };
 
+  struct AccessInfo {
+      std::string accessName;
+      std::vector<std::string> strValues;
+      std::vector<float> floatValues;
+  };
+
+  struct Access {
+      Access* access;
+      AccessInfo accessInfo;
+  };
+
   struct Field {
-    FieldType type;
-    std::string fieldName;
-    union {
-      XrQuaternionf quat;
-      XrVector3f vec3;
-      XrVector2f vec2;
-      int handSide; // left 0, right 1
-      int resource_id;
-      bool boolean;
-    };
+      rvr::ComponentType cType;
+      Access* access;
   };
 
   struct Unit {
@@ -47,30 +41,19 @@ public:
   };
 
 private:
-
   std::vector<Unit> units_;
 
-  // Parse methods
+  // helper methods
   void ParseHeading(Heading& heading);
   void ParseHeadingType(Heading& heading);
   void ParseHeadingKeyValuePairs(Heading& heading);
+  void ParseAccess(Access* access);
+  void ParseAccessStrValues(Access* access);
+  void ParseAccessFloatValues(Access* access);
   std::vector<Field> ParseFields();
-  bool ParseField1(Field& field);
-  bool ParseField2(Field& field);
-  bool ParseField3(Field& field);
-  bool ParseField4(Field& field);
-  bool ParseResourceId(Field& field);
-  bool ParseHand(Field& field);
-  void ReadCurlyList(float& number, bool commaExpected);
-  void ReadBool(bool& b);
-  void ReadSide(int& side);
-
+  Field ParseField();
   Token::Tok Peek();
   Token Pop();
-  Token prevToken_;
-  Scanner scanner_;
-  std::string fileName_;
-  std::queue<Token> tokens_;
 
   // Error & Check methods
   void ParseErrorPrevToken(const std::string& errMsg);
@@ -78,6 +61,12 @@ private:
   void CheckPeek(const char* errMsg, Token::Tok expected);
   void CheckPop(const char* errMsg, Token::Tok expected);
 
+  Token prevToken_;
+  Scanner scanner_;
+  std::queue<Token> tokens_;
+
 public:
   std::vector<Unit> Parse();
+  static AccessInfo GetTailAccessInfo(Parser::Access* access);
 };
+}

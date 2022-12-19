@@ -1,47 +1,107 @@
 #include "scene.h"
 #include "ecs/component/all_components.h"
 #include "ecs/ecs.h"
+#include "rvr_parser/parser.h"
+#include <ecs/entity/entity_factory.h>
+#include <ecs/component/component_init.h>
+
+#define INIT_COMPONENT_CASE(TYPE, NUM) case ComponentType::TYPE: componentInit::Init ## TYPE(entity, field); break;
 
 namespace rvr {
-void Scene::Init() {
-    // Setup the root node
-    auto root = EntityFactory::CreateEntity({ComponentType::TrackedSpace, ComponentType::Spatial});
-    root->SetName("VR_Origin");
-    auto [rootSpatial, rootTracked] = ECS::Instance()->GetComponentPair<Spatial, TrackedSpace>(root->id);
-    rootTracked->trackedSpaceType = TrackedSpaceType::VROrigin;
-    rootSpatial->pose.position.x = 3;
+void Scene::LoadScene(const std::string &sceneName) {
+    // Parse file
+    Parser parser(sceneName + ".rvr");
+    auto units = parser.Parse();
 
-    // Left hand
-    auto lHand = EntityFactory::CreateEntity({ComponentType::TrackedSpace, ComponentType::Spatial, ComponentType::Mesh});
-    auto [lSpatial, lTracked] = ECS::Instance()->GetComponentPair<Spatial, TrackedSpace>(lHand->id);
-    lHand->SetName("Left_Hand");
-    lTracked->trackedSpaceType = TrackedSpaceType::LeftHand;
-    lSpatial->UniformScale(0.1);
-    root->AddChild(lHand);
+    // Init each unit
+    for (const auto& unit : units)
+        InitUnit(unit);
 
-    // Right hand
-    auto rHand = EntityFactory::CreateEntity({ComponentType::TrackedSpace, ComponentType::Spatial, ComponentType::Mesh});
-    auto [rSpatial, rTracked] = ECS::Instance()->GetComponentPair<Spatial, TrackedSpace>(rHand->id);
-    rHand->SetName("Right_Hand");
-    rTracked->trackedSpaceType = TrackedSpaceType::RightHand;
-    rSpatial->UniformScale(0.1);
-    root->AddChild(rHand);
+    // Fill any holes potentially created by scene description
+    ECS::Instance()->FillHoles();
 
-    // Add pointer to right hand
-    auto pointer = EntityFactory::CreateEntity({ComponentType::Spatial, ComponentType::Mesh});
-    auto pointerSpatial = ECS::Instance()->GetComponent<Spatial>(pointer->id);
-    pointerSpatial->scale = {0.01, 0.01, 0.5};
-    pointerSpatial->pose.position = {0, 0, -0.25};
-    rHand->AddChild(pointer);
-
-    // World origin mesh
-    auto origin = EntityFactory::CreateEntity({ComponentType::Spatial, ComponentType::Mesh});
-    auto originSpatial = ECS::Instance()->GetComponent<Spatial>(origin->id);
-    originSpatial->UniformScale(0.5);
-    originSpatial->pose.position = {0, 0.5, 0};
-    root->AddChild(origin);
+    // Create hierarchy
+    for (auto [childId, parentId] : parentIdMap_) {
+        auto parent = ECS::Instance()->GetEntity(parentId);
+        auto child = ECS::Instance()->GetEntity(childId);
+        CHECK_MSG(parent, Fmt("Parent id %d was null", parentId));
+        CHECK_MSG(child, Fmt("Child id %d was null", parentId));
+        parent->AddChild(child);
+    }
 }
 
-void Scene::Load(const std::string &fileName) {
+void Scene::InitUnit(const Parser::Unit& unit) {
+    if (unit.heading.headingType == "entity") {
+        InitEntity(unit);
+    }
+    else if (unit.heading.headingType == "resource") {
+        // not implemented yet
+    }
+    else {
+        Throw(Fmt("Heading type %s unrecognized", unit.heading.headingType.c_str()));
+    }
+}
+
+void Scene::InitEntity(const Parser::Unit& unit) {
+    // First create entity
+    auto entity = CreateEntity(unit.fields, unit.heading);
+
+    // Initialize the entity's components with data based on fields
+    for (const auto& field : unit.fields)
+        InitComponent(entity, field);
+
+    // Store parent hierarchy information for later
+    SaveHierarchyInfo(entity, unit.heading);
+}
+
+Entity* Scene::CreateEntity(const std::vector<Parser::Field>& fields, const Parser::Heading& heading) {
+    // First collect the component types from the unit
+    std::vector<ComponentType> cTypes;
+    cTypes.reserve(fields.size());
+    for (const auto& field : fields)
+        cTypes.push_back(field.cType);
+
+    // Use the component types to construct a new entity
+    Entity* entity;
+    try {
+        type::EntityId id = heading.strKeyNumVal.at("id");
+        entity = EntityFactory::CreateEntity(id, cTypes);
+    }
+    catch (std::out_of_range& e) {
+        THROW("Entity did not contain id");
+    }
+
+    // Get and set entity name, if any
+    try {
+        entity->SetName(heading.strKeyStrVal.at("name"));
+    }
+    catch (std::out_of_range& e) {
+        Log::Write(Log::Level::Warning, Fmt("[%s] generating default name", entity->GetName().c_str()));
+    }
+
+    return entity;
+}
+
+void Scene::InitComponent(Entity* entity, Parser::Field field) {
+    switch (field.cType) {
+        // See implementations in <ecs/component/component_init.cpp>
+        COMPONENT_LIST(INIT_COMPONENT_CASE)
+    default:
+        THROW(Fmt("Component type %s unrecognized", toString(field.cType)))
+    }
+}
+
+void Scene::SaveHierarchyInfo(Entity* entity, const Parser::Heading& heading) {
+    // root has no parent, so just return
+    if (entity->id == 0)
+        return;
+
+    try {
+        parentIdMap_[entity->id] = heading.strKeyNumVal.at("parent");
+    }
+    catch (std::out_of_range& e) {
+        Log::Write(Log::Level::Warning, Fmt("[%s] using root as default parent", entity->GetName().c_str()));
+        parentIdMap_[entity->id] = 0;
+    }
 }
 }

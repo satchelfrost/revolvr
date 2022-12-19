@@ -7,7 +7,6 @@
 #include "math/xr_linear.h"
 
 #include "rvr_reference_space.h"
-#include "rvr_scene_tree.h"
 #include "xr_app_helpers.h"
 
 #include <array>

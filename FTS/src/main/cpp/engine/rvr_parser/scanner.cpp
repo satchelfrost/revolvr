@@ -47,7 +47,7 @@ bool Scanner::IdentifierScan(std::string& line, int& pos) {
 }
 
 bool Scanner::NumberScan(std::string& line, int& pos) {
-  if (isdigit(line[pos]) || line[pos] == '.' || line[pos] == '-') {
+  if (isdigit(line[pos]) || line[pos] == '-') { // TODO: make it possible to have a number such as ".3" with no leading zero
     std::string numStr;
     numStr += line[pos];
     while(pos++ < line.size()) {
@@ -101,6 +101,12 @@ void Scanner::Tokenize(std::string line) {
       case '=':
         tokens_.push({Token::Equals, currentLine_, pos + 1});
         break;
+      case '.':
+        tokens_.push({Token::Dot, currentLine_, pos + 1});
+        break;
+      case '#':
+        tokens_.push({Token::Comment, currentLine_, pos + 1});
+        return; // return here because comments ignore any further characters
       default:
         std::cerr << "Token unrecognized: \"" << line[pos] << "\"\n";
     }

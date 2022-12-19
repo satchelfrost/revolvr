@@ -12,7 +12,7 @@ EntityPool::~EntityPool() {
         delete entity;
 }
 
-Entity *EntityPool::GetNewEntity(const std::vector<ComponentType> &cTypes) {
+Entity *EntityPool::CreateNewEntity(const std::vector<ComponentType> &cTypes) {
     // First recycle old entities if possible
     if (!inactiveIds_.empty()) {
         auto index = inactiveIds_.back();
@@ -22,10 +22,28 @@ Entity *EntityPool::GetNewEntity(const std::vector<ComponentType> &cTypes) {
         entity->InitMask(cTypes);
         return entity;
     }
+    return CreateNewEntity(nextEntityId_++, cTypes);
+}
+
+Entity *EntityPool::CreateNewEntity(type::EntityId id, const std::vector<ComponentType> &cTypes) {
+    // Max entity check
+    if (id >= constants::MAX_ENTITIES)
+        THROW(Fmt("[Entity id %d, MAX_ENTITIES %d] - Adjust max entities in ecs_info.h.",
+                        id,
+                        constants::MAX_ENTITIES));
+
+//    // Ensure entity does not already exist
+//    CHECK_MSG(entities_.at(id), Fmt("[Entity id %d] - Already exists.", id));
+    if (entities_.at(id) != nullptr)
+        THROW(Fmt("[Entity id %d] - Already exists.", id))
+
+    // Highest id so far
+    if (id > nextEntityId_)
+        nextEntityId_ = id + 1;
 
     // If no available entities create one
-    auto entity = new Entity(nextEntityId_++, cTypes);
-    entities_.at(entity->id) = entity;
+    auto entity = new Entity(id, cTypes);
+    entities_.at(id) = entity;
     return entity;
 }
 
@@ -47,5 +65,16 @@ Entity *EntityPool::GetEntity(type::EntityId id) {
     Entity* entity = entities_.at(id);
     CHECK_MSG(entity, Fmt("Entity %d is nullptr", id))
     return entity;
+}
+
+void EntityPool::FillHoles() {
+    for (type::EntityId id = 0; id < nextEntityId_; id++) {
+        if (entities_.at(id) == nullptr) {
+            // create entity without any components
+            entities_.at(id) = new Entity(id, {});
+            // push it into the inactive entities list
+            inactiveIds_.push_back(id);
+        }
+    }
 }
 }

@@ -7,13 +7,15 @@ class EntityPool {
 public:
     EntityPool();
     ~EntityPool();
-    Entity* GetNewEntity(const std::vector<ComponentType>& cTypes);
+    Entity* CreateNewEntity(const std::vector<ComponentType>& cTypes);
+    Entity* CreateNewEntity(type::EntityId id, const std::vector<ComponentType>& cTypes);
     void FreeEntity(int entityId);
     Entity* GetRoot();
     Entity* GetEntity(type::EntityId id);
+    void FillHoles();
 
 private:
-    int nextEntityId_;
+    type::EntityId nextEntityId_;
     std::vector<Entity*> entities_;
     std::vector<type::EntityId> inactiveIds_;
 };

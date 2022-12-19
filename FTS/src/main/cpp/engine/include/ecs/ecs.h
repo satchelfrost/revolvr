@@ -13,8 +13,10 @@ public:
     void FreeEntity(type::EntityId id);
     ComponentPool* GetPool(ComponentType cType);
     std::vector<type::EntityId> GetEids(ComponentType cType);
-    Entity* GetNewEntity(const std::vector<ComponentType>& cTypes);
+    Entity* CreateNewEntity(const std::vector<ComponentType>& cTypes);
+    Entity* CreateNewEntity(type::EntityId id, const std::vector<ComponentType>& cTypes);
     Entity* GetEntity(type::EntityId id);
+    void FillHoles();
 
     template<typename T>
     T* GetComponent(type::EntityId id);
