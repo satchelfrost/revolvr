@@ -19,20 +19,11 @@ public:
     std::map<std::string, int> strKeyNumVal;
   };
 
-  struct AccessInfo {
-      std::string accessName;
-      std::vector<std::string> strValues;
-      std::vector<float> floatValues;
-  };
-
-  struct Access {
-      Access* access;
-      AccessInfo accessInfo;
-  };
-
   struct Field {
       rvr::ComponentType cType;
-      Access* access;
+      std::string fullyQualifiedName;
+      std::vector<std::string> strValues;
+      std::vector<float> floatValues;
   };
 
   struct Unit {
@@ -47,9 +38,9 @@ private:
   void ParseHeading(Heading& heading);
   void ParseHeadingType(Heading& heading);
   void ParseHeadingKeyValuePairs(Heading& heading);
-  void ParseAccess(Access* access);
-  void ParseAccessStrValues(Access* access);
-  void ParseAccessFloatValues(Access* access);
+  void ParseAccess(Field& field);
+  void ParseAccessStrValues(Field& field);
+  void ParseAccessFloatValues(Field& field);
   std::vector<Field> ParseFields();
   Field ParseField();
   Token::Tok Peek();
@@ -67,6 +58,5 @@ private:
 
 public:
   std::vector<Unit> Parse();
-  static AccessInfo GetTailAccessInfo(Parser::Access* access);
 };
 }

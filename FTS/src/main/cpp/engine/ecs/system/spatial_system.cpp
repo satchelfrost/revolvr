@@ -6,8 +6,7 @@
 
 namespace rvr {
 void SpatialSystem::UpdateTrackedSpaces(const TrackedSpaceLocations& trackedSpaceLocations) {
-    auto entityIds = ECS::Instance()->GetEids(ComponentType::TrackedSpace);
-    for (auto entityId : entityIds) {
+    for (auto entityId : ECS::Instance()->GetEids(ComponentType::TrackedSpace)) {
         auto [spatial, tracked] = ECS::Instance()->GetComponentPair<Spatial, TrackedSpace>(entityId);
         switch (tracked->type) {
             case TrackedSpaceType::VROrigin:

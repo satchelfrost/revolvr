@@ -78,67 +78,60 @@ Parser::Field Parser::ParseField() {
   // All fields begin with identifier which is the component type
   CheckPeek("Parsing fields", Token::Identifier);
 
+  // Create a field
   Field field{};
-  field.cType = toComponentTypeEnum(Pop().GetIdentifier());
-  field.access = new Access();
-  ParseAccess(field.access);
+  field.fullyQualifiedName = Pop().GetIdentifier();
+  field.cType = toComponentTypeEnum(field.fullyQualifiedName);
+  ParseAccess(field);
 
   // Parse left curly brace
   CheckPop("Field Curly Left", Token::CurlLeft);
 
-  // Get last access that will contain value
-  Access* tailAccess = field.access;
-  while (tailAccess->access != nullptr)
-        tailAccess = tailAccess->access;
-
-  // Access can either have a list of strings or floats e.g. {SomeClass}, {true}, {1, 1, 1}, etc.
-  if (Peek() == Token::Identifier) {
-      ParseAccessStrValues(tailAccess);
-  }
-  else if (Peek() == Token::Number) {
-      ParseAccessFloatValues(tailAccess);
-  }
-  else {
-//      ParseErrorPrevToken("Expected either a string or a value");
+  // Field can either have a list of strings, floats, or empty e.g. {}, {true}, {1, 1, 1}, etc.
+  switch (Peek()) {
+      case Token::Identifier:
+        ParseAccessStrValues(field);
+        break;
+      case Token::Number:
+        ParseAccessFloatValues(field);
+        break;
+    default:
+      CheckPop("Field Curly Right", Token::CurlRight);
   }
 
-  // value should end with a right curly
-  CheckPop("Field Curly Right", Token::CurlRight);
   return field;
 }
 
-void Parser::ParseAccessStrValues(Access* access) {
+void Parser::ParseAccessStrValues(Field& field) {
   CheckPeek("Expected an access string value", Token::Identifier);
-  access->accessInfo.strValues.push_back(Pop().GetIdentifier());
+  field.strValues.push_back(Pop().GetIdentifier());
   while (Peek() == Token::Comma) {
     CheckPop("Read String Curly List", Token::Comma);
     CheckPeek("Expected an access string value", Token::Identifier);
-    access->accessInfo.strValues.push_back(Pop().GetIdentifier());
+    field.strValues.push_back(Pop().GetIdentifier());
   }
+  CheckPop("Field Curly Right", Token::CurlRight);
 }
 
-void Parser::ParseAccessFloatValues(Access* access) {
+void Parser::ParseAccessFloatValues(Field& field) {
   CheckPeek("Expected a number", Token::Number);
-  access->accessInfo.floatValues.push_back((float)Pop().GetNumber());
+  field.floatValues.push_back((float)Pop().GetNumber());
   while (Peek() == Token::Comma) {
     CheckPop("Read Number Curly List", Token::Comma);
     CheckPeek("Expected a number", Token::Number);
-    access->accessInfo.floatValues.push_back((float)Pop().GetNumber());
+    field.floatValues.push_back((float)Pop().GetNumber());
   }
+  CheckPop("Field Curly Right", Token::CurlRight);
 }
 
-void Parser::ParseAccess(Access* access) {
-  if (access->access != nullptr)
-      THROW("attempting to overwrite pre-allocated memory");
-
+void Parser::ParseAccess(Field& field) {
   if (Peek() == Token::Dot) {
         Pop();
         CheckPeek("Parsing Access", Token::Identifier);
-        access->accessInfo.accessName = Pop().GetIdentifier();
+        field.fullyQualifiedName += "." + Pop().GetIdentifier();
         if (Peek() != Token::Dot)
           return;
-        access->access = new Access();
-        ParseAccess(access->access);
+        ParseAccess(field);
   }
 }
 
@@ -161,12 +154,5 @@ void Parser::CheckPop(const char* context, Token::Tok expected) {
   if (Peek() != expected)
     TokenError(context, expected);
   Pop();
-}
-
-Parser::AccessInfo Parser::GetTailAccessInfo(Parser::Access* access) {
-  if (access->access == nullptr)
-    return access->accessInfo;
-  else
-    return GetTailAccessInfo(access->access);
 }
 }

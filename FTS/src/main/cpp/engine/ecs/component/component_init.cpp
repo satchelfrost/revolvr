@@ -3,56 +3,84 @@
 #include <ecs/component/all_components.h>
 
 namespace rvr::componentInit {
-void InitSpatial(Entity *entity, Parser::Field field) {
-    auto [name, sVals, fVals] = Parser::GetTailAccessInfo(field.access);
-
-    // This is the case when we are simply initializing a component with default values
-    if (sVals.empty() && fVals.empty())
+void InitSpatial(Entity *entity, const Parser::Field& field) {
+    // Allow default init
+    if (field.fullyQualifiedName == "Spatial")
         return;
 
     auto spatial = ECS::Instance()->GetComponent<Spatial>(entity->id);
-    if (name == "scale") {
-        if (fVals.size() != 3)
+    if (field.fullyQualifiedName == "Spatial.scale") {
+        if (field.floatValues.size() != 3)
             THROW(Fmt("[entity: %s] - Scale was expecting a vector of 3 floats.", entity->GetName().c_str()));
-        spatial->scale = XrVector3f{fVals[0], fVals[1], fVals[2]};
+        spatial->scale = XrVector3f{field.floatValues[0], field.floatValues[1], field.floatValues[2]};
+
     }
-    else if (name == "position") {
-        if (fVals.size() != 3)
+    else if (field.fullyQualifiedName == "Spatial.position") {
+        if (field.floatValues.size() != 3)
             THROW(Fmt("[entity: %s] - Position was expecting a vector of 3 floats.", entity->GetName().c_str()));
-        spatial->pose.position = XrVector3f{fVals[0], fVals[1], fVals[2]};
+        spatial->pose.position = XrVector3f{field.floatValues[0], field.floatValues[1], field.floatValues[2]};
     }
-    else if (name == "orientation") {
-        if (fVals.size() != 4)
+    else if (field.fullyQualifiedName == "Spatial.orientation") {
+        if (field.floatValues.size() != 4)
             THROW(Fmt("[entity: %s] - Orientation was expecting a vector of 4 floats.", entity->GetName().c_str()));
-        spatial->pose.orientation = XrQuaternionf{fVals[0], fVals[1], fVals[2], fVals[3]};
+        spatial->pose.orientation = XrQuaternionf{field.floatValues[0],
+                                                  field.floatValues[1],
+                                                  field.floatValues[2],
+                                                  field.floatValues[3]};
     }
     else {
-        THROW(Fmt("[entity: %s] - No interface exists for component member %s.",
+        THROW(Fmt("[entity: %s] - No interface exists for %s.",
                   entity->GetName().c_str(),
-                  name.c_str()));
+                  field.fullyQualifiedName.c_str()));
     }
 }
 
-void InitTrackedSpace(Entity *entity, Parser::Field field) {
-    auto [name, sVals, fVals] = Parser::GetTailAccessInfo(field.access);
-
-    // This is the case when we are simply initializing a component with default values
-    if (sVals.empty() && fVals.empty())
-        return;
-
+void InitTrackedSpace(Entity *entity, const Parser::Field& field) {
     auto trackedSpace = ECS::Instance()->GetComponent<TrackedSpace>(entity->id);
-    if (name == "type") {
-        if (sVals.size() != 1)
+    if (field.fullyQualifiedName == "TrackedSpace.type") {
+        if (field.strValues.size() != 1)
             THROW(Fmt("[entity: %s] - Tracked space was expecting 1 string", entity->GetName().c_str()));
-        trackedSpace->type = toTrackedSpaceTypeEnum(sVals[0]);
+        trackedSpace->type = toTrackedSpaceTypeEnum(field.strValues[0]);
     }
     else {
-        THROW(Fmt("[entity: %s] - No interface exists for component member %s.",
+        THROW(Fmt("[entity: %s] - No interface exists for %s.",
                   entity->GetName().c_str(),
-                  name.c_str()));
+                  field.fullyQualifiedName.c_str()));
     }
 }
 
-void InitMesh(Entity *entity, Parser::Field field) {}
-void InitRitual(Entity *entity, Parser::Field field) {}
+void InitMesh(Entity *entity, const Parser::Field& field) {
+    // Allow default init
+    if (field.fullyQualifiedName == "Mesh")
+        return;
+}
+
+void InitRitual(Entity *entity, const Parser::Field& field) {
+    auto ritual = ECS::Instance()->GetComponent<Ritual>(entity->id);
+    if (field.fullyQualifiedName == "Ritual.behavior") {
+        if (field.strValues.size() != 1)
+            THROW(Fmt("[entity: %s] - Ritual.behavior was expecting 1 string", entity->GetName().c_str()));
+        ritual->behavior = game::toRitualBehaviorEnum(field.strValues[0]);
+    }
+    else if (field.fullyQualifiedName == "Ritual.can_update") {
+        if (field.strValues.size() != 1)
+            THROW(Fmt("[entity: %s] - Ritual.can_update was expecting 1 string", entity->GetName().c_str()));
+        std::string strBool = field.strValues[0];
+        if (strBool == "true") {
+            ritual->canUpdate = true;
+        }
+        else if (strBool == "false") {
+            ritual->canUpdate = false;
+        }
+        else {
+            THROW(Fmt("[entity: %s] - Ritual.can_update was expecting true or false", entity->GetName().c_str()));
+        }
+
+    }
+    else {
+        THROW(Fmt("[entity: %s] - No interface exists for %s.",
+                  entity->GetName().c_str(),
+                  field.fullyQualifiedName.c_str()));
+    }
+}
 }

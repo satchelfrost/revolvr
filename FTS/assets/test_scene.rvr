@@ -17,8 +17,8 @@ Mesh {}
 Spatial.scale  {0.01, 0.01, 0.5};
 Spatial.position  {0, 0, -0.25};
 Mesh {}
-Ritual.name {SpinningPointer}
-Ritual.can_update {true}
+Ritual.behavior {SpinningPointer}
+Ritual.can_update {false}
 
 [entity id=4 name=WorldOriginMesh]
 Mesh {}

@@ -4,30 +4,29 @@
 #include "rvr_parser/parser.h"
 #include <ecs/entity/entity_factory.h>
 #include <ecs/component/component_init.h>
+#include <ritual_behaviors_all.h>
 
 #define INIT_COMPONENT_CASE(TYPE, NUM) case ComponentType::TYPE: componentInit::Init ## TYPE(entity, field); break;
+#define INIT_RITUAL_CASE(TYPE, NUM) case game::RitualBehavior::TYPE: ritual->SetImplementation(new TYPE(rId)); break;
 
 namespace rvr {
 void Scene::LoadScene(const std::string &sceneName) {
-    // Parse file
+    Log::Write(Log::Level::Info, Fmt("Loading scene %s", sceneName.c_str()));
     Parser parser(sceneName + ".rvr");
     auto units = parser.Parse();
+    InitUnits(units);
+    CreateHierarchy();
+    AttachRitualBehavior();
+    Log::Write(Log::Level::Info, Fmt("Loaded scene %s", sceneName.c_str()));
+}
 
+void Scene::InitUnits(const std::vector<Parser::Unit> &units) {
     // Init each unit
     for (const auto& unit : units)
         InitUnit(unit);
 
     // Fill any holes potentially created by scene description
     ECS::Instance()->FillHoles();
-
-    // Create hierarchy
-    for (auto [childId, parentId] : parentIdMap_) {
-        auto parent = ECS::Instance()->GetEntity(parentId);
-        auto child = ECS::Instance()->GetEntity(childId);
-        CHECK_MSG(parent, Fmt("Parent id %d was null", parentId));
-        CHECK_MSG(child, Fmt("Child id %d was null", parentId));
-        parent->AddChild(child);
-    }
 }
 
 void Scene::InitUnit(const Parser::Unit& unit) {
@@ -82,13 +81,17 @@ Entity* Scene::CreateEntity(const std::vector<Parser::Field>& fields, const Pars
     return entity;
 }
 
-void Scene::InitComponent(Entity* entity, Parser::Field field) {
+void Scene::InitComponent(Entity* entity, const Parser::Field& field) {
     switch (field.cType) {
         // See implementations in <ecs/component/component_init.cpp>
         COMPONENT_LIST(INIT_COMPONENT_CASE)
     default:
         THROW(Fmt("Component type %s unrecognized", toString(field.cType)))
     }
+
+    // Save ritual ids for attachment later
+    if (field.cType == ComponentType::Ritual)
+        ritualIds_.emplace(entity->id);
 }
 
 void Scene::SaveHierarchyInfo(Entity* entity, const Parser::Heading& heading) {
@@ -102,6 +105,27 @@ void Scene::SaveHierarchyInfo(Entity* entity, const Parser::Heading& heading) {
     catch (std::out_of_range& e) {
         Log::Write(Log::Level::Warning, Fmt("[%s] using root as default parent", entity->GetName().c_str()));
         parentIdMap_[entity->id] = 0;
+    }
+}
+
+void Scene::CreateHierarchy() {
+    for (auto [childId, parentId] : parentIdMap_) {
+        auto parent = ECS::Instance()->GetEntity(parentId);
+        auto child = ECS::Instance()->GetEntity(childId);
+        CHECK_MSG(parent, Fmt("Parent id %d was null", parentId));
+        CHECK_MSG(child, Fmt("Child id %d was null", childId));
+        parent->AddChild(child);
+    }
+}
+
+void Scene::AttachRitualBehavior() {
+    for (auto rId : ritualIds_) {
+        auto ritual = ECS::Instance()->GetComponent<Ritual>(rId);
+        switch (ritual->behavior) {
+            RITUAL_BEHAVIORS(INIT_RITUAL_CASE)
+            default:
+                THROW("Error initializing ritual behavior")
+        }
     }
 }
 }

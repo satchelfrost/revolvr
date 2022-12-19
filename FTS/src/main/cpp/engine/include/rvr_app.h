@@ -58,4 +58,5 @@ private:
     RVRVulkanRenderer* vulkanRenderer_;
     RVRXRContext* xrContext_;
     std::vector<Cube> renderBuffer_;
+    bool shouldCallBegin_;
 };
