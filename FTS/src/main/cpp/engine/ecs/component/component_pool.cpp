@@ -1,9 +1,7 @@
 #include "ecs/component/component_pool.h"
 #include "check.h"
 #include "logger.h"
-#include "ecs/component/all_components.h"
-
-#define ALLOC_CASE_STR(TYPE, NUM) case ComponentType::TYPE: component = new TYPE(); break;
+#include "ecs/component/all_components.h" // TODO: Check if this needs to be here
 
 namespace rvr {
 ComponentPool::ComponentPool(ComponentType cType) : poolType_(cType) {}
@@ -13,15 +11,10 @@ ComponentPool::~ComponentPool() {
         delete component.second;
 }
 
-void ComponentPool::CreateComponent(type::EntityId id) {
-    Component* component = nullptr;
-    switch (poolType_) {
-        COMPONENT_LIST(ALLOC_CASE_STR)
-        default:
-            break;
-    }
-    CHECK_MSG(component,Fmt("Entity %d could not be created, component %s has no implementation",
-                            toString(ComponentType(poolType_))));
+void ComponentPool::AssignComponent(type::EntityId id, Component* component) {
+    if (components_.find(id) != components_.end())
+        THROW(Fmt("Component associated with id %d already exists"))
+
     components_.emplace(id, component);
 }
 

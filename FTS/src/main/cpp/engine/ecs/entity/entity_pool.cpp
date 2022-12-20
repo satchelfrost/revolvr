@@ -12,20 +12,19 @@ EntityPool::~EntityPool() {
         delete entity;
 }
 
-Entity *EntityPool::CreateNewEntity(const std::vector<ComponentType> &cTypes) {
+Entity *EntityPool::CreateNewEntity() {
     // First recycle old entities if possible
     if (!inactiveIds_.empty()) {
         auto index = inactiveIds_.back();
         inactiveIds_.pop_back();
         auto entity = entities_.at(index);
         CHECK_MSG(entity, Fmt("Expected inactive entity at index %d, found nullptr instead.", index))
-        entity->InitMask(cTypes);
         return entity;
     }
-    return CreateNewEntity(nextEntityId_++, cTypes);
+    return CreateNewEntity(nextEntityId_++);
 }
 
-Entity *EntityPool::CreateNewEntity(type::EntityId id, const std::vector<ComponentType> &cTypes) {
+Entity *EntityPool::CreateNewEntity(type::EntityId id) {
     // Max entity check
     if (id >= constants::MAX_ENTITIES)
         THROW(Fmt("[Entity id %d, MAX_ENTITIES %d] - Adjust max entities in ecs_info.h.",
@@ -41,7 +40,7 @@ Entity *EntityPool::CreateNewEntity(type::EntityId id, const std::vector<Compone
         nextEntityId_ = id + 1;
 
     // If no available entities create one
-    auto entity = new Entity(id, cTypes);
+    auto entity = new Entity(id);
     entities_.at(id) = entity;
     return entity;
 }
@@ -70,7 +69,7 @@ void EntityPool::FillHoles() {
     for (type::EntityId id = 0; id < nextEntityId_; id++) {
         if (entities_.at(id) == nullptr) {
             // create entity without any components
-            entities_.at(id) = new Entity(id, {});
+            entities_.at(id) = new Entity(id);
             // push it into the inactive entities list
             inactiveIds_.push_back(id);
         }

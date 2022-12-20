@@ -3,12 +3,22 @@
 #include <ecs/component/all_components.h>
 
 namespace rvr::componentInit {
-void InitSpatial(Entity *entity, const Parser::Field& field) {
+void CreateSpatial(Entity *entity, const Parser::Field& field) {
+    // First check to see if component has already been created so we don't create it twice
+    Spatial* spatial;
+    if (entity->HasComponent(ComponentType::Spatial)) {
+        spatial = ECS::Instance()->GetComponent<Spatial>(entity->id);
+    }
+    else {
+        spatial = new Spatial();
+        ECS::Instance()->Assign(entity->id, spatial);
+    }
+
+
     // Allow default init
     if (field.fullyQualifiedName == "Spatial")
         return;
 
-    auto spatial = ECS::Instance()->GetComponent<Spatial>(entity->id);
     if (field.fullyQualifiedName == "Spatial.scale") {
         if (field.floatValues.size() != 3)
             THROW(Fmt("[entity: %s] - Scale was expecting a vector of 3 floats.", entity->GetName().c_str()));
@@ -35,8 +45,17 @@ void InitSpatial(Entity *entity, const Parser::Field& field) {
     }
 }
 
-void InitTrackedSpace(Entity *entity, const Parser::Field& field) {
-    auto trackedSpace = ECS::Instance()->GetComponent<TrackedSpace>(entity->id);
+void CreateTrackedSpace(Entity *entity, const Parser::Field& field) {
+    // First check to see if component has already been created so we don't create it twice
+    TrackedSpace* trackedSpace;
+    if (entity->HasComponent(ComponentType::TrackedSpace)) {
+        trackedSpace = ECS::Instance()->GetComponent<TrackedSpace>(entity->id);
+    }
+    else {
+        trackedSpace = new TrackedSpace();
+        ECS::Instance()->Assign(entity->id, trackedSpace);
+    }
+
     if (field.fullyQualifiedName == "TrackedSpace.type") {
         if (field.strValues.size() != 1)
             THROW(Fmt("[entity: %s] - Tracked space was expecting 1 string", entity->GetName().c_str()));
@@ -49,14 +68,31 @@ void InitTrackedSpace(Entity *entity, const Parser::Field& field) {
     }
 }
 
-void InitMesh(Entity *entity, const Parser::Field& field) {
+void CreateMesh(Entity *entity, const Parser::Field& field) {
+    // First check to see if component has already been created so we don't create it twice
+    if (entity->HasComponent(ComponentType::Mesh)) {
+        return;
+    }
+    else {
+        ECS::Instance()->Assign(entity->id, new Mesh());
+    }
+
     // Allow default init
     if (field.fullyQualifiedName == "Mesh")
         return;
 }
 
-void InitRitual(Entity *entity, const Parser::Field& field) {
-    auto ritual = ECS::Instance()->GetComponent<Ritual>(entity->id);
+void CreateRitual(Entity *entity, const Parser::Field& field) {
+    // First check to see if component has already been created so we don't create it twice
+    Ritual* ritual;
+    if (entity->HasComponent(ComponentType::Ritual)) {
+        ritual = ECS::Instance()->GetComponent<Ritual>(entity->id);
+    }
+    else {
+        ritual = new Ritual();
+        ECS::Instance()->Assign(entity->id, ritual);
+    }
+
     if (field.fullyQualifiedName == "Ritual.behavior") {
         if (field.strValues.size() != 1)
             THROW(Fmt("[entity: %s] - Ritual.behavior was expecting 1 string", entity->GetName().c_str()));

@@ -7,9 +7,10 @@ namespace rvr {
 class Entity {
 public:
     // General Info methods
-    Entity(int entityId, const std::vector<ComponentType>& cTypes);
+    Entity(int entityId);
     std::vector<ComponentType> GetComponentTypes();
     void InitMask(const std::vector<ComponentType>& cTypes);
+    void SetMask(int bit);
     void ResetMask();
     bool HasComponent(ComponentType cType);
     bool Active();

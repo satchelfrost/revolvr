@@ -6,7 +6,7 @@
 #include <ecs/component/component_init.h>
 #include <ritual_behaviors_all.h>
 
-#define INIT_COMPONENT_CASE(TYPE, NUM) case ComponentType::TYPE: componentInit::Init ## TYPE(entity, field); break;
+#define CREATE_COMPONENT_CASE(TYPE, NUM) case ComponentType::TYPE: componentInit::Create ## TYPE(entity, field); break;
 #define INIT_RITUAL_CASE(TYPE, NUM) case game::RitualBehavior::TYPE: ritual->SetImplementation(new TYPE(rId)); break;
 
 namespace rvr {
@@ -47,7 +47,7 @@ void Scene::InitEntity(const Parser::Unit& unit) {
 
     // Initialize the entity's components with data based on fields
     for (const auto& field : unit.fields)
-        InitComponent(entity, field);
+        CreateComponent(entity, field);
 
     // Store parent hierarchy information for later
     SaveHierarchyInfo(entity, unit.heading);
@@ -64,7 +64,7 @@ Entity* Scene::CreateEntity(const std::vector<Parser::Field>& fields, const Pars
     Entity* entity;
     try {
         type::EntityId id = heading.strKeyNumVal.at("id");
-        entity = EntityFactory::CreateEntity(id, cTypes);
+        entity = EntityFactory::CreateEntity(id);
     }
     catch (std::out_of_range& e) {
         THROW("Entity did not contain id");
@@ -81,10 +81,10 @@ Entity* Scene::CreateEntity(const std::vector<Parser::Field>& fields, const Pars
     return entity;
 }
 
-void Scene::InitComponent(Entity* entity, const Parser::Field& field) {
+void Scene::CreateComponent(Entity* entity, const Parser::Field& field) {
     switch (field.cType) {
         // See implementations in <ecs/component/component_init.cpp>
-        COMPONENT_LIST(INIT_COMPONENT_CASE)
+        COMPONENT_LIST(CREATE_COMPONENT_CASE)
     default:
         THROW(Fmt("Component type %s unrecognized", toString(field.cType)))
     }

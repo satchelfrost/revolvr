@@ -19,16 +19,16 @@ ComponentPool *ECS::GetPool(ComponentType cType) {
     return componentPoolManager_->GetPool(cType);
 }
 
-Entity *ECS::CreateNewEntity(const std::vector<ComponentType>& cTypes) {
-    return entityPool_->CreateNewEntity(cTypes);
+Entity *ECS::CreateNewEntity(type::EntityId id) {
+    return entityPool_->CreateNewEntity(id);
 }
 
-Entity *ECS::CreateNewEntity(type::EntityId id, const std::vector<ComponentType>& cTypes) {
-    return entityPool_->CreateNewEntity(id, cTypes);
+Entity *ECS::CreateNewEntity() {
+    return entityPool_->CreateNewEntity();
 }
 
-void ECS::Assign(type::EntityId id, ComponentType cType) {
-    componentPoolManager_->Assign(id, cType);
+void ECS::Assign(type::EntityId id, Component* component) {
+    componentPoolManager_->Assign(id, component);
 }
 
 void ECS::FreeEntity(type::EntityId id) {

@@ -10,7 +10,7 @@ public:
     ~ComponentPool();
     Component* GetComponent(type::EntityId id);
     void FreeComponent(type::EntityId id);
-    void CreateComponent(type::EntityId id);
+    void AssignComponent(type::EntityId id, Component* component);
     std::vector<type::EntityId> GetEids();
 private:
     std::unordered_map<type::EntityId, Component*> components_;
