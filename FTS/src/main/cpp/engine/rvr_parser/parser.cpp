@@ -67,10 +67,12 @@ void Parser::ParseHeadingKeyValuePairs(Heading& heading) {
   ParseErrorPrevToken("Header key \"" + key + "\" unrecognized");
 }
 
-std::vector<Parser::Field> Parser::ParseFields() {
-  std::vector<Field> fields;
-  while (Peek() != Token::BrackLeft && !tokens_.empty())
-      fields.push_back(ParseField());
+std::map<ComponentType, std::map<std::string, Parser::Field>> Parser::ParseFields() {
+  std::map<ComponentType, std::map<std::string, Field>> fields;
+  while (Peek() != Token::BrackLeft && !tokens_.empty()) {
+    auto field = ParseField();
+    fields[field.cType].emplace(field.fullyQualifiedName, field);
+  }
   return fields;
 }
 

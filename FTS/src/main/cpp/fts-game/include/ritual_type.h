@@ -6,7 +6,7 @@
 #define RITUALS(X) \
     X(SpinningPointer, LAST_RITUAL) \
 
-#define NUM_BEHAVIORS LAST_RITUAL + 1
+#define NUM_RITUALS LAST_RITUAL + 1
 #define BUILD_ENUM(ENUM, NUM) ENUM = NUM,
 
 namespace game {

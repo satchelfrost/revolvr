@@ -13,7 +13,7 @@ const char *toString(RitualType rType) {
 }
 
 RitualType toRitualTypeEnum(const std::string& str) {
-    for (int i = 0; i < NUM_BEHAVIORS; i++) {
+    for (int i = 0; i < NUM_RITUALS; i++) {
         std::string enumStr = toString((RitualType)i);
         if (enumStr == str)
             return (RitualType)i;

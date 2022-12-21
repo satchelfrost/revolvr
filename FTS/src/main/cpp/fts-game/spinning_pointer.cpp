@@ -1,7 +1,7 @@
 #include "spinning_pointer.h"
 #include <ecs/ecs.h>
 
-SpinningPointer::SpinningPointer(rvr::type::EntityId id) : RitualBehavior(id) {
+SpinningPointer::SpinningPointer(rvr::type::EntityId id) : Ritual(id) {
     spatial_ = rvr::ECS::Instance()->GetComponent<rvr::Spatial>(id);
     spatial_->scale = {0.01, 0.01, 0.5};
     turnAmt_ = 0;

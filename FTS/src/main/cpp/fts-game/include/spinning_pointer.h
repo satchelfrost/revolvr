@@ -5,8 +5,7 @@
 #include <ecs/component/types/spatial.h>
 #include <ecs/component/types/ritual.h>
 
-
-class SpinningPointer : public rvr::RitualBehavior {
+class SpinningPointer : public rvr::Ritual {
 public:
     SpinningPointer(rvr::type::EntityId id);
     virtual void Begin() override;

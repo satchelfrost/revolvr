@@ -1,9 +1,12 @@
 #include <ecs/ecs.h>
 #include <ecs/component/component_factory.h>
 #include <ecs/component/all_components.h>
+#include <all_ritual_types.h>
+
+#define RITUAL_CASE(TYPE, NUM) case game::RitualType::TYPE: ritual = new TYPE(entity->id); break;
 
 namespace rvr::componentFactory {
-void CreateSpatial(Entity *entity, const Parser::Field& field) {
+void CreateSpatial(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
     // First check to see if component has already been created so we don't create it twice
     Spatial* spatial;
     if (entity->HasComponent(ComponentType::Spatial)) {
@@ -14,37 +17,40 @@ void CreateSpatial(Entity *entity, const Parser::Field& field) {
         ECS::Instance()->Assign(entity, spatial);
     }
 
-    // Allow default init
-    if (field.fullyQualifiedName == "Spatial")
-        return;
-
-    if (field.fullyQualifiedName == "Spatial.scale") {
-        if (field.floatValues.size() != 3)
-            THROW(Fmt("[entity: %s] - Scale was expecting a vector of 3 floats.", entity->GetName().c_str()));
-        spatial->scale = XrVector3f{field.floatValues[0], field.floatValues[1], field.floatValues[2]};
-
-    }
-    else if (field.fullyQualifiedName == "Spatial.position") {
-        if (field.floatValues.size() != 3)
-            THROW(Fmt("[entity: %s] - Position was expecting a vector of 3 floats.", entity->GetName().c_str()));
-        spatial->pose.position = XrVector3f{field.floatValues[0], field.floatValues[1], field.floatValues[2]};
-    }
-    else if (field.fullyQualifiedName == "Spatial.orientation") {
-        if (field.floatValues.size() != 4)
-            THROW(Fmt("[entity: %s] - Orientation was expecting a vector of 4 floats.", entity->GetName().c_str()));
-        spatial->pose.orientation = XrQuaternionf{field.floatValues[0],
-                                                  field.floatValues[1],
-                                                  field.floatValues[2],
-                                                  field.floatValues[3]};
-    }
-    else {
-        THROW(Fmt("[entity: %s] - No interface exists for %s.",
-                  entity->GetName().c_str(),
-                  field.fullyQualifiedName.c_str()));
+    for (const auto& [name, field] : fields) {
+        if (name == "Spatial") {
+            continue;
+        }
+        else if (name == "Spatial.scale") {
+            auto fVals = field.floatValues;
+            if (fVals.size() != 3)
+                THROW(Fmt("[entity: %s] - Scale was expecting a vector of 3 floats.",
+                                entity->GetName().c_str()));
+            spatial->scale = XrVector3f{fVals[0], fVals[1], fVals[2]};
+        }
+        else if (name == "Spatial.position") {
+            auto fVals = field.floatValues;
+            if (fVals.size() != 3)
+                THROW(Fmt("[entity: %s] - Position was expecting a vector of 3 floats.",
+                                entity->GetName().c_str()));
+            spatial->pose.position = XrVector3f{fVals[0], fVals[1], fVals[2]};
+        }
+        else if (name == "Spatial.orientation") {
+            auto fVals = field.floatValues;
+            if (fVals.size() != 4)
+                THROW(Fmt("[entity: %s] - Orientation was expecting a vector of 4 floats.",
+                                entity->GetName().c_str()));
+            spatial->pose.orientation = XrQuaternionf{fVals[0],fVals[1],fVals[2],fVals[3]};
+        }
+        else {
+            THROW(Fmt("[entity: %s] - No interface exists for %s.",
+                            entity->GetName().c_str(),
+                            name.c_str()));
+        }
     }
 }
 
-void CreateTrackedSpace(Entity *entity, const Parser::Field& field) {
+void CreateTrackedSpace(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
     // First check to see if component has already been created so we don't create it twice
     TrackedSpace* trackedSpace;
     if (entity->HasComponent(ComponentType::TrackedSpace)) {
@@ -55,67 +61,77 @@ void CreateTrackedSpace(Entity *entity, const Parser::Field& field) {
         ECS::Instance()->Assign(entity, trackedSpace);
     }
 
-    if (field.fullyQualifiedName == "TrackedSpace.type") {
-        if (field.strValues.size() != 1)
-            THROW(Fmt("[entity: %s] - Tracked space was expecting 1 string", entity->GetName().c_str()));
-        trackedSpace->type = toTrackedSpaceTypeEnum(field.strValues[0]);
-    }
-    else {
-        THROW(Fmt("[entity: %s] - No interface exists for %s.",
-                  entity->GetName().c_str(),
-                  field.fullyQualifiedName.c_str()));
+    for (const auto& [name, field] : fields) {
+        if (name == "TrackedSpace.type") {
+            if (field.strValues.size() != 1)
+                THROW(Fmt("[entity: %s] - Tracked space was expecting 1 string",
+                                entity->GetName().c_str()));
+            trackedSpace->type = toTrackedSpaceTypeEnum(field.strValues[0]);
+        }
+        else {
+            THROW(Fmt("[entity: %s] - No interface exists for %s.",
+                      entity->GetName().c_str(),
+                      field.fullyQualifiedName.c_str()));
+        }
     }
 }
 
-void CreateMesh(Entity *entity, const Parser::Field& field) {
+void CreateMesh(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
     // First check to see if component has already been created so we don't create it twice
-    if (entity->HasComponent(ComponentType::Mesh)) {
+    if (entity->HasComponent(ComponentType::Mesh))
         return;
-    }
-    else {
+    else
         ECS::Instance()->Assign(entity, new Mesh());
-    }
-
-    // Allow default init
-    if (field.fullyQualifiedName == "Mesh")
-        return;
 }
 
-void CreateRitual(Entity *entity, const Parser::Field& field) {
+void CreateRitual(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
     // First check to see if component has already been created so we don't create it twice
     Ritual* ritual;
     if (entity->HasComponent(ComponentType::Ritual)) {
         ritual = ECS::Instance()->GetComponent<Ritual>(entity->id);
     }
     else {
-        ritual = new Ritual();
+        if (fields.find("Ritual.type") == fields.end())
+            THROW(Fmt("[entity: %s] - Ritual.type unspecified, cannot construct ritual",
+                      entity->GetName().c_str()));
+        auto strVals = fields.at("Ritual.type").strValues;
+        if (strVals.size() != 1)
+            THROW(Fmt("[entity: %s] - Ritual.can_update was expecting 1 string",
+                      entity->GetName().c_str()));
+        game::RitualType rType = game::toRitualTypeEnum(strVals[0]);
+        switch (rType) {
+            RITUALS(RITUAL_CASE)
+            default:
+                THROW(Fmt("[entity: %s] - Ritual.type unspecified, cannot construct ritual",
+                        entity->GetName().c_str()));
+        }
         ECS::Instance()->Assign(entity, ritual);
     }
 
-    if (field.fullyQualifiedName == "Ritual.behavior") {
-        if (field.strValues.size() != 1)
-            THROW(Fmt("[entity: %s] - Ritual.behavior was expecting 1 string", entity->GetName().c_str()));
-        ritual->behavior = game::toRitualBehaviorEnum(field.strValues[0]);
-    }
-    else if (field.fullyQualifiedName == "Ritual.can_update") {
-        if (field.strValues.size() != 1)
-            THROW(Fmt("[entity: %s] - Ritual.can_update was expecting 1 string", entity->GetName().c_str()));
-        std::string strBool = field.strValues[0];
-        if (strBool == "true") {
-            ritual->canUpdate = true;
+    for (const auto& [name, field] : fields) {
+        if (name == "Ritual.type") {
+            continue;
         }
-        else if (strBool == "false") {
-            ritual->canUpdate = false;
+        else if (name == "Ritual.can_update") {
+            auto strVals = field.strValues;
+            if (strVals.size() != 1)
+                THROW(Fmt("[entity: %s] - Ritual.can_update was expecting 1 string",
+                          entity->GetName().c_str()));
+            std::string strBool = strVals[0];
+            if (strBool == "true") {
+                ritual->canUpdate = true;
+            } else if (strBool == "false") {
+                ritual->canUpdate = false;
+            } else {
+                THROW(Fmt("[entity: %s] - Ritual.can_update was expecting true or false",
+                          entity->GetName().c_str()));
+            }
         }
         else {
-            THROW(Fmt("[entity: %s] - Ritual.can_update was expecting true or false", entity->GetName().c_str()));
+            THROW(Fmt("[entity: %s] - No interface exists for %s.",
+                      entity->GetName().c_str(),
+                      field.fullyQualifiedName.c_str()));
         }
-
-    }
-    else {
-        THROW(Fmt("[entity: %s] - No interface exists for %s.",
-                  entity->GetName().c_str(),
-                  field.fullyQualifiedName.c_str()));
     }
 }
 }
