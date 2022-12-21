@@ -8,6 +8,6 @@
 
 // We are merely initializing the components, not creating them.
 // Component creation is done implicity by creating an entity.
-namespace rvr::componentInit {
+namespace rvr::createComponent {
 COMPONENT_LIST(CREATE_COMPONENT)
 }

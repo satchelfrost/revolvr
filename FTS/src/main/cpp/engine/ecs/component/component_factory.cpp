@@ -2,7 +2,7 @@
 #include <ecs/component/component_init.h>
 #include <ecs/component/all_components.h>
 
-namespace rvr::componentInit {
+namespace rvr::createComponent {
 void CreateSpatial(Entity *entity, const Parser::Field& field) {
     // First check to see if component has already been created so we don't create it twice
     Spatial* spatial;
@@ -11,9 +11,8 @@ void CreateSpatial(Entity *entity, const Parser::Field& field) {
     }
     else {
         spatial = new Spatial();
-        ECS::Instance()->Assign(entity->id, spatial);
+        ECS::Instance()->Assign(entity, spatial);
     }
-
 
     // Allow default init
     if (field.fullyQualifiedName == "Spatial")
@@ -53,7 +52,7 @@ void CreateTrackedSpace(Entity *entity, const Parser::Field& field) {
     }
     else {
         trackedSpace = new TrackedSpace();
-        ECS::Instance()->Assign(entity->id, trackedSpace);
+        ECS::Instance()->Assign(entity, trackedSpace);
     }
 
     if (field.fullyQualifiedName == "TrackedSpace.type") {
@@ -74,7 +73,7 @@ void CreateMesh(Entity *entity, const Parser::Field& field) {
         return;
     }
     else {
-        ECS::Instance()->Assign(entity->id, new Mesh());
+        ECS::Instance()->Assign(entity, new Mesh());
     }
 
     // Allow default init
@@ -90,7 +89,7 @@ void CreateRitual(Entity *entity, const Parser::Field& field) {
     }
     else {
         ritual = new Ritual();
-        ECS::Instance()->Assign(entity->id, ritual);
+        ECS::Instance()->Assign(entity, ritual);
     }
 
     if (field.fullyQualifiedName == "Ritual.behavior") {
