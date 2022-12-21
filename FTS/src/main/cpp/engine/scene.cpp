@@ -3,10 +3,10 @@
 #include "ecs/ecs.h"
 #include "rvr_parser/parser.h"
 #include <ecs/entity/entity_factory.h>
-#include <ecs/component/component_init.h>
+#include <ecs/component/component_factory.h>
 #include <ritual_behaviors_all.h>
 
-#define CREATE_COMPONENT_CASE(TYPE, NUM) case ComponentType::TYPE: componentInit::Create ## TYPE(entity, field); break;
+#define CREATE_COMPONENT_CASE(TYPE, NUM) case ComponentType::TYPE: componentFactory::Create ## TYPE(entity, field); break;
 #define INIT_RITUAL_CASE(TYPE, NUM) case game::RitualBehavior::TYPE: ritual->SetImplementation(new TYPE(rId)); break;
 
 namespace rvr {
@@ -54,12 +54,6 @@ void Scene::InitEntity(const Parser::Unit& unit) {
 }
 
 Entity* Scene::CreateEntity(const std::vector<Parser::Field>& fields, const Parser::Heading& heading) {
-    // First collect the component types from the unit
-    std::vector<ComponentType> cTypes;
-    cTypes.reserve(fields.size());
-    for (const auto& field : fields)
-        cTypes.push_back(field.cType);
-
     // Use the component types to construct a new entity
     Entity* entity;
     try {

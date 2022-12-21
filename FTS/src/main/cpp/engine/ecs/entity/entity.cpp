@@ -13,11 +13,6 @@ std::vector<ComponentType> Entity::GetComponentTypes() {
     return componentTypes;
 }
 
-void Entity::InitMask(const std::vector<ComponentType> &cTypes) {
-    for (auto cType : cTypes)
-        mask_.set((int)cType);
-}
-
 void Entity::ResetMask() {
     mask_.reset();
 }
@@ -89,7 +84,7 @@ void Entity::FreeComponents() {
         ECS::Instance()->GetPool(componentType)->FreeComponent(id);
 }
 
-void Entity::SetMask(int bit) {
-    mask_.set(bit);
+void Entity::AddComponent(ComponentType cType) {
+    mask_.set((int)cType);
 }
 }

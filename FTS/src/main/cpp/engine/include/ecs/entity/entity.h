@@ -9,8 +9,7 @@ public:
     // General Info methods
     Entity(int entityId);
     std::vector<ComponentType> GetComponentTypes();
-    void InitMask(const std::vector<ComponentType>& cTypes);
-    void SetMask(int bit);
+    void AddComponent(ComponentType cType);
     void ResetMask();
     bool HasComponent(ComponentType cType);
     bool Active();

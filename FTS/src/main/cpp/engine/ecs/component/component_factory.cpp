@@ -1,8 +1,8 @@
 #include <ecs/ecs.h>
-#include <ecs/component/component_init.h>
+#include <ecs/component/component_factory.h>
 #include <ecs/component/all_components.h>
 
-namespace rvr::createComponent {
+namespace rvr::componentFactory {
 void CreateSpatial(Entity *entity, const Parser::Field& field) {
     // First check to see if component has already been created so we don't create it twice
     Spatial* spatial;

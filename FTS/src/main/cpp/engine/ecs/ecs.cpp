@@ -27,8 +27,8 @@ Entity *ECS::CreateNewEntity() {
     return entityPool_->CreateNewEntity();
 }
 
-void ECS::Assign(type::EntityId id, Component* component) {
-    componentPoolManager_->Assign(id, component);
+void ECS::Assign(Entity* entity, Component* component) {
+    componentPoolManager_->Assign(entity, component);
 }
 
 void ECS::FreeEntity(type::EntityId id) {

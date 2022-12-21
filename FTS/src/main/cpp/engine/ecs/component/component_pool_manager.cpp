@@ -14,12 +14,12 @@ ComponentPoolManager::~ComponentPoolManager() {
         delete pool;
 }
 
-void ComponentPoolManager::Assign(type::EntityId id, Component* component) {
+void ComponentPoolManager::Assign(Entity* entity, Component* component) {
     // Get component pool
     auto componentPool = GetPool(component->type);
 
     // Add the component to the pool
-    componentPool->AssignComponent(id, component);
+    componentPool->AssignComponent(entity, component);
 }
 
 ComponentPool* ComponentPoolManager::GetPool(ComponentType cType) {

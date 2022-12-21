@@ -1,3 +1,4 @@
+#include <include/ecs/entity/entity.h>
 #include "ecs/component/component_pool.h"
 #include "check.h"
 #include "logger.h"
@@ -11,11 +12,11 @@ ComponentPool::~ComponentPool() {
         delete component.second;
 }
 
-void ComponentPool::AssignComponent(type::EntityId id, Component* component) {
-    if (components_.find(id) != components_.end())
+void ComponentPool::AssignComponent(Entity* entity, Component* component) {
+    if (components_.find(entity->id) != components_.end())
         THROW(Fmt("Component associated with id %d already exists"))
-
-    components_.emplace(id, component);
+    entity->AddComponent(component->type);
+    components_.emplace(entity->id, component);
 }
 
 Component *ComponentPool::GetComponent(type::EntityId id) {
