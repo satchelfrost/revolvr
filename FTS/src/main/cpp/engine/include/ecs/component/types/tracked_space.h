@@ -23,8 +23,8 @@ enum class TrackedSpaceType {
 
 class TrackedSpace : public Component {
 public:
-    TrackedSpace();
-    TrackedSpaceType type;
+    TrackedSpace(type::EntityId pId, TrackedSpaceType trackedSpaceType);
+    const TrackedSpaceType type;
 };
 
 const char *toString(TrackedSpaceType cType);

@@ -81,7 +81,7 @@ Entity* Scene::CreateEntity(const Parser::Heading& heading) {
 void Scene::CreateComponent(Entity* entity, const std::map<std::string, Parser::Field>& fields,
                             ComponentType cType) {
     switch (cType) {
-        // See implementations in <ecs/component/component_init.cpp>
+        // See implementations in <ecs/component/component_factory.cpp>
         COMPONENT_LIST(CREATE_COMPONENT_CASE)
     default:
         THROW(Fmt("Component type %s unrecognized", toString(cType)))

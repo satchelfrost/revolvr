@@ -2,5 +2,5 @@
 #include "ecs/component/types/ritual.h"
 
 namespace rvr {
-Ritual::Ritual(type::EntityId pId): Component(ComponentType::Ritual), id(pId) {}
+Ritual::Ritual(type::EntityId pId): Component(ComponentType::Ritual, pId), canUpdate(false){}
 }

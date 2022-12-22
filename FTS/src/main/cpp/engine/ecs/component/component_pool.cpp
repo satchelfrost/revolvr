@@ -1,8 +1,6 @@
 #include <include/ecs/entity/entity.h>
-#include "ecs/component/component_pool.h"
-#include "check.h"
-#include "logger.h"
-#include "ecs/component/all_components.h" // TODO: Check if this needs to be here
+#include <ecs/component/component_pool.h>
+#include <common.h>
 
 namespace rvr {
 ComponentPool::ComponentPool(ComponentType cType) : poolType_(cType) {}

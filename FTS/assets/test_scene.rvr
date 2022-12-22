@@ -13,6 +13,11 @@ TrackedSpace.type {RightHand}
 Spatial.scale {0.1, 0.1, 0.1}
 Mesh {}
 
+[entity id=15 name=RightHandCollider parent=2]
+Spatial {}
+Collider.type {Sphere}
+Collider.radius {0.05}
+
 [entity id=3 name=Pointer parent=2]
 Spatial.scale  {0.01, 0.01, 0.5};
 Spatial.position  {0, 0, -0.25};

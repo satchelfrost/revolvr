@@ -12,6 +12,5 @@ public:
     virtual void Begin() = 0;
     virtual void Update(float delta) = 0;
     bool canUpdate;
-    const type::EntityId id;
 };
 }

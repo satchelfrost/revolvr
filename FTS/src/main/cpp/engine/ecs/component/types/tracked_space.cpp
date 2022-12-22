@@ -21,6 +21,6 @@ TrackedSpaceType toTrackedSpaceTypeEnum(const std::string& str) {
     THROW(Fmt("No tracked space found for %s", str.c_str()))
 }
 
-TrackedSpace::TrackedSpace() :
-Component(ComponentType::TrackedSpace), type(TrackedSpaceType::Nil) {}
+TrackedSpace::TrackedSpace(type::EntityId pId, TrackedSpaceType trackedSpaceType) :
+Component(ComponentType::TrackedSpace, pId), type(trackedSpaceType) {}
 }

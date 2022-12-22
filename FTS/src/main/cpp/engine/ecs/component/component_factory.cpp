@@ -2,136 +2,183 @@
 #include <ecs/component/component_factory.h>
 #include <ecs/component/all_components.h>
 #include <all_ritual_types.h>
+#include <include/ecs/component/types/colliders/sphere_collider.h>
 
 #define RITUAL_CASE(TYPE, NUM) case game::RitualType::TYPE: ritual = new TYPE(entity->id); break;
 
 namespace rvr::componentFactory {
 void CreateSpatial(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
-    // First check to see if component has already been created so we don't create it twice
-    Spatial* spatial;
-    if (entity->HasComponent(ComponentType::Spatial)) {
-        spatial = ECS::Instance()->GetComponent<Spatial>(entity->id);
-    }
-    else {
-        spatial = new Spatial();
-        ECS::Instance()->Assign(entity, spatial);
+    // Scale
+    XrVector3f scale{};
+    auto scaleField = fields.find("Spatial.scale");
+    if (scaleField != fields.end()) {
+        try {
+            float x = scaleField->second.floatValues.at(0);
+            float y = scaleField->second.floatValues.at(1);
+            float z = scaleField->second.floatValues.at(2);
+            scale = {x, y, z};
+        }
+        catch (std::out_of_range& e) {
+            ENTITY_ERR("Out of range, Spatial.scale was expecting 3 floats.",
+                      entity->GetName());
+        }
     }
 
-    for (const auto& [name, field] : fields) {
-        if (name == "Spatial") {
-            continue;
+    // Position
+    XrVector3f position{};
+    auto posField = fields.find("Spatial.position");
+    if (posField != fields.end()) {
+        try {
+            float x = posField->second.floatValues.at(0);
+            float y = posField->second.floatValues.at(1);
+            float z = posField->second.floatValues.at(2);
+            position = {x, y, z};
         }
-        else if (name == "Spatial.scale") {
-            auto fVals = field.floatValues;
-            if (fVals.size() != 3)
-                THROW(Fmt("[entity: %s] - Scale was expecting a vector of 3 floats.",
-                                entity->GetName().c_str()));
-            spatial->scale = XrVector3f{fVals[0], fVals[1], fVals[2]};
-        }
-        else if (name == "Spatial.position") {
-            auto fVals = field.floatValues;
-            if (fVals.size() != 3)
-                THROW(Fmt("[entity: %s] - Position was expecting a vector of 3 floats.",
-                                entity->GetName().c_str()));
-            spatial->pose.position = XrVector3f{fVals[0], fVals[1], fVals[2]};
-        }
-        else if (name == "Spatial.orientation") {
-            auto fVals = field.floatValues;
-            if (fVals.size() != 4)
-                THROW(Fmt("[entity: %s] - Orientation was expecting a vector of 4 floats.",
-                                entity->GetName().c_str()));
-            spatial->pose.orientation = XrQuaternionf{fVals[0],fVals[1],fVals[2],fVals[3]};
-        }
-        else {
-            THROW(Fmt("[entity: %s] - No interface exists for %s.",
-                            entity->GetName().c_str(),
-                            name.c_str()));
+        catch (std::out_of_range& e) {
+            ENTITY_ERR("Out of range, Spatial.position was expecting 3 floats.",
+                      entity->GetName());
         }
     }
+
+    // Orientation
+    XrQuaternionf orientation{0, 0, 0, 1};
+    auto oriField = fields.find("Spatial.orientation");
+    if (oriField != fields.end()) {
+        try {
+            float x = oriField->second.floatValues.at(0);
+            float y = oriField->second.floatValues.at(1);
+            float z = oriField->second.floatValues.at(2);
+            float w = oriField->second.floatValues.at(3);
+            orientation = {x, y, z, w};
+        }
+        catch (std::out_of_range& e) {
+            ENTITY_ERR("Out of range, Spatial.quaternion was expecting 3 floats.",
+                      entity->GetName());
+        }
+    }
+
+    // Create and assign spatial
+    auto spatial = new Spatial(entity->id);
+    ECS::Instance()->Assign(entity, spatial);
+    spatial->pose.position = position;
+    spatial->pose.orientation = orientation;
+    spatial->scale = scale;
 }
 
 void CreateTrackedSpace(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
-    // First check to see if component has already been created so we don't create it twice
-    TrackedSpace* trackedSpace;
-    if (entity->HasComponent(ComponentType::TrackedSpace)) {
-        trackedSpace = ECS::Instance()->GetComponent<TrackedSpace>(entity->id);
+    // TrackedSpaceType - Required
+    auto tsTypeField = fields.find("TrackedSpace.type");
+    if (tsTypeField != fields.end()) {
+        try {
+            std::string trackedSpaceStr = tsTypeField->second.strValues.at(0);
+            TrackedSpaceType trackedSpaceType = toTrackedSpaceTypeEnum(trackedSpaceStr);
+            ECS::Instance()->Assign(entity, new TrackedSpace(entity->id, trackedSpaceType));
+        }
+        catch (std::out_of_range& e) {
+            ENTITY_ERR("Out of bounds, TrackedSpace.type was expecting 1 string",
+                      entity->GetName());
+        }
     }
     else {
-        trackedSpace = new TrackedSpace();
-        ECS::Instance()->Assign(entity, trackedSpace);
-    }
-
-    for (const auto& [name, field] : fields) {
-        if (name == "TrackedSpace.type") {
-            if (field.strValues.size() != 1)
-                THROW(Fmt("[entity: %s] - Tracked space was expecting 1 string",
-                                entity->GetName().c_str()));
-            trackedSpace->type = toTrackedSpaceTypeEnum(field.strValues[0]);
-        }
-        else {
-            THROW(Fmt("[entity: %s] - No interface exists for %s.",
-                      entity->GetName().c_str(),
-                      field.fullyQualifiedName.c_str()));
-        }
+        ENTITY_ERR("TrackedSpace.type unspecified, cannot construct tracked space",
+                  entity->GetName());
     }
 }
 
 void CreateMesh(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
-    // First check to see if component has already been created so we don't create it twice
-    if (entity->HasComponent(ComponentType::Mesh))
-        return;
-    else
-        ECS::Instance()->Assign(entity, new Mesh());
+    ECS::Instance()->Assign(entity, new Mesh(entity->id));
 }
 
 void CreateRitual(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
-    // First check to see if component has already been created so we don't create it twice
-    Ritual* ritual;
-    if (entity->HasComponent(ComponentType::Ritual)) {
-        ritual = ECS::Instance()->GetComponent<Ritual>(entity->id);
+    // RitualType - Required
+    game::RitualType rType;
+    auto ritualTypeField = fields.find("Ritual.type");
+    if (ritualTypeField != fields.end()) {
+        try {
+            std::string ritualStr = ritualTypeField->second.strValues.at(0);
+            rType = game::toRitualTypeEnum(ritualStr);
+        }
+        catch (std::out_of_range& e) {
+            ENTITY_ERR("Out of bounds, Ritual.type was expecting 1 string",
+                    entity->GetName());
+
+        }
     }
     else {
-        if (fields.find("Ritual.type") == fields.end())
-            THROW(Fmt("[entity: %s] - Ritual.type unspecified, cannot construct ritual",
-                      entity->GetName().c_str()));
-        auto strVals = fields.at("Ritual.type").strValues;
-        if (strVals.size() != 1)
-            THROW(Fmt("[entity: %s] - Ritual.can_update was expecting 1 string",
-                      entity->GetName().c_str()));
-        game::RitualType rType = game::toRitualTypeEnum(strVals[0]);
-        switch (rType) {
-            RITUALS(RITUAL_CASE)
-            default:
-                THROW(Fmt("[entity: %s] - Ritual.type unspecified, cannot construct ritual",
-                        entity->GetName().c_str()));
-        }
-        ECS::Instance()->Assign(entity, ritual);
+        ENTITY_ERR("Ritual.type unspecified, cannot construct ritual",
+                entity->GetName());
     }
 
-    for (const auto& [name, field] : fields) {
-        if (name == "Ritual.type") {
-            continue;
+    // Can update
+    bool canUpdate = false;
+    auto canUpdateField = fields.find("Ritual.can_update");
+    if (canUpdateField != fields.end()) {
+        try {
+            std::string strBool = canUpdateField->second.strValues.at(0);
+            canUpdate = (strBool == "true") ? true : false;
         }
-        else if (name == "Ritual.can_update") {
-            auto strVals = field.strValues;
-            if (strVals.size() != 1)
-                THROW(Fmt("[entity: %s] - Ritual.can_update was expecting 1 string",
-                          entity->GetName().c_str()));
-            std::string strBool = strVals[0];
-            if (strBool == "true") {
-                ritual->canUpdate = true;
-            } else if (strBool == "false") {
-                ritual->canUpdate = false;
-            } else {
-                THROW(Fmt("[entity: %s] - Ritual.can_update was expecting true or false",
-                          entity->GetName().c_str()));
-            }
+        catch (std::out_of_range& e ) {
+            ENTITY_ERR("Out of bounds, Collider.can_update not found",
+                    entity->GetName());
         }
-        else {
-            THROW(Fmt("[entity: %s] - No interface exists for %s.",
-                      entity->GetName().c_str(),
-                      field.fullyQualifiedName.c_str()));
+    }
+
+    // Construct and assign ritual
+    Ritual* ritual;
+    switch (rType) {
+        RITUALS(RITUAL_CASE)
+        default:
+            ENTITY_ERR("Ritual.type unspecified, cannot construct ritual",
+                    entity->GetName());
+    }
+    ECS::Instance()->Assign(entity, ritual);
+    ritual->canUpdate = canUpdate;
+}
+
+void CreateCollider(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
+    // ColliderType - Required
+    Collider::ColliderType colliderType;
+    auto colliderTypeField = fields.find("Collider.type");
+    if (colliderTypeField != fields.end()) {
+        try {
+            std::string colliderTypeStr = colliderTypeField->second.strValues.at(0);
+            colliderType = Collider::StrToColliderTypeEnum(colliderTypeStr);
         }
+        catch (std::out_of_range& e) {
+            ENTITY_ERR("Out of bounds, Collider.type not found",
+                      entity->GetName());
+        }
+    }
+    else {
+        ENTITY_ERR("Collider.type not found", entity->GetName());
+    }
+
+
+    // Radius
+    float radius;
+    auto radiusField = fields.find("Collider.radius");
+    if (radiusField != fields.end()) {
+        try {
+            radius = radiusField->second.floatValues.at(0);
+        }
+        catch (std::out_of_range& e) {
+            ENTITY_ERR("Out of bounds, Collider.radius not found",
+                      entity->GetName());
+        }
+    }
+
+    // Construct and assign collider
+    if (colliderType == Collider::ColliderType::Sphere) {
+        if (radiusField == fields.end())
+            ENTITY_ERR("Sphere collider requires radius",
+                           entity->GetName());
+        ECS::Instance()->Assign(entity, new SphereCollider(entity->id, radius));
+    }
+    else {
+        Log::Write(Log::Level::Warning,
+                Fmt("[entity: %s] - Could not construct collider %s, no implementation",
+                        entity->GetName().c_str(),
+                        Collider::ColliderTypeToString(colliderType).c_str()));
     }
 }
 }
