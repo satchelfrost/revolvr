@@ -18,9 +18,16 @@ Spatial {}
 Collider.type {Sphere}
 Collider.radius {0.05}
 
+[entity id=16 name=LeftHandCollider parent=1]
+Spatial {}
+Collider.type {Sphere}
+Collider.radius {0.05}
+Ritual.type {Disappear}
+Ritual.can_update {false}
+
 [entity id=3 name=Pointer parent=2]
-Spatial.scale  {0.01, 0.01, 0.5};
-Spatial.position  {0, 0, -0.25};
+Spatial.scale {0.01, 0.01, 0.5};
+Spatial.position {0, 0, -0.25};
 Mesh {}
 Ritual.type {SpinningPointer}
 Ritual.can_update {false}

@@ -110,12 +110,12 @@ void CreateRitual(Entity *entity, const std::map<std::string, Parser::Field>& fi
     }
 
     // Can update
-    bool canUpdate = false;
+    bool canUpdate = true;
     auto canUpdateField = fields.find("Ritual.can_update");
     if (canUpdateField != fields.end()) {
         try {
             std::string strBool = canUpdateField->second.strValues.at(0);
-            canUpdate = (strBool == "true") ? true : false;
+            canUpdate = (strBool == "false") ? false : true;
         }
         catch (std::out_of_range& e ) {
             ENTITY_ERR("Out of bounds, Collider.can_update not found",
