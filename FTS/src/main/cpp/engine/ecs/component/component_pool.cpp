@@ -33,4 +33,8 @@ void ComponentPool::FreeComponent(type::EntityId id) {
     delete component;
     components_.erase(id);
 }
+
+std::unordered_map<type::EntityId, Component *> ComponentPool::GetComponents() {
+    return components_;
+}
 }

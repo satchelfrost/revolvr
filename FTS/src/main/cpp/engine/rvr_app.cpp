@@ -4,6 +4,7 @@
 #include "ecs/component/types/spatial.h"
 #include "ecs/ecs.h"
 #include <ecs/system/ritual_system.h>
+#include <ecs/system/collision_system.h>
 
 Cube MakeCube(float scale, XrVector3f position) {
     Cube cube{};
@@ -137,13 +138,14 @@ void RVRApp::Update() {
     // Refresh tracked spaces and then update scene tree
     xrContext_->RefreshTrackedSpaceLocations();
     rvr::SpatialSystem::UpdateTrackedSpaces(xrContext_->trackedSpaceLocations);
-    rvr::RitualSystem::Update(deltaTime_);
+    rvr::CollisionSystem::RunCollisionChecks();
 
     // We should call begin whenever new scenes are loaded
     if (shouldCallBegin_) {
         rvr::RitualSystem::Begin();
         shouldCallBegin_ = false;
     }
+    rvr::RitualSystem::Update(deltaTime_);
 
     OnUpdate();
 }

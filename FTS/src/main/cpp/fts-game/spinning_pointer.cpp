@@ -7,6 +7,19 @@ SpinningPointer::SpinningPointer(rvr::type::EntityId id) : Ritual(id) {
     turnAmt_ = 0;
     turnSpeed_ = 3;
     transDirection_ = 1;
+
+
+
+//    collider_ = rvr::ECS::Instance()->GetComponent<rvr::Collider>(15);
+//    collider_.AddObserver(this);
+
+//void OnNotify(rvr::Entity* entity, Event* event) {
+//    switch(event->type) {
+//        case Event::OnOverlap:
+//            DoSomething(event->info);
+//    }
+
+
 }
 
 void SpinningPointer::Begin() {
@@ -24,3 +37,7 @@ void SpinningPointer::Update(float delta) {
     if (abs(transAmt) > 0.25)
         transDirection_ *= -1;
 }
+
+//void SpinningPointer::DoSomething() {
+//    Log::Write(Log::Level::Info, "Hooray we did something");
+//}

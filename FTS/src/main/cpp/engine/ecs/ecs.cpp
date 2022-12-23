@@ -15,6 +15,10 @@ void ECS::Init() {
     componentPoolManager_ = new ComponentPoolManager();
 }
 
+std::unordered_map<type::EntityId, Component*> ECS::GetComponents(ComponentType cType) {
+    return GetPool(cType)->GetComponents();
+}
+
 ComponentPool *ECS::GetPool(ComponentType cType) {
     return componentPoolManager_->GetPool(cType);
 }

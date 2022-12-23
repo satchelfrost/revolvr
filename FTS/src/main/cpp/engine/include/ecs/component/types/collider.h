@@ -17,9 +17,7 @@ public:
     static std::string ColliderTypeToString(ColliderType type);
     static ColliderType StrToColliderTypeEnum(const std::string& str);
 
-    virtual bool TestSphere(Collider* collider) = 0;
-    virtual bool TestAABB(Collider* collider) = 0;
-    virtual bool TestOBB(Collider* collider) = 0;
+    virtual bool TestCollision(Collider* other) = 0;
 
     const ColliderType type;
 private:

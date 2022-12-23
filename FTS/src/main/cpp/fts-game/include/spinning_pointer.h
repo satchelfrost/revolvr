@@ -10,8 +10,10 @@ public:
     SpinningPointer(rvr::type::EntityId id);
     virtual void Begin() override;
     virtual void Update(float delta) override;
+//    void DoSomething();
 private:
     rvr::Spatial* spatial_;
+//    rvr::Collider* collider_;
     int turnAmt_;
     int turnSpeed_;
     int transDirection_;

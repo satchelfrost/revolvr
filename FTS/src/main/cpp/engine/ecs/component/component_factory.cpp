@@ -173,6 +173,7 @@ void CreateCollider(Entity *entity, const std::map<std::string, Parser::Field>& 
             ENTITY_ERR("Sphere collider requires radius",
                            entity->GetName());
         ECS::Instance()->Assign(entity, new SphereCollider(entity->id, radius));
+        Log::Write(Log::Level::Info, Fmt("Creating sphere collider %s", entity->GetName().c_str()));
     }
     else {
         Log::Write(Log::Level::Warning,
