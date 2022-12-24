@@ -138,6 +138,7 @@ void RVRApp::Update() {
     // Refresh tracked spaces and then update scene tree
     xrContext_->RefreshTrackedSpaceLocations();
     rvr::SpatialSystem::UpdateTrackedSpaces(xrContext_->trackedSpaceLocations);
+    rvr::SpatialSystem::UpdateSpatials();
     rvr::CollisionSystem::RunCollisionChecks();
 
     // We should call begin whenever new scenes are loaded

@@ -109,6 +109,7 @@ void Scene::CreateHierarchy() {
         auto child = ECS::Instance()->GetEntity(childId);
         CHECK_MSG(parent, Fmt("Parent id %d was null", parentId));
         CHECK_MSG(child, Fmt("Child id %d was null", childId));
+        Log::Write(Log::Level::Info, Fmt("childId %d, parentId %d", childId, parentId));
         parent->AddChild(child);
     }
 }
