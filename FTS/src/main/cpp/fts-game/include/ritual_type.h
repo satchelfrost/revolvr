@@ -2,10 +2,9 @@
 
 #include <pch.h>
 
-#define LAST_RITUAL 1
+#define LAST_RITUAL 0
 #define RITUALS(X) \
-    X(SpinningPointer, 0) \
-    X(Disappear, LAST_RITUAL) \
+    X(SpinningPointer, LAST_RITUAL) \
 
 #define NUM_RITUALS LAST_RITUAL + 1
 #define BUILD_ENUM(ENUM, NUM) ENUM = NUM,

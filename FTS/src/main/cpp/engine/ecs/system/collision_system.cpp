@@ -1,6 +1,7 @@
 #include <ecs/system/collision_system.h>
 #include <ecs/ecs.h>
-#include <include/ecs/component/all_components.h>
+#include <ecs/component/types/collider.h>
+#include <ecs/system/notification/collision_event.h>
 
 namespace rvr {
 void CollisionSystem::RunCollisionChecks() {
@@ -10,10 +11,8 @@ void CollisionSystem::RunCollisionChecks() {
             auto collider1 = reinterpret_cast<Collider*>((*iter1).second);
             auto collider2 = reinterpret_cast<Collider*>((*iter2).second);
             if (collider1->TestCollision(collider2)) {
-                Log::Write(Log::Level::Info, "Collision");
-            }
-            else {
-                Log::Write(Log::Level::Info, "NO Collision");
+                collider1->Notify(collider2);
+                collider2->Notify(collider1);
             }
         }
     }
