@@ -71,12 +71,20 @@ std::map<ComponentType, std::map<std::string, Parser::Field>> Parser::ParseField
   std::map<ComponentType, std::map<std::string, Field>> fields;
   while (Peek() != Token::BrackLeft && !tokens_.empty()) {
     auto field = ParseField();
+    if (field.fullyQualifiedName.empty())
+      continue;
     fields[field.cType].emplace(field.fullyQualifiedName, field);
   }
   return fields;
 }
 
 Parser::Field Parser::ParseField() {
+  // Check for a comment
+  if (Peek() == Token::Comment) {
+    Pop();
+    return {}; // simply return an empty field
+  }
+
   // All fields begin with identifier which is the component type
   CheckPeek("Parsing fields", Token::Identifier);
 

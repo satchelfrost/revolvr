@@ -17,11 +17,19 @@ Mesh {}
 Spatial {}
 Collider.type {Sphere}
 Collider.radius {0.05}
+# Collider.type {AABB}
+# Collider.half_x {0.1}
+# Collider.half_y {0.05}
+# Collider.half_z {0.05}
 
 [entity id=16 name=LeftHandCollider parent=1]
 Spatial {}
 Collider.type {Sphere}
 Collider.radius {0.05}
+# Collider.type {AABB}
+# Collider.half_x {0.1}
+# Collider.half_y {0.05}
+# Collider.half_z {0.05}
 
 [entity id=3 name=Pointer parent=2]
 Spatial.scale {0.01, 0.01, 0.5}
