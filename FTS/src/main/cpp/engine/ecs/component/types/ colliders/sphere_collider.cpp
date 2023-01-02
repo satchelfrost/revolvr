@@ -2,7 +2,6 @@
 #include <common.h>
 #include <ecs/ecs.h>
 #include <ecs/component/types/spatial.h>
-#include <ecs/system/spatial_system.h>
 
 namespace rvr {
 SphereCollider::SphereCollider(type::EntityId pId, float pRadius) :
