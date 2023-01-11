@@ -1,27 +1,28 @@
-#include "pch.h"
-#include "common.h"
-#include "platform/rvr_android_context.h"
+#include <pch.h>
+#include <common.h>
+#include <platform/android_context.h>
 
-RVRAndroidContext* RVRAndroidContext::instance_ = nullptr;
+namespace rvr {
+AndroidContext* AndroidContext::instance_ = nullptr;
 
-RVRAndroidContext* RVRAndroidContext::Instance() {
+AndroidContext* AndroidContext::Instance() {
     if (!instance_)
-        instance_ = new RVRAndroidContext();
+        instance_ = new AndroidContext();
     return instance_;
 }
 
-void RVRAndroidContext::Init(android_app *app) {
+void AndroidContext::Init(android_app *app) {
     app_ = app;
     instanceCreateInfoAndroid_ = {XR_TYPE_INSTANCE_CREATE_INFO_ANDROID_KHR};
     instanceCreateInfoAndroid_.applicationVM = app->activity->vm;
     instanceCreateInfoAndroid_.applicationActivity = app->activity->clazz;
 }
 
-XrBaseInStructure * RVRAndroidContext::GetInstanceCreateExtension() const {
+XrBaseInStructure * AndroidContext::GetInstanceCreateExtension() const {
     return (XrBaseInStructure *) &instanceCreateInfoAndroid_;
 }
 
-void RVRAndroidContext::HandleAndroidCmd(android_app *app, int32_t cmd) {
+void AndroidContext::HandleAndroidCmd(android_app *app, int32_t cmd) {
     switch (cmd) {
         // There is no APP_CMD_CREATE. The ANativeActivity creates the
         // application thread from onCreate(). The application thread
@@ -71,19 +72,19 @@ void RVRAndroidContext::HandleAndroidCmd(android_app *app, int32_t cmd) {
     }
 }
 
-std::vector<std::string> RVRAndroidContext::GetInstanceExtensions() {
+std::vector<std::string> AndroidContext::GetInstanceExtensions() {
     return {XR_KHR_ANDROID_CREATE_INSTANCE_EXTENSION_NAME};
 }
 
-AAssetManager * RVRAndroidContext::GetAndroidAssetManager() {
+AAssetManager * AndroidContext::GetAndroidAssetManager() {
     return app_->activity->assetManager;
 }
 
-android_app* RVRAndroidContext::GetAndroidApp() const {
+android_app* AndroidContext::GetAndroidApp() const {
     return app_;
 }
 
-void RVRAndroidContext::HandleEvents(bool isSessionRunning) {
+void AndroidContext::HandleEvents(bool isSessionRunning) {
     // Read all pending events.
     for (;;) {
         int events;
@@ -102,6 +103,4 @@ void RVRAndroidContext::HandleEvents(bool isSessionRunning) {
         }
     }
 }
-
-
-
+}

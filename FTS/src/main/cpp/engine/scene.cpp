@@ -4,6 +4,7 @@
 #include "rvr_parser/parser.h"
 #include <ecs/entity/entity_factory.h>
 #include <ecs/component/component_factory.h>
+#include <ecs/system/ritual_system.h>
 
 #define CREATE_COMPONENT_CASE(TYPE, NUM) case ComponentType::TYPE: componentFactory::Create ## TYPE(entity, fields); break;
 
@@ -15,6 +16,7 @@ void Scene::LoadScene(const std::string &sceneName) {
     InitUnits(units);
     CreateHierarchy();
     CreateRituals(units);
+    RitualSystem::Begin();
     Log::Write(Log::Level::Info, Fmt("Loaded scene %s", sceneName.c_str()));
 }
 

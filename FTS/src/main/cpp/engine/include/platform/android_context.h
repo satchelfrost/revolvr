@@ -2,9 +2,10 @@
 
 #include "pch.h"
 
-class RVRAndroidContext {
+namespace rvr {
+class AndroidContext {
 public:
-    static RVRAndroidContext* Instance();
+    static AndroidContext* Instance();
 
     void Init(android_app* app);
     void HandleEvents(bool isSessionRunning);
@@ -25,14 +26,14 @@ public:
     ANativeWindow* nativeWindow = nullptr;
 
 protected:
-    static RVRAndroidContext* instance_;
+    static AndroidContext* instance_;
 
 private:
-    RVRAndroidContext() = default;
-    void operator=(const RVRAndroidContext &) = delete;
-    RVRAndroidContext(const RVRAndroidContext& other) = delete;
+    AndroidContext() = default;
+    void operator=(const AndroidContext &) = delete;
+    AndroidContext(const AndroidContext& other) = delete;
 
     android_app* app_ = nullptr;
     XrInstanceCreateInfoAndroidKHR instanceCreateInfoAndroid_;
 };
-
+}

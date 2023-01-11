@@ -1,4 +1,4 @@
-#include <rvr_app.h>
+#include <app.h>
 #include <ecs/system/spatial_system.h>
 #include <ecs/system/render_system.h>
 #include <ecs/component/types/spatial.h>
@@ -8,19 +8,19 @@
 
 namespace rvr {
 static void app_handle_cmd(struct android_app* app, int32_t cmd) {
-    RVRAndroidContext::Instance()->HandleAndroidCmd(app, cmd);
+    AndroidContext::Instance()->HandleAndroidCmd(app, cmd);
 }
 
-RVRApp::RVRApp() {
+App::App() {
 }
 
- RVRApp::~RVRApp() {
+ App::~App() {
      delete xrContext_;
      delete vulkanRenderer_;
-     delete RVRAndroidContext::Instance();
+     delete AndroidContext::Instance();
  }
 
-void RVRApp::Run(struct android_app *app) {
+void App::Run(struct android_app *app) {
      JNIEnv* Env;
      app->activity->vm->AttachCurrentThread(&Env, nullptr);
      app->userData = this;
@@ -29,28 +29,28 @@ void RVRApp::Run(struct android_app *app) {
      bool requestRestart = false;
      bool exitRenderLoop = false;
 
-     // Create platform abstraction
-     RVRAndroidContext::Instance()->Init(app);
+     // Create android abstraction
+     AndroidContext::Instance()->Init(app);
 
      // Create graphics API implementation.
-     vulkanRenderer_ = new RVRVulkanRenderer();
+     vulkanRenderer_ = new VulkanRenderer();
 
      // Create xr abstraction
-     xrContext_ = new RVRXRContext(RVRAndroidContext::Instance(), vulkanRenderer_);
+     xrContext_ = new XrContext(vulkanRenderer_);
 
      // Initialize ECS
-     rvr::ECS::Instance()->Init();
+     ECS::Instance()->Init();
 
      // Load and Initialize Scene
      scene_.LoadScene("test_scene");
 
-     RVRGameLoopTimer timer;
+     GameLoopTimer timer;
      while (app->destroyRequested == 0) {
          // Update timer
          timer.RefreshDeltaTime(deltaTime_);
 
          // Handle Android events
-         RVRAndroidContext::Instance()->HandleEvents(xrContext_->IsSessionRunning());
+         AndroidContext::Instance()->HandleEvents(xrContext_->IsSessionRunning());
 
          // Handle OpenXR Events
          xrContext_->PollXrEvents(&exitRenderLoop, &requestRestart);
@@ -70,14 +70,14 @@ void RVRApp::Run(struct android_app *app) {
 }
 
 
-void RVRApp::UpdateSystems() {
-    rvr::SpatialSystem::UpdateTrackedSpaces(xrContext_);
-    rvr::SpatialSystem::UpdateSpatials();
-    rvr::CollisionSystem::RunCollisionChecks();
-    rvr::RitualSystem::Update(deltaTime_);
+void App::UpdateSystems() {
+    SpatialSystem::UpdateTrackedSpaces(xrContext_);
+    SpatialSystem::UpdateSpatials();
+    CollisionSystem::RunCollisionChecks();
+    RitualSystem::Update(deltaTime_);
 }
 
-void RVRApp::Render() {
+void App::Render() {
     if (xrContext_->frameState.shouldRender == XR_TRUE) {
         if (RenderLayer(xrContext_->projectionLayerViews, xrContext_->mainLayer)) {
             xrContext_->AddMainLayer();
@@ -85,7 +85,7 @@ void RVRApp::Render() {
     }
 }
 
-bool RVRApp::RenderLayer(std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
+bool App::RenderLayer(std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
                          XrCompositionLayerProjection& layer) {
     XrViewState viewState{XR_TYPE_VIEW_STATE};
     uint32_t viewCapacityInput = (uint32_t)xrContext_->views.size();
@@ -111,7 +111,7 @@ bool RVRApp::RenderLayer(std::vector<XrCompositionLayerProjectionView>& projecti
     projectionLayerViews.resize(viewCountOutput);
 
     // Convert renderable to a cube for now
-    for (auto spatial : rvr::RenderSystem::GetRenderSpatials()) {
+    for (auto spatial : RenderSystem::GetRenderSpatials()) {
         Cube cube{};
         cube.Pose = spatial->worldPose;
         cube.Scale = spatial->scale;

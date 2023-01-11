@@ -4,17 +4,16 @@
 #include "rvr_vulkan_utilities.h"
 #include "platform/android_context.h"
 
-class RVRAndroidContext;
-
+namespace rvr {
 struct Cube {
     XrPosef Pose;
     XrVector3f Scale;
 };
 
 // Wraps a Vulkan API.
-class RVRVulkanRenderer {
+class VulkanRenderer {
 public:
-    RVRVulkanRenderer();
+    VulkanRenderer();
 
     // OpenXR extensions required by this graphics API.
     virtual std::vector<std::string> GetInstanceExtensions() const;
@@ -93,4 +92,4 @@ private:
 
     void InitializeResources();
 };
-
+}

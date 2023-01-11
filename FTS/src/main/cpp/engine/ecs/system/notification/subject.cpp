@@ -2,8 +2,6 @@
 #include <common.h>
 
 namespace rvr {
-Subject::Subject() : notifying(false) {}
-
 void Subject::AddObserver(Ritual* ritual) {
     ritual_observers_.push_back(ritual);
 }

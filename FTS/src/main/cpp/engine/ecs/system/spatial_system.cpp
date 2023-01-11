@@ -1,12 +1,17 @@
 #include <include/math/xr_linear.h>
-#include "ecs/system/spatial_system.h"
-#include "ecs/component/types/tracked_space.h"
-#include "ecs/component/types/spatial.h"
-#include "ecs/ecs.h"
-#include "pch.h"
+#include <ecs/system/spatial_system.h>
+#include <ecs/component/types/tracked_space.h>
+#include <ecs/component/types/spatial.h>
+#include <ecs/ecs.h>
+#include <pch.h>
 
 namespace rvr {
-void SpatialSystem::UpdateTrackedSpaces(const TrackedSpaceLocations& trackedSpaceLocations) {
+void SpatialSystem::UpdateTrackedSpaces(XrContext *context) {
+    // First refresh the tracked spaces
+    context->RefreshTrackedSpaceLocations();
+    auto trackedSpaceLocations = context->trackedSpaceLocations;
+
+    // Update each spatial that has a corresponding tracked space
     for (auto entityId : ECS::Instance()->GetEids(ComponentType::TrackedSpace)) {
         auto [spatial, tracked] = ECS::Instance()->GetComponentPair<Spatial, TrackedSpace>(entityId);
         switch (tracked->type) {

@@ -1,10 +1,10 @@
 #pragma once
 
-#include "pch.h"
-#include "common.h"
-#include "platform/rvr_android_context.h"
-#include "renderer/rvr_vulkan_renderer.h"
-#include "math/xr_linear.h"
+#include <pch.h>
+#include <common.h>
+#include <platform/android_context.h>
+#include <renderer/vulkan_renderer.h>
+#include <math/xr_linear.h>
 
 #include "rvr_reference_space.h"
 #include "xr_app_helpers.h"
@@ -12,6 +12,7 @@
 #include <array>
 #include <cmath>
 
+namespace rvr {
 namespace Side {
     const int LEFT = 0;
     const int RIGHT = 1;
@@ -36,11 +37,11 @@ struct Swapchain {
     int32_t height;
 };
 
-class RVRXRContext {
+class XrContext {
 public:
-    RVRXRContext(RVRAndroidContext* androidContext, RVRVulkanRenderer* vulkanRenderer);
+    XrContext(VulkanRenderer* vulkanRenderer);
 
-    ~RVRXRContext();
+    ~XrContext();
 
     void Initialize();
 
@@ -94,8 +95,7 @@ private:
 
     void LogActionSourceName(XrAction action, const std::string& actionName) const;
 
-    const RVRAndroidContext* androidContext_;
-    RVRVulkanRenderer* vulkanRenderer_;
+    VulkanRenderer* vulkanRenderer_;
 
     XrInstance xrInstance_{XR_NULL_HANDLE};
     XrSystemId xrSystemId_{XR_NULL_SYSTEM_ID};
@@ -130,4 +130,4 @@ public:
 private:
     std::vector<XrCompositionLayerBaseHeader*> layers_;
 };
-
+}

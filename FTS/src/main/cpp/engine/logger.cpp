@@ -32,12 +32,15 @@ void Write(Level severity, const std::string& msg) {
     const auto secondRemainder = now - std::chrono::system_clock::from_time_t(now_time);
     const int64_t milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(secondRemainder).count();
 
-    static std::map<Level, const char*> severityName = {
-        {Level::Verbose, "RVR_Verbose"}, {Level::Info, "RVR_Info___"}, {Level::Warning, "RVR_Warning"}, {Level::Error, "RVR_Error__"}};
+    static std::map<Level, const char*> severityName = {{Level::Verbose, "RVR Verbose"},
+                                                        {Level::Info, "RVR Info   "},
+                                                        {Level::Warning, "RVR Warning"},
+                                                        {Level::Error, "RVR Error  "}};
 
     std::ostringstream out;
     out.fill('0');
-    out << "[" << std::setw(2) << now_tm.tm_hour << ":" << std::setw(2) << now_tm.tm_min << ":" << std::setw(2) << now_tm.tm_sec
+    out << "[" << std::setw(2) << now_tm.tm_hour << ":" << std::setw(2) << now_tm.tm_min << ":"
+        << std::setw(2) << now_tm.tm_sec
         << "." << std::setw(3) << milliseconds << "]"
         << "[" << severityName[severity] << "] " << msg << std::endl;
 
