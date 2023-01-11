@@ -1,11 +1,12 @@
-#include "rvr_xr_context.h"
+#include "xr_context.h"
+#include <platform/android_context.h>
 
-RVRXRContext::RVRXRContext(RVRAndroidContext* androidContext, RVRVulkanRenderer* vulkanRenderer)
-: androidContext_(androidContext), vulkanRenderer_(vulkanRenderer) {
-
+namespace rvr {
+XrContext::XrContext(VulkanRenderer* vulkanRenderer) : vulkanRenderer_(vulkanRenderer) {
+    Initialize();
 }
 
-RVRXRContext::~RVRXRContext() {
+XrContext::~XrContext() {
     if (input.actionSet != XR_NULL_HANDLE) {
         for (auto hand : {Side::LEFT, Side::RIGHT}) {
             xrDestroySpace(input.handSpace[hand]);
@@ -34,7 +35,7 @@ RVRXRContext::~RVRXRContext() {
     }
 }
 
-void RVRXRContext::Initialize() {
+void XrContext::Initialize() {
     InitializePlatformLoader();
     CreateInstance();
     InitializeSystem();
@@ -42,7 +43,7 @@ void RVRXRContext::Initialize() {
     CreateSwapchains();
 }
 
-void RVRXRContext::InitializePlatformLoader() {
+void XrContext::InitializePlatformLoader() {
     // Initialize the loader for this platform
     PFN_xrInitializeLoaderKHR initializeLoader = nullptr;
     if (XR_SUCCEEDED(
@@ -51,20 +52,20 @@ void RVRXRContext::InitializePlatformLoader() {
         memset(&loaderInitInfoAndroid, 0, sizeof(loaderInitInfoAndroid));
         loaderInitInfoAndroid.type = XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR;
         loaderInitInfoAndroid.next = nullptr;
-        loaderInitInfoAndroid.applicationVM = androidContext_->GetAndroidApp()->activity->vm;
-        loaderInitInfoAndroid.applicationContext = androidContext_->GetAndroidApp()->activity->clazz;
+        loaderInitInfoAndroid.applicationVM = AndroidContext::Instance()->GetAndroidApp()->activity->vm;
+        loaderInitInfoAndroid.applicationContext = AndroidContext::Instance()->GetAndroidApp()->activity->clazz;
         initializeLoader((const XrLoaderInitInfoBaseHeaderKHR*)&loaderInitInfoAndroid);
     }
 }
 
-void RVRXRContext::CreateInstance() {
+void XrContext::CreateInstance() {
     CHECK(xrInstance_ == XR_NULL_HANDLE);
 
     // Create union of extensions required by platform and graphics plugins.
     std::vector<const char*> extensions;
 
     // Transform platform and graphics extension std::strings to C strings.
-    const std::vector<std::string> platformExtensions = RVRAndroidContext::GetInstanceExtensions();
+    const std::vector<std::string> platformExtensions = AndroidContext::GetInstanceExtensions();
     std::transform(platformExtensions.begin(), platformExtensions.end(), std::back_inserter(extensions),
                    [](const std::string& ext) { return ext.c_str(); });
     const std::vector<std::string> graphicsExtensions = vulkanRenderer_->GetInstanceExtensions();
@@ -72,7 +73,7 @@ void RVRXRContext::CreateInstance() {
                    [](const std::string& ext) { return ext.c_str(); });
 
     XrInstanceCreateInfo createInfo{XR_TYPE_INSTANCE_CREATE_INFO};
-    createInfo.next = androidContext_->GetInstanceCreateExtension();
+    createInfo.next = AndroidContext::Instance()->GetInstanceCreateExtension();
     createInfo.enabledExtensionCount = (uint32_t)extensions.size();
     createInfo.enabledExtensionNames = extensions.data();
 
@@ -82,7 +83,7 @@ void RVRXRContext::CreateInstance() {
     CHECK_XRCMD(xrCreateInstance(&createInfo, &xrInstance_));
 }
 
-void RVRXRContext::InitializeSystem() {
+void XrContext::InitializeSystem() {
     CHECK(xrInstance_ != XR_NULL_HANDLE);
     CHECK(xrSystemId_ == XR_NULL_SYSTEM_ID);
 
@@ -97,7 +98,7 @@ void RVRXRContext::InitializeSystem() {
     vulkanRenderer_->InitializeDevice(xrInstance_, xrSystemId_);
 }
 
-void RVRXRContext::InitializeSession() {
+void XrContext::InitializeSession() {
     CHECK(xrInstance_ != XR_NULL_HANDLE);
     CHECK(session == XR_NULL_HANDLE);
 
@@ -113,7 +114,7 @@ void RVRXRContext::InitializeSession() {
     CHECK_XRCMD(xrCreateReferenceSpace(session, &referenceSpaceCreateInfo, &appSpace));
 }
 
-void RVRXRContext::InitializeActions() {
+void XrContext::InitializeActions() {
     // Create an action set.
     {
         XrActionSetCreateInfo actionSetInfo{XR_TYPE_ACTION_SET_CREATE_INFO};
@@ -226,7 +227,7 @@ void RVRXRContext::InitializeActions() {
     CHECK_XRCMD(xrAttachSessionActionSets(session, &attachInfo));
 }
 
-void RVRXRContext::InitializeReferenceSpaces() {
+void XrContext::InitializeReferenceSpaces() {
     CHECK(session != XR_NULL_HANDLE);
     RVRReferenceSpace referenceSpaces[] = { //RVRReferenceSpace::RVRHead,
             RVRReferenceSpace::Hud,
@@ -243,12 +244,12 @@ void RVRXRContext::InitializeReferenceSpaces() {
         if (XR_SUCCEEDED(res))
             initializedRefSpaces_[referenceSpace] = space;
         else
-            Log::Write(Log::Level::Error,
-                       Fmt("Failed to create reference space %d with error %d", referenceSpace, res));
+            THROW(Fmt("Failed to create reference space %d with error %d", referenceSpace, res));
+
     }
 }
 
-void RVRXRContext::CreateSwapchains() {
+void XrContext::CreateSwapchains() {
     CHECK(session != XR_NULL_HANDLE);
     CHECK(swapchains.empty());
     CHECK(configViews.empty());
@@ -311,7 +312,7 @@ void RVRXRContext::CreateSwapchains() {
     }
 }
 
-const XrEventDataBaseHeader* RVRXRContext::TryReadNextEvent() {
+const XrEventDataBaseHeader* XrContext::TryReadNextEvent() {
     // It is sufficient to clear the just the XrEventDataBuffer header to
     // XR_TYPE_EVENT_DATA_BUFFER
     auto* baseHeader = reinterpret_cast<XrEventDataBaseHeader*>(&xrEventDataBuffer_);
@@ -331,7 +332,7 @@ const XrEventDataBaseHeader* RVRXRContext::TryReadNextEvent() {
     THROW_XR(xr, "xrPollEvent");
 }
 
-void RVRXRContext::PollXrEvents(bool* exitRenderLoop, bool* requestRestart) {
+void XrContext::PollXrEvents(bool* exitRenderLoop, bool* requestRestart) {
     *exitRenderLoop = *requestRestart = false;
 
     // Process all pending messages.
@@ -364,7 +365,7 @@ void RVRXRContext::PollXrEvents(bool* exitRenderLoop, bool* requestRestart) {
     }
 }
 
-void RVRXRContext::PollActions() {
+void XrContext::PollActions() {
     input.handActive = {XR_FALSE, XR_FALSE};
 
     // Sync actions
@@ -413,7 +414,7 @@ void RVRXRContext::PollActions() {
     }
 }
 
-void RVRXRContext::HandleSessionStateChangedEvent(const XrEventDataSessionStateChanged& stateChangedEvent,
+void XrContext::HandleSessionStateChangedEvent(const XrEventDataSessionStateChanged& stateChangedEvent,
                                             bool* exitRenderLoop,
                                             bool* requestRestart) {
     const XrSessionState oldState = xrSessionState_;
@@ -463,15 +464,15 @@ void RVRXRContext::HandleSessionStateChangedEvent(const XrEventDataSessionStateC
     }
 }
 
-bool RVRXRContext::IsSessionRunning() const {
+bool XrContext::IsSessionRunning() const {
     return xrSessionRunning_;
 }
 
-bool RVRXRContext::IsSessionFocused() const {
+bool XrContext::IsSessionFocused() const {
     return xrSessionState_ == XR_SESSION_STATE_FOCUSED;
 }
 
-void RVRXRContext::LogActionSourceName(XrAction action, const std::string& actionName) const {
+void XrContext::LogActionSourceName(XrAction action, const std::string& actionName) const {
     XrBoundSourcesForActionEnumerateInfo getInfo = {XR_TYPE_BOUND_SOURCES_FOR_ACTION_ENUMERATE_INFO};
     getInfo.action = action;
     uint32_t pathCount = 0;
@@ -508,32 +509,57 @@ void RVRXRContext::LogActionSourceName(XrAction action, const std::string& actio
                Fmt("%s action is bound to %s", actionName.c_str(), ((!sourceName.empty()) ? sourceName.c_str() : "nothing")));
 }
 
-void RVRXRContext::RefreshTrackedSpaceLocations() {
+void XrContext::RefreshTrackedSpaceLocations() {
     for (auto trackedSpaceLocation : trackedSpaceLocations.locations) {
         XrSpaceLocation spaceLocation{XR_TYPE_SPACE_LOCATION};
         XrResult res;
         switch(trackedSpaceLocation) {
             case TrackedSpaceLocations::LeftHand:
                 res = xrLocateSpace(input.handSpace[Side::LEFT],
-                                    appSpace, predictedDisplayTime,
+                                    appSpace, frameState.predictedDisplayTime,
                                     &spaceLocation);
                 if (TrackedSpaceLocations::ValidityCheck(res, spaceLocation))
                     trackedSpaceLocations.leftHand = spaceLocation;
                 break;
             case TrackedSpaceLocations::RightHand:
                 res = xrLocateSpace(input.handSpace[Side::RIGHT],
-                                    appSpace, predictedDisplayTime,
+                                    appSpace, frameState.predictedDisplayTime,
                                     &spaceLocation);
                 if (TrackedSpaceLocations::ValidityCheck(res, spaceLocation))
                     trackedSpaceLocations.rightHand = spaceLocation;
                 break;
             case TrackedSpaceLocations::VrOrigin:
                 res = xrLocateSpace(initializedRefSpaces_[RVRReferenceSpace::TrackedOrigin],
-                                    appSpace, predictedDisplayTime,
+                                    appSpace, frameState.predictedDisplayTime,
                                     &spaceLocation);
                 if (TrackedSpaceLocations::ValidityCheck(res, spaceLocation))
                     trackedSpaceLocations.vrOrigin = spaceLocation;
                 break;
         }
     }
+}
+
+void XrContext::AddMainLayer() {
+    layers_.push_back(reinterpret_cast<XrCompositionLayerBaseHeader*>(&mainLayer));
+}
+
+void XrContext::BeginFrame() {
+    CHECK(session != XR_NULL_HANDLE);
+
+    XrFrameWaitInfo frameWaitInfo{XR_TYPE_FRAME_WAIT_INFO};
+    CHECK_XRCMD(xrWaitFrame(session, &frameWaitInfo, &frameState));
+
+    XrFrameBeginInfo frameBeginInfo{XR_TYPE_FRAME_BEGIN_INFO};
+    CHECK_XRCMD(xrBeginFrame(session, &frameBeginInfo));
+}
+
+void XrContext::EndFrame() {
+    XrFrameEndInfo frameEndInfo{XR_TYPE_FRAME_END_INFO};
+    frameEndInfo.displayTime = frameState.predictedDisplayTime;
+    frameEndInfo.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
+    frameEndInfo.layerCount = (uint32_t)layers_.size();
+    frameEndInfo.layers = layers_.data();
+    CHECK_XRCMD(xrEndFrame(session, &frameEndInfo));
+    layers_.clear();
+}
 }

@@ -2,9 +2,10 @@
 
 #include "pch.h"
 
-class RVRAndroidContext {
+namespace rvr {
+class AndroidContext {
 public:
-    static RVRAndroidContext* GetInstance();
+    static AndroidContext* Instance();
 
     void Init(android_app* app);
     void HandleEvents(bool isSessionRunning);
@@ -15,6 +16,8 @@ public:
     // OpenXR instance-level extensions required by this platform.
     static std::vector<std::string> GetInstanceExtensions();
 
+    void HandleAndroidCmd(android_app *app, int32_t cmd);
+
     AAssetManager* GetAndroidAssetManager();
 
     android_app* GetAndroidApp() const;
@@ -23,14 +26,14 @@ public:
     ANativeWindow* nativeWindow = nullptr;
 
 protected:
-    static RVRAndroidContext* instance_;
+    static AndroidContext* instance_;
 
 private:
-    RVRAndroidContext() = default;
-    void operator=(const RVRAndroidContext &) = delete;
-    RVRAndroidContext(const RVRAndroidContext& other) = delete;
+    AndroidContext() = default;
+    void operator=(const AndroidContext &) = delete;
+    AndroidContext(const AndroidContext& other) = delete;
 
     android_app* app_ = nullptr;
     XrInstanceCreateInfoAndroidKHR instanceCreateInfoAndroid_;
 };
-
+}

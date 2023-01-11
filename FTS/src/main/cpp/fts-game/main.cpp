@@ -1,33 +1,4 @@
-//
-// Created by cris on 7/24/22.
-//
-
-#include "rvr_app.h"
-
-class FTSApp : public RVRApp {
-protected:
-    void OnInitialize() override {
-        RVRApp::OnInitialize();
-    }
-
-    void OnShutdown() override {
-        RVRApp::OnShutdown();
-    }
-
-    void OnUpdate() override {
-        RVRApp::OnUpdate();
-    }
-
-    void OnInput() override {
-        RVRApp::OnInput();
-    }
-
-    void OnRender() override {
-        RVRApp::OnRender();
-    }
-private:
-
-};
+#include <app.h>
 
 /**
  * This is the main entry point of a native application that is using
@@ -35,6 +6,6 @@ private:
  * event loop for receiving input events and doing other things.
  */
 void android_main(struct android_app* app) {
-    auto ftsApp = std::make_unique<FTSApp>();
+    auto ftsApp = std::make_unique<rvr::App>();
     ftsApp->Run(app);
 }
