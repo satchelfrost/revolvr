@@ -5,10 +5,10 @@
 namespace rvr {
 std::vector<Spatial *> RenderSystem::GetRenderSpatials() {
     std::vector<Spatial*> spatials;
-    for (auto id : ECS::Instance()->GetEids(ComponentType::Mesh)) {
-        SpatialSystem::CalculateWorldPosition(id);
-        spatials.push_back(ECS::Instance()->GetComponent<Spatial>(id));
-    }
+    auto components = ECS::Instance()->GetComponents(ComponentType::Mesh);
+    spatials.reserve(components.size());
+    for (auto [eid, component] : components)
+        spatials.push_back(ECS::Instance()->GetComponent<Spatial>(eid));
     return spatials;
 }
 }

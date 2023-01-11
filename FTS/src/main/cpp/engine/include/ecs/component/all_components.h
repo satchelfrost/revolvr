@@ -4,3 +4,4 @@
 #include "ecs/component/types/mesh.h"
 #include "ecs/component/types/ritual.h"
 #include "ecs/component/types/tracked_space.h"
+#include "ecs/component/types/collider.h"

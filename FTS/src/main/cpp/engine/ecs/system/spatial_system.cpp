@@ -3,6 +3,7 @@
 #include "ecs/component/types/tracked_space.h"
 #include "ecs/component/types/spatial.h"
 #include "ecs/ecs.h"
+#include "pch.h"
 
 namespace rvr {
 void SpatialSystem::UpdateTrackedSpaces(const TrackedSpaceLocations& trackedSpaceLocations) {
@@ -48,5 +49,11 @@ void SpatialSystem::CalculateWorldPosition(type::EntityId id) {
                            &parentSpatial->pose.position);
         }
     }
+}
+
+void SpatialSystem::UpdateSpatials() {
+    auto components = ECS::Instance()->GetComponents(ComponentType::Spatial);
+    for (auto [eid, component] : components)
+        CalculateWorldPosition(component->id);
 }
 }

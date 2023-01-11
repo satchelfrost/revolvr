@@ -3,11 +3,9 @@
 #include "ecs/ecs.h"
 #include "rvr_parser/parser.h"
 #include <ecs/entity/entity_factory.h>
-#include <ecs/component/component_init.h>
-#include <ritual_behaviors_all.h>
+#include <ecs/component/component_factory.h>
 
-#define INIT_COMPONENT_CASE(TYPE, NUM) case ComponentType::TYPE: componentInit::Init ## TYPE(entity, field); break;
-#define INIT_RITUAL_CASE(TYPE, NUM) case game::RitualBehavior::TYPE: ritual->SetImplementation(new TYPE(rId)); break;
+#define CREATE_COMPONENT_CASE(TYPE, NUM) case ComponentType::TYPE: componentFactory::Create ## TYPE(entity, fields); break;
 
 namespace rvr {
 void Scene::LoadScene(const std::string &sceneName) {
@@ -16,7 +14,7 @@ void Scene::LoadScene(const std::string &sceneName) {
     auto units = parser.Parse();
     InitUnits(units);
     CreateHierarchy();
-    AttachRitualBehavior();
+    CreateRituals(units);
     Log::Write(Log::Level::Info, Fmt("Loaded scene %s", sceneName.c_str()));
 }
 
@@ -43,28 +41,27 @@ void Scene::InitUnit(const Parser::Unit& unit) {
 
 void Scene::InitEntity(const Parser::Unit& unit) {
     // First create entity
-    auto entity = CreateEntity(unit.fields, unit.heading);
+    auto entity = CreateEntity(unit.heading);
 
-    // Initialize the entity's components with data based on fields
-    for (const auto& field : unit.fields)
-        InitComponent(entity, field);
+    // Create components
+    for (const auto& [cType, fields] : unit.fields) {
+        // Skip rituals since their constructor might require things existing
+        if (cType == ComponentType::Ritual)
+            continue;
+
+        CreateComponent(entity, fields, cType);
+    }
 
     // Store parent hierarchy information for later
     SaveHierarchyInfo(entity, unit.heading);
 }
 
-Entity* Scene::CreateEntity(const std::vector<Parser::Field>& fields, const Parser::Heading& heading) {
-    // First collect the component types from the unit
-    std::vector<ComponentType> cTypes;
-    cTypes.reserve(fields.size());
-    for (const auto& field : fields)
-        cTypes.push_back(field.cType);
-
+Entity* Scene::CreateEntity(const Parser::Heading& heading) {
     // Use the component types to construct a new entity
     Entity* entity;
     try {
         type::EntityId id = heading.strKeyNumVal.at("id");
-        entity = EntityFactory::CreateEntity(id, cTypes);
+        entity = EntityFactory::CreateEntity(id);
     }
     catch (std::out_of_range& e) {
         THROW("Entity did not contain id");
@@ -81,17 +78,14 @@ Entity* Scene::CreateEntity(const std::vector<Parser::Field>& fields, const Pars
     return entity;
 }
 
-void Scene::InitComponent(Entity* entity, const Parser::Field& field) {
-    switch (field.cType) {
-        // See implementations in <ecs/component/component_init.cpp>
-        COMPONENT_LIST(INIT_COMPONENT_CASE)
+void Scene::CreateComponent(Entity* entity, const std::map<std::string, Parser::Field>& fields,
+                            ComponentType cType) {
+    switch (cType) {
+        // See implementations in <ecs/component/component_factory.cpp>
+        COMPONENT_LIST(CREATE_COMPONENT_CASE)
     default:
-        THROW(Fmt("Component type %s unrecognized", toString(field.cType)))
+        THROW(Fmt("Component type %s unrecognized", toString(cType)))
     }
-
-    // Save ritual ids for attachment later
-    if (field.cType == ComponentType::Ritual)
-        ritualIds_.emplace(entity->id);
 }
 
 void Scene::SaveHierarchyInfo(Entity* entity, const Parser::Heading& heading) {
@@ -103,7 +97,8 @@ void Scene::SaveHierarchyInfo(Entity* entity, const Parser::Heading& heading) {
         parentIdMap_[entity->id] = heading.strKeyNumVal.at("parent");
     }
     catch (std::out_of_range& e) {
-        Log::Write(Log::Level::Warning, Fmt("[%s] using root as default parent", entity->GetName().c_str()));
+        Log::Write(Log::Level::Warning, Fmt("[%s] using root as default parent",
+                          entity->GetName().c_str()));
         parentIdMap_[entity->id] = 0;
     }
 }
@@ -118,13 +113,16 @@ void Scene::CreateHierarchy() {
     }
 }
 
-void Scene::AttachRitualBehavior() {
-    for (auto rId : ritualIds_) {
-        auto ritual = ECS::Instance()->GetComponent<Ritual>(rId);
-        switch (ritual->behavior) {
-            RITUAL_BEHAVIORS(INIT_RITUAL_CASE)
-            default:
-                THROW("Error initializing ritual behavior")
+void Scene::CreateRituals(const std::vector<Parser::Unit>& units) {
+    for (const auto& unit : units) {
+        if (unit.heading.headingType == "entity") {
+            for (const auto& [cType, fields] : unit.fields) {
+                if (cType == ComponentType::Ritual) {
+                    type::EntityId id = unit.heading.strKeyNumVal.at("id");
+                    auto entity = ECS::Instance()->GetEntity(id);
+                    componentFactory::CreateRitual(entity, fields);
+                }
+            }
         }
     }
 }

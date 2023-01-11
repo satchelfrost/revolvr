@@ -13,11 +13,29 @@ TrackedSpace.type {RightHand}
 Spatial.scale {0.1, 0.1, 0.1}
 Mesh {}
 
+[entity id=15 name=RightHandCollider parent=2]
+Spatial {}
+Collider.type {Sphere}
+Collider.radius {0.05}
+# Collider.type {AABB}
+# Collider.half_x {0.1}
+# Collider.half_y {0.05}
+# Collider.half_z {0.05}
+
+[entity id=16 name=LeftHandCollider parent=1]
+Spatial {}
+Collider.type {Sphere}
+Collider.radius {0.05}
+# Collider.type {AABB}
+# Collider.half_x {0.1}
+# Collider.half_y {0.05}
+# Collider.half_z {0.05}
+
 [entity id=3 name=Pointer parent=2]
-Spatial.scale  {0.01, 0.01, 0.5};
-Spatial.position  {0, 0, -0.25};
+Spatial.scale {0.01, 0.01, 0.5}
+Spatial.position {0, 0, -0.25}
 Mesh {}
-Ritual.behavior {SpinningPointer}
+Ritual.type {SpinningPointer}
 Ritual.can_update {false}
 
 [entity id=4 name=WorldOriginMesh]

@@ -1,5 +1,5 @@
 #include "ecs/component/types/mesh.h"
 
 namespace rvr {
-Mesh::Mesh() : Component(ComponentType::Mesh), visible(true) {}
+Mesh::Mesh(type::EntityId pId) : Component(ComponentType::Mesh, pId), visible(true) {}
 }

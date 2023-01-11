@@ -9,12 +9,13 @@ class ECS {
 public:
     void Init();
     static ECS* Instance();
-    void Assign(type::EntityId id, ComponentType cType);
+    void Assign(Entity* entity, Component* cType);
     void FreeEntity(type::EntityId id);
+    std::unordered_map<type::EntityId, Component*> GetComponents(ComponentType cType);
     ComponentPool* GetPool(ComponentType cType);
     std::vector<type::EntityId> GetEids(ComponentType cType);
-    Entity* CreateNewEntity(const std::vector<ComponentType>& cTypes);
-    Entity* CreateNewEntity(type::EntityId id, const std::vector<ComponentType>& cTypes);
+    Entity* CreateNewEntity(type::EntityId id);
+    Entity* CreateNewEntity();
     Entity* GetEntity(type::EntityId id);
     void FillHoles();
 

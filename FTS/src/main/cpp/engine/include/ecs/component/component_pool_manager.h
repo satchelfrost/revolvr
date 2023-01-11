@@ -10,7 +10,7 @@ class ComponentPoolManager {
 public:
     ComponentPoolManager();
     ~ComponentPoolManager();
-    void Assign(type::EntityId, ComponentType cType);
+    void Assign(Entity* entity, Component* component);
     ComponentPool *GetPool(ComponentType cType);
     Component* GetComponent(type::EntityId id, ComponentType cType);
 

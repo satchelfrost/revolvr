@@ -15,20 +15,24 @@ void ECS::Init() {
     componentPoolManager_ = new ComponentPoolManager();
 }
 
+std::unordered_map<type::EntityId, Component*> ECS::GetComponents(ComponentType cType) {
+    return GetPool(cType)->GetComponents();
+}
+
 ComponentPool *ECS::GetPool(ComponentType cType) {
     return componentPoolManager_->GetPool(cType);
 }
 
-Entity *ECS::CreateNewEntity(const std::vector<ComponentType>& cTypes) {
-    return entityPool_->CreateNewEntity(cTypes);
+Entity *ECS::CreateNewEntity(type::EntityId id) {
+    return entityPool_->CreateNewEntity(id);
 }
 
-Entity *ECS::CreateNewEntity(type::EntityId id, const std::vector<ComponentType>& cTypes) {
-    return entityPool_->CreateNewEntity(id, cTypes);
+Entity *ECS::CreateNewEntity() {
+    return entityPool_->CreateNewEntity();
 }
 
-void ECS::Assign(type::EntityId id, ComponentType cType) {
-    componentPoolManager_->Assign(id, cType);
+void ECS::Assign(Entity* entity, Component* component) {
+    componentPoolManager_->Assign(entity, component);
 }
 
 void ECS::FreeEntity(type::EntityId id) {

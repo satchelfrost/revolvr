@@ -6,15 +6,14 @@ namespace rvr {
 void RitualSystem::Update(float dt) {
     for (auto entityId : ECS::Instance()->GetEids(ComponentType::Ritual)) {
         auto ritual = ECS::Instance()->GetComponent<Ritual>(entityId);
-        if (ritual->HasImpl() && ritual->canUpdate)
+        if (ritual->canUpdate)
             ritual->Update(dt);
     }
 }
 void RitualSystem::Begin() {
     for (auto entityId : ECS::Instance()->GetEids(ComponentType::Ritual)) {
         auto ritual = ECS::Instance()->GetComponent<Ritual>(entityId);
-        if (ritual->HasImpl())
-            ritual->Begin();
+        ritual->Begin();
     }
 }
 }

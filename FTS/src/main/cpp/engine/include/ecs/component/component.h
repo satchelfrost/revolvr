@@ -5,8 +5,9 @@
 namespace rvr {
 class Component {
 public:
-    Component(ComponentType pType);
+    Component(ComponentType pType, type::EntityId pId);
     virtual ~Component() {}
     const ComponentType type;
+    const type::EntityId id;
 };
 }

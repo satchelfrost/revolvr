@@ -19,6 +19,23 @@
     std::terminate();
 }
 
+[[noreturn]] inline void ThrowEntity(std::string failureMessage,
+                                     std::string entityName,
+                                     const char* originator = nullptr,
+                                     const char* sourceLocation = nullptr) {
+    failureMessage = "[Entity: " + entityName + "] - " + failureMessage;
+    if (originator != nullptr) {
+        failureMessage += Fmt("\n    Origin: %s", originator);
+    }
+    if (sourceLocation != nullptr) {
+        failureMessage += Fmt("\n    Source: %s", sourceLocation);
+    }
+
+    Log::Write(Log::Level::Error, Fmt("%s", failureMessage.c_str()));
+    std::terminate();
+}
+
+#define ENTITY_ERR(msg, entityName) ThrowEntity(msg, entityName, nullptr, FILE_AND_LINE);
 #define THROW(msg) Throw(msg, nullptr, FILE_AND_LINE);
 #define CHECK(exp)                                      \
     {                                                   \

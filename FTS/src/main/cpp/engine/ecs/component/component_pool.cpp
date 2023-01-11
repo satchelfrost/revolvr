@@ -1,9 +1,6 @@
-#include "ecs/component/component_pool.h"
-#include "check.h"
-#include "logger.h"
-#include "ecs/component/all_components.h"
-
-#define ALLOC_CASE_STR(TYPE, NUM) case ComponentType::TYPE: component = new TYPE(); break;
+#include <include/ecs/entity/entity.h>
+#include <ecs/component/component_pool.h>
+#include <common.h>
 
 namespace rvr {
 ComponentPool::ComponentPool(ComponentType cType) : poolType_(cType) {}
@@ -13,16 +10,11 @@ ComponentPool::~ComponentPool() {
         delete component.second;
 }
 
-void ComponentPool::CreateComponent(type::EntityId id) {
-    Component* component = nullptr;
-    switch (poolType_) {
-        COMPONENT_LIST(ALLOC_CASE_STR)
-        default:
-            break;
-    }
-    CHECK_MSG(component,Fmt("Entity %d could not be created, component %s has no implementation",
-                            toString(ComponentType(poolType_))));
-    components_.emplace(id, component);
+void ComponentPool::AssignComponent(Entity* entity, Component* component) {
+    if (components_.find(entity->id) != components_.end())
+        THROW(Fmt("Component associated with id %d already exists"))
+    entity->AddComponent(component->type);
+    components_.emplace(entity->id, component);
 }
 
 Component *ComponentPool::GetComponent(type::EntityId id) {
@@ -40,5 +32,9 @@ void ComponentPool::FreeComponent(type::EntityId id) {
     Component* component = GetComponent(id);
     delete component;
     components_.erase(id);
+}
+
+std::unordered_map<type::EntityId, Component *> ComponentPool::GetComponents() {
+    return components_;
 }
 }
