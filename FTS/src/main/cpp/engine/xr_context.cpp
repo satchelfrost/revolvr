@@ -2,7 +2,7 @@
 
 RVRXRContext::RVRXRContext(RVRAndroidContext* androidContext, RVRVulkanRenderer* vulkanRenderer)
 : androidContext_(androidContext), vulkanRenderer_(vulkanRenderer) {
-
+    Initialize();
 }
 
 RVRXRContext::~RVRXRContext() {
@@ -243,8 +243,8 @@ void RVRXRContext::InitializeReferenceSpaces() {
         if (XR_SUCCEEDED(res))
             initializedRefSpaces_[referenceSpace] = space;
         else
-            Log::Write(Log::Level::Error,
-                       Fmt("Failed to create reference space %d with error %d", referenceSpace, res));
+            THROW(Fmt("Failed to create reference space %d with error %d", referenceSpace, res));
+
     }
 }
 
@@ -515,25 +515,49 @@ void RVRXRContext::RefreshTrackedSpaceLocations() {
         switch(trackedSpaceLocation) {
             case TrackedSpaceLocations::LeftHand:
                 res = xrLocateSpace(input.handSpace[Side::LEFT],
-                                    appSpace, predictedDisplayTime,
+                                    appSpace, frameState.predictedDisplayTime,
                                     &spaceLocation);
                 if (TrackedSpaceLocations::ValidityCheck(res, spaceLocation))
                     trackedSpaceLocations.leftHand = spaceLocation;
                 break;
             case TrackedSpaceLocations::RightHand:
                 res = xrLocateSpace(input.handSpace[Side::RIGHT],
-                                    appSpace, predictedDisplayTime,
+                                    appSpace, frameState.predictedDisplayTime,
                                     &spaceLocation);
                 if (TrackedSpaceLocations::ValidityCheck(res, spaceLocation))
                     trackedSpaceLocations.rightHand = spaceLocation;
                 break;
             case TrackedSpaceLocations::VrOrigin:
                 res = xrLocateSpace(initializedRefSpaces_[RVRReferenceSpace::TrackedOrigin],
-                                    appSpace, predictedDisplayTime,
+                                    appSpace, frameState.predictedDisplayTime,
                                     &spaceLocation);
                 if (TrackedSpaceLocations::ValidityCheck(res, spaceLocation))
                     trackedSpaceLocations.vrOrigin = spaceLocation;
                 break;
         }
     }
+}
+
+void RVRXRContext::AddMainLayer() {
+    layers_.push_back(reinterpret_cast<XrCompositionLayerBaseHeader*>(&mainLayer));
+}
+
+void RVRXRContext::BeginFrame() {
+    CHECK(session != XR_NULL_HANDLE);
+
+    XrFrameWaitInfo frameWaitInfo{XR_TYPE_FRAME_WAIT_INFO};
+    CHECK_XRCMD(xrWaitFrame(session, &frameWaitInfo, &frameState));
+
+    XrFrameBeginInfo frameBeginInfo{XR_TYPE_FRAME_BEGIN_INFO};
+    CHECK_XRCMD(xrBeginFrame(session, &frameBeginInfo));
+}
+
+void RVRXRContext::EndFrame() {
+    XrFrameEndInfo frameEndInfo{XR_TYPE_FRAME_END_INFO};
+    frameEndInfo.displayTime = frameState.predictedDisplayTime;
+    frameEndInfo.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
+    frameEndInfo.layerCount = (uint32_t)layers_.size();
+    frameEndInfo.layers = layers_.data();
+    CHECK_XRCMD(xrEndFrame(session, &frameEndInfo));
+    layers_.clear();
 }

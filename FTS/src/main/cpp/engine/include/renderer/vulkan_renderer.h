@@ -2,7 +2,7 @@
 
 #include "pch.h"
 #include "rvr_vulkan_utilities.h"
-#include "platform/rvr_android_context.h"
+#include "platform/android_context.h"
 
 class RVRAndroidContext;
 
@@ -14,7 +14,7 @@ struct Cube {
 // Wraps a Vulkan API.
 class RVRVulkanRenderer {
 public:
-    RVRVulkanRenderer(const RVRAndroidContext* android_platform);
+    RVRVulkanRenderer();
 
     // OpenXR extensions required by this graphics API.
     virtual std::vector<std::string> GetInstanceExtensions() const;

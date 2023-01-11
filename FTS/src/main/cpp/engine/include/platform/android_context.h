@@ -4,7 +4,7 @@
 
 class RVRAndroidContext {
 public:
-    static RVRAndroidContext* GetInstance();
+    static RVRAndroidContext* Instance();
 
     void Init(android_app* app);
     void HandleEvents(bool isSessionRunning);
@@ -14,6 +14,8 @@ public:
 
     // OpenXR instance-level extensions required by this platform.
     static std::vector<std::string> GetInstanceExtensions();
+
+    void HandleAndroidCmd(android_app *app, int32_t cmd);
 
     AAssetManager* GetAndroidAssetManager();
 

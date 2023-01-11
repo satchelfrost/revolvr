@@ -1,9 +1,9 @@
 #include "renderer/rvr_vulkan_renderer.h"
-#include "platform/rvr_android_context.h"
+#include "platform/android_context.h"
 
 extern "C" void fast_matrix_mul(float *, float *, float *);
 
-RVRVulkanRenderer::RVRVulkanRenderer(const RVRAndroidContext* android_platform) {
+RVRVulkanRenderer::RVRVulkanRenderer() {
     m_graphicsBinding.type = GetGraphicsBindingType();
 };
 
@@ -186,7 +186,7 @@ void RVRVulkanRenderer::InitializeDevice(XrInstance instance, XrSystemId systemI
 
 std::vector<char> RVRVulkanRenderer::CreateSPIRVVector(const char *asset_name) {
     // Load in the compiled shader from the apk
-    AAsset *file = AAssetManager_open(RVRAndroidContext::GetInstance()->GetAndroidAssetManager(),
+    AAsset *file = AAssetManager_open(rvr::AndroidContext::Instance()->GetAndroidAssetManager(),
                                       asset_name,
                                       AASSET_MODE_BUFFER);
     off_t file_length = AAsset_getLength(file);

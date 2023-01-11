@@ -4,9 +4,9 @@ RVRGameLoopTimer::RVRGameLoopTimer() {
     start_ = std::chrono::high_resolution_clock::now();
 }
 
-float RVRGameLoopTimer::RefreshDeltaTime() {
+void RVRGameLoopTimer::RefreshDeltaTime(float &dt) {
     auto now = std::chrono::high_resolution_clock::now();
     std::chrono::duration<float> duration = now - start_;
     start_ = now;
-    return duration.count();
+    dt = duration.count();
 }

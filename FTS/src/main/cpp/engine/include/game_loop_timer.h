@@ -5,7 +5,7 @@
 class RVRGameLoopTimer {
 public:
     RVRGameLoopTimer();
-    float RefreshDeltaTime();
+    void RefreshDeltaTime(float &dt);
 private:
     std::chrono::time_point<std::chrono::high_resolution_clock> start_;
 };

@@ -58,6 +58,11 @@ public:
 
     void RefreshTrackedSpaceLocations();
 
+    void AddMainLayer();
+
+    void BeginFrame();
+    void EndFrame();
+
 private:
 
     void InitializePlatformLoader();
@@ -105,8 +110,11 @@ private:
 
 public:
     XrSession session{XR_NULL_HANDLE};
-    XrTime predictedDisplayTime{XR_NO_DURATION};
     XrSpace appSpace{XR_NULL_HANDLE};
+
+    XrFrameState frameState{XR_TYPE_FRAME_STATE};
+    std::vector<XrCompositionLayerProjectionView> projectionLayerViews;
+    XrCompositionLayerProjection mainLayer{XR_TYPE_COMPOSITION_LAYER_PROJECTION};
 
     std::vector<XrView> views;
     std::vector<XrViewConfigurationView> configViews;
@@ -118,5 +126,8 @@ public:
 
     InputState input;
     TrackedSpaceLocations trackedSpaceLocations;
+
+private:
+    std::vector<XrCompositionLayerBaseHeader*> layers_;
 };
 

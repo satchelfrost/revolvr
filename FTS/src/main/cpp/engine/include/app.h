@@ -14,6 +14,7 @@
 #include <array>
 #include <cmath>
 
+namespace rvr {
 class RVRApp {
 public:
 
@@ -22,26 +23,8 @@ public:
 
   void Run(struct android_app* app);
 
-  void HandleAndroidCmd(android_app *app, int32_t cmd);
-
 protected:
-
-    virtual void OnInitialize() {}
-    virtual void OnShutdown() {}
-
-    virtual void OnUpdate() {}
-    virtual void OnInput() {}
-
-    virtual void OnRender() {}
-
-private:
-
-  // Process and react to input
-  // TODO: This method needs to reevaluated
-  void Input();
-
-  // Update game state
-  void Update();
+  void UpdateSystems();
 
   // Create and submit a frame.
   void Render();
@@ -49,14 +32,11 @@ private:
   bool RenderLayer(std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
                    XrCompositionLayerProjection& layer);
 
-  void SetDeltaTime(float dt) { deltaTime_ = dt; }
-
 private:
     float deltaTime_;
     rvr::Scene scene_;
-    RVRAndroidContext* androidContext_;
     RVRVulkanRenderer* vulkanRenderer_;
     RVRXRContext* xrContext_;
     std::vector<Cube> renderBuffer_;
-    bool shouldCallBegin_;
 };
+}
