@@ -11,62 +11,59 @@ static void app_handle_cmd(struct android_app* app, int32_t cmd) {
     AndroidContext::Instance()->HandleAndroidCmd(app, cmd);
 }
 
-App::App() {
+App::App() : requestRestart_(false), exitRenderLoop_(false) {
 }
 
- App::~App() {
-     delete xrContext_;
-     delete vulkanRenderer_;
-     delete AndroidContext::Instance();
- }
+App::~App() {
+    delete xrContext_;
+    delete vulkanRenderer_;
+    delete AndroidContext::Instance();
+}
 
 void App::Run(struct android_app *app) {
-     JNIEnv* Env;
-     app->activity->vm->AttachCurrentThread(&Env, nullptr);
-     app->userData = this;
-     app->onAppCmd = app_handle_cmd;
+    JNIEnv* Env;
+    app->activity->vm->AttachCurrentThread(&Env, nullptr);
+    app->userData = this;
+    app->onAppCmd = app_handle_cmd;
 
-     bool requestRestart = false;
-     bool exitRenderLoop = false;
+    // Create android abstraction
+    AndroidContext::Instance()->Init(app);
 
-     // Create android abstraction
-     AndroidContext::Instance()->Init(app);
+    // Create graphics API implementation.
+    vulkanRenderer_ = new VulkanRenderer();
 
-     // Create graphics API implementation.
-     vulkanRenderer_ = new VulkanRenderer();
+    // Create xr abstraction
+    xrContext_ = new XrContext(vulkanRenderer_);
 
-     // Create xr abstraction
-     xrContext_ = new XrContext(vulkanRenderer_);
+    // Initialize ECS
+    ECS::Instance()->Init();
 
-     // Initialize ECS
-     ECS::Instance()->Init();
+    // Load and Initialize Scene
+    scene_.LoadScene("test_scene");
 
-     // Load and Initialize Scene
-     scene_.LoadScene("test_scene");
+    GameLoopTimer timer;
+    while (app->destroyRequested == 0) {
+        // Update timer
+        timer.RefreshDeltaTime(deltaTime_);
 
-     GameLoopTimer timer;
-     while (app->destroyRequested == 0) {
-         // Update timer
-         timer.RefreshDeltaTime(deltaTime_);
+        // Handle Android events
+        AndroidContext::Instance()->HandleEvents(xrContext_->IsSessionRunning());
 
-         // Handle Android events
-         AndroidContext::Instance()->HandleEvents(xrContext_->IsSessionRunning());
+        // Handle OpenXR Events
+        xrContext_->PollXrEvents(&exitRenderLoop_, &requestRestart_);
 
-         // Handle OpenXR Events
-         xrContext_->PollXrEvents(&exitRenderLoop, &requestRestart);
+        // Do not begin frame unless session is running
+        if (!xrContext_->IsSessionRunning()) continue;
 
-         // Do not begin frame unless session is running
-         if (!xrContext_->IsSessionRunning()) continue;
+        // Begin frame sequence
+        xrContext_->BeginFrame();
+        xrContext_->PollActions();
+        UpdateSystems();
+        Render();
+        xrContext_->EndFrame();
+    }
 
-         // Begin frame sequence
-         xrContext_->BeginFrame();
-         xrContext_->PollActions();
-         UpdateSystems();
-         Render();
-         xrContext_->EndFrame();
-     }
-
-     app->activity->vm->DetachCurrentThread();
+    app->activity->vm->DetachCurrentThread();
 }
 
 

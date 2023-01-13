@@ -8,29 +8,12 @@
 
 #include "rvr_reference_space.h"
 #include "xr_app_helpers.h"
+#include <input_state.h>
 
 #include <array>
 #include <cmath>
 
 namespace rvr {
-namespace Side {
-    const int LEFT = 0;
-    const int RIGHT = 1;
-    const int COUNT = 2;
-};  // namespace Side
-
-struct InputState {
-    XrActionSet actionSet{XR_NULL_HANDLE};
-    XrAction grabAction{XR_NULL_HANDLE};
-    XrAction poseAction{XR_NULL_HANDLE};
-    XrAction vibrateAction{XR_NULL_HANDLE};
-    XrAction quitAction{XR_NULL_HANDLE};
-    std::array<XrPath, Side::COUNT> handSubactionPath;
-    std::array<XrSpace, Side::COUNT> handSpace;
-    std::array<float, Side::COUNT> handScale = {{1.0f, 1.0f}};
-    std::array<XrBool32, Side::COUNT> handActive;
-};
-
 struct Swapchain {
     XrSwapchain handle;
     int32_t width;
@@ -59,9 +42,9 @@ public:
 
     void RefreshTrackedSpaceLocations();
 
-    void AddMainLayer();
-
+    // Render functions
     void BeginFrame();
+    void AddMainLayer();
     void EndFrame();
 
 private:

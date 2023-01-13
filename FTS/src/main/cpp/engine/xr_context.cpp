@@ -367,13 +367,7 @@ void XrContext::PollXrEvents(bool* exitRenderLoop, bool* requestRestart) {
 
 void XrContext::PollActions() {
     input.handActive = {XR_FALSE, XR_FALSE};
-
-    // Sync actions
-    const XrActiveActionSet activeActionSet{input.actionSet, XR_NULL_PATH};
-    XrActionsSyncInfo syncInfo{XR_TYPE_ACTIONS_SYNC_INFO};
-    syncInfo.countActiveActionSets = 1;
-    syncInfo.activeActionSets = &activeActionSet;
-    CHECK_XRCMD(xrSyncActions(session, &syncInfo));
+    input.SyncActions(session);
 
     // Get pose and grab action state and start haptic vibrate when hand is 90% squeezed.
     for (auto hand : {Side::LEFT, Side::RIGHT}) {
@@ -387,15 +381,7 @@ void XrContext::PollActions() {
             // Scale the rendered hand by 1.0f (open) to 0.5f (fully squeezed).
             input.handScale[hand] = 1.0f - 0.5f * grabValue.currentState;
             if (grabValue.currentState > 0.9f) {
-                XrHapticVibration vibration{XR_TYPE_HAPTIC_VIBRATION};
-                vibration.amplitude = 0.5;
-                vibration.duration = XR_MIN_HAPTIC_DURATION;
-                vibration.frequency = XR_FREQUENCY_UNSPECIFIED;
-
-                XrHapticActionInfo hapticActionInfo{XR_TYPE_HAPTIC_ACTION_INFO};
-                hapticActionInfo.action = input.vibrateAction;
-                hapticActionInfo.subactionPath = input.handSubactionPath[hand];
-                CHECK_XRCMD(xrApplyHapticFeedback(session, &hapticActionInfo, (XrHapticBaseHeader*)&vibration));
+                input.VibrateWithAmplitude(0.5, session, hand);
             }
         }
 
