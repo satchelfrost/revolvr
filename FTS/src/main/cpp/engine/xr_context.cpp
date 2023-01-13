@@ -115,56 +115,11 @@ void XrContext::InitializeSession() {
 }
 
 void XrContext::InitializeActions() {
-    // Create an action set.
-    {
-        XrActionSetCreateInfo actionSetInfo{XR_TYPE_ACTION_SET_CREATE_INFO};
-        strcpy_s(actionSetInfo.actionSetName, "gameplay");
-        strcpy_s(actionSetInfo.localizedActionSetName, "Gameplay");
-        actionSetInfo.priority = 0;
-        CHECK_XRCMD(xrCreateActionSet(xrInstance_, &actionSetInfo, &input.actionSet));
-    }
+    input.Init(xrInstance_);
 
-    // Get the XrPath for the left and right hands - we will use them as subaction paths.
-    CHECK_XRCMD(xrStringToPath(xrInstance_, "/user/hand/left", &input.handSubactionPath[Side::LEFT]));
-    CHECK_XRCMD(xrStringToPath(xrInstance_, "/user/hand/right", &input.handSubactionPath[Side::RIGHT]));
 
-    // Create actions.
-    {
-        // Create an input action for grabbing objects with the left and right hands.
-        XrActionCreateInfo actionInfo{XR_TYPE_ACTION_CREATE_INFO};
-        actionInfo.actionType = XR_ACTION_TYPE_FLOAT_INPUT;
-        strcpy_s(actionInfo.actionName, "grab_object");
-        strcpy_s(actionInfo.localizedActionName, "Grab Object");
-        actionInfo.countSubactionPaths = uint32_t(input.handSubactionPath.size());
-        actionInfo.subactionPaths = input.handSubactionPath.data();
-        CHECK_XRCMD(xrCreateAction(input.actionSet, &actionInfo, &input.grabAction));
 
-        // Create an input action getting the left and right hand poses.
-        actionInfo.actionType = XR_ACTION_TYPE_POSE_INPUT;
-        strcpy_s(actionInfo.actionName, "hand_pose");
-        strcpy_s(actionInfo.localizedActionName, "Hand Pose");
-        actionInfo.countSubactionPaths = uint32_t(input.handSubactionPath.size());
-        actionInfo.subactionPaths = input.handSubactionPath.data();
-        CHECK_XRCMD(xrCreateAction(input.actionSet, &actionInfo, &input.poseAction));
 
-        // Create output actions for vibrating the left and right controller.
-        actionInfo.actionType = XR_ACTION_TYPE_VIBRATION_OUTPUT;
-        strcpy_s(actionInfo.actionName, "vibrate_hand");
-        strcpy_s(actionInfo.localizedActionName, "Vibrate Hand");
-        actionInfo.countSubactionPaths = uint32_t(input.handSubactionPath.size());
-        actionInfo.subactionPaths = input.handSubactionPath.data();
-        CHECK_XRCMD(xrCreateAction(input.actionSet, &actionInfo, &input.vibrateAction));
-
-        // Create input actions for quitting the session using the left and right controller.
-        // Since it doesn't matter which hand did this, we do not specify subaction paths for it.
-        // We will just suggest bindings for both hands, where possible.
-        actionInfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
-        strcpy_s(actionInfo.actionName, "quit_session");
-        strcpy_s(actionInfo.localizedActionName, "Quit Session");
-        actionInfo.countSubactionPaths = 0;
-        actionInfo.subactionPaths = nullptr;
-        CHECK_XRCMD(xrCreateAction(input.actionSet, &actionInfo, &input.quitAction));
-    }
 
     std::array<XrPath, Side::COUNT> selectPath;
     std::array<XrPath, Side::COUNT> squeezeValuePath;

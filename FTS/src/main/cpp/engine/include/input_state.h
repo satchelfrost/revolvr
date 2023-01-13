@@ -13,16 +13,26 @@ namespace Side {
 enum class ActionName {
     LeftGrab = 0,
     RightGrab = 1,
+    LeftPose = 2,
+    RightPose = 3,
+    Quit = 4,
+    Vibrate = 5
 };
 
 class InputState {
 public:
     InputState();
 
+    void Init(XrInstance instance);
+    void CreateActionSet(XrInstance instance);
     void SyncActions(XrSession& session);
     XrActionStateFloat GetActionStateFloat(XrAction action, XrPath subactionPath, XrSession& session);
     void VibrateWithAmplitude(float amplitude, XrSession& session, int hand);
-    void UpdateActionStateFloat();
+    void UpdateActionStateFloat(ActionName actionName);
+    void CreateGrabActions();
+    void CreatePoseActions();
+    void CreateVibrateActions();
+    void CreateQuitAction();
 
 
     // Action set
@@ -46,7 +56,7 @@ public:
 
 
     // Action info stores action state information
-    struct ActionInfo {
+    struct ActionStateInfo {
         XrAction action;
         XrPath subactionPath;
         union {
@@ -56,8 +66,10 @@ public:
         };
     };
 
-private:
     // Maps an action name to its ActionInformation
-    std::map<ActionName, ActionInfo> actionInfoMap;
+    std::map<ActionName, ActionStateInfo> actionStateInfoMap;
+
+    std::map<ActionName, XrAction> actionMap;
+//    std::map<ActionName, handSubactionPath.
 };
 }
