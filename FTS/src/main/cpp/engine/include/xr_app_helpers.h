@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common.h"
-#include "math/rvr_math.h"
+#include "math/math.h"
 #include "rvr_reference_space.h"
 
 inline XrReferenceSpaceCreateInfo GetXrReferenceSpaceCreateInfo(RVRReferenceSpace referenceSpace) {

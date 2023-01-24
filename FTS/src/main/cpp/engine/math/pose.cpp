@@ -1,8 +1,8 @@
-#include <math/rvr_pose.h>
-#include <math/rvr_matrix_util.h>
-#include <math/rvr_pose_util.h>
-#include <math/rvr_qauternion_util.h>
-#include <math/rvr_vector_util.h>
+#include <math/pose.h>
+#include <math/matrix_util.h>
+#include <math/pose_util.h>
+#include <math/qauternion_util.h>
+#include <math/vector_util.h>
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
