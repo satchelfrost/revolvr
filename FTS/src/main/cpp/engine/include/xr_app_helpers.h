@@ -6,7 +6,7 @@
 
 inline XrReferenceSpaceCreateInfo GetXrReferenceSpaceCreateInfo(RVRReferenceSpace referenceSpace) {
     XrReferenceSpaceCreateInfo referenceSpaceCreateInfo{XR_TYPE_REFERENCE_SPACE_CREATE_INFO};
-    referenceSpaceCreateInfo.poseInReferenceSpace = RVRMath::Pose::Identity();
+    referenceSpaceCreateInfo.poseInReferenceSpace = rvr::math::pose::Identity();
     XrVector3f stageLeft{-2.f, 0.f, -2.f};
     XrVector3f stageRight{2.f, 0.f, -2.f};
     XrVector3f forward2{0.f, 0.f, -2.f};
@@ -17,7 +17,7 @@ inline XrReferenceSpaceCreateInfo GetXrReferenceSpaceCreateInfo(RVRReferenceSpac
         referenceSpaceCreateInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_VIEW;
         break;
     case RVRReferenceSpace::Hud:
-        referenceSpaceCreateInfo.poseInReferenceSpace = RVRMath::Pose::Translation(forward2);
+        referenceSpaceCreateInfo.poseInReferenceSpace = rvr::math::pose::Translation(forward2);
         referenceSpaceCreateInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_VIEW;
         break;
     case RVRReferenceSpace::HeadInitial:
@@ -27,19 +27,19 @@ inline XrReferenceSpaceCreateInfo GetXrReferenceSpaceCreateInfo(RVRReferenceSpac
         referenceSpaceCreateInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_STAGE;
         break;
     case RVRReferenceSpace::StageLeft:
-        referenceSpaceCreateInfo.poseInReferenceSpace = RVRMath::Pose::RotateCCWAboutYAxis(0.f, stageLeft);
+        referenceSpaceCreateInfo.poseInReferenceSpace = rvr::math::pose::RotateCCWAboutYAxis(0.f, stageLeft);
         referenceSpaceCreateInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_STAGE;
         break;
     case RVRReferenceSpace::StageRight:
-        referenceSpaceCreateInfo.poseInReferenceSpace = RVRMath::Pose::RotateCCWAboutYAxis(0.f, stageRight);
+        referenceSpaceCreateInfo.poseInReferenceSpace = rvr::math::pose::RotateCCWAboutYAxis(0.f, stageRight);
         referenceSpaceCreateInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_STAGE;
         break;
     case RVRReferenceSpace::StageLeftRotated:
-        referenceSpaceCreateInfo.poseInReferenceSpace = RVRMath::Pose::RotateCCWAboutYAxis(piOver3, stageLeft);
+        referenceSpaceCreateInfo.poseInReferenceSpace = rvr::math::pose::RotateCCWAboutYAxis(piOver3, stageLeft);
         referenceSpaceCreateInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_STAGE;
             break;
     case RVRReferenceSpace::StageRightRotated:
-        referenceSpaceCreateInfo.poseInReferenceSpace = RVRMath::Pose::RotateCCWAboutYAxis(-piOver3, stageRight);
+        referenceSpaceCreateInfo.poseInReferenceSpace = rvr::math::pose::RotateCCWAboutYAxis(-piOver3, stageRight);
         referenceSpaceCreateInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_STAGE;
         break;
     default:

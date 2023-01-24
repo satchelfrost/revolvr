@@ -8,7 +8,7 @@
 Cube MakeCube(float scale, XrVector3f position) {
     Cube cube{};
     cube.Scale = {scale, scale, scale};
-    cube.Pose = RVRMath::Pose::Identity();
+    cube.Pose = rvr::math::pose::Identity();
     cube.Pose.position = position;
     return cube;
 }

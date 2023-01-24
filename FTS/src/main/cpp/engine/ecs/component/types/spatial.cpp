@@ -3,9 +3,9 @@
 
 namespace rvr {
 Spatial::Spatial() : Component(ComponentType::Spatial),
-                     pose(RVRMath::Pose::Identity()),
-                     worldPose(RVRMath::Pose::Identity()),
-                     scale(RVRMath::Vector::One()) {}
+                     pose(math::pose::Identity()),
+                     worldPose(math::pose::Identity()),
+                     scale(math::vector::One()) {}
 
 
 void Spatial::UniformScale(float scaleFactor) {
