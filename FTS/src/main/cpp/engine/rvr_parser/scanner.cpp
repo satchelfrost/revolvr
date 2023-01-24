@@ -1,7 +1,8 @@
 #include "rvr_parser/scanner.h"
 
+namespace rvr {
 Scanner::Scanner(const std::string& fileName) : currentLine_(1) {
-  AAsset *file = AAssetManager_open(RVRAndroidContext::GetInstance()->GetAndroidAssetManager(),
+  AAsset *file = AAssetManager_open(AndroidContext::Instance()->GetAndroidAssetManager(),
                                     fileName.c_str(),
                                     AASSET_MODE_BUFFER);
   off_t file_length = AAsset_getLength(file);
@@ -109,4 +110,5 @@ void Scanner::Tokenize(std::string line) {
         std::cerr << "Token unrecognized: \"" << line[pos] << "\"\n";
     }
   }
+}
 }

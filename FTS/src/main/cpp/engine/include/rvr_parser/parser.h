@@ -28,7 +28,7 @@ public:
 
   struct Unit {
     Heading heading;
-    std::vector<Field> fields;
+    std::map<ComponentType, std::map<std::string, Field>> fields;
   };
 
 private:
@@ -41,7 +41,7 @@ private:
   void ParseAccess(Field& field);
   void ParseAccessStrValues(Field& field);
   void ParseAccessFloatValues(Field& field);
-  std::vector<Field> ParseFields();
+  std::map<ComponentType, std::map<std::string, Field>> ParseFields();
   Field ParseField();
   Token::Tok Peek();
   Token Pop();

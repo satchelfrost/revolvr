@@ -1,31 +1,20 @@
 #pragma once
 
-#include "ecs/component/component.h"
-#include <ritual_behaviors.h>
+#include <ecs/component/component.h>
+#include <ritual_type.h>
+#include <ecs/ecs_info.h>
+#include <ecs/entity/entity.h>
+#include <ecs/system/notification/event.h>
 
 namespace rvr {
-class RitualBehavior {
-public:
-    RitualBehavior(type::EntityId pId) : id(pId) {}
-    virtual ~RitualBehavior() {}
-    virtual void Begin() = 0;
-    virtual void Update(float delta) = 0;
-    const type::EntityId id;
-};
 
 class Ritual : public Component {
 public:
-    Ritual();
-    ~Ritual();
-    void Begin() const;
-    void Update(float delta) const;
-    void SetImplementation(RitualBehavior* impl);
-    bool HasImpl();
+    Ritual(type::EntityId id);
+    virtual ~Ritual() = default;
+    virtual void Begin() = 0;
+    virtual void Update(float delta) = 0;
+    virtual void OnNotify(Event* event) = 0;
     bool canUpdate;
-    game::RitualBehavior behavior;
-    type::EntityId id;
-
-private:
-    RitualBehavior* impl_{};
 };
 }

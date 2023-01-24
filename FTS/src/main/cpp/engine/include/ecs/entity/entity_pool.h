@@ -7,8 +7,8 @@ class EntityPool {
 public:
     EntityPool();
     ~EntityPool();
-    Entity* CreateNewEntity(const std::vector<ComponentType>& cTypes);
-    Entity* CreateNewEntity(type::EntityId id, const std::vector<ComponentType>& cTypes);
+    Entity* CreateNewEntity();
+    Entity* CreateNewEntity(type::EntityId id);
     void FreeEntity(int entityId);
     Entity* GetRoot();
     Entity* GetEntity(type::EntityId id);

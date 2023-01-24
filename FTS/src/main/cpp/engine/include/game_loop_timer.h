@@ -2,10 +2,12 @@
 
 #include <chrono>
 
-class RVRGameLoopTimer {
+namespace rvr {
+class GameLoopTimer {
 public:
-    RVRGameLoopTimer();
-    float RefreshDeltaTime();
+    GameLoopTimer();
+    void RefreshDeltaTime(float &dt);
 private:
     std::chrono::time_point<std::chrono::high_resolution_clock> start_;
 };
+}

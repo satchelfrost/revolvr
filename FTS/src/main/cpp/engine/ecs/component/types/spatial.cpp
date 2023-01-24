@@ -2,7 +2,7 @@
 #include "math/rvr_math.h"
 
 namespace rvr {
-Spatial::Spatial() : Component(ComponentType::Spatial),
+Spatial::Spatial(type::EntityId pId) : Component(ComponentType::Spatial, pId),
                      pose(math::pose::Identity()),
                      worldPose(math::pose::Identity()),
                      scale(math::vector::One()) {}

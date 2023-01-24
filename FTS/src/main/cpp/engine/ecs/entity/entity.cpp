@@ -3,10 +3,7 @@
 #include "check.h"
 
 namespace rvr {
-Entity::Entity(int entityId, const std::vector<ComponentType>& cTypes) :
-id(entityId), parent_(nullptr){
-    InitMask(cTypes);
-}
+Entity::Entity(int entityId) : id(entityId), parent_(nullptr) {}
 
 std::vector<ComponentType> Entity::GetComponentTypes() {
     std::vector<ComponentType> componentTypes;
@@ -14,11 +11,6 @@ std::vector<ComponentType> Entity::GetComponentTypes() {
         if (mask_.test(i))
             componentTypes.push_back(ComponentType(i));
     return componentTypes;
-}
-
-void Entity::InitMask(const std::vector<ComponentType> &cTypes) {
-    for (auto cType : cTypes)
-        mask_.set((int)cType);
 }
 
 void Entity::ResetMask() {
@@ -90,5 +82,9 @@ bool Entity::Active() {
 void Entity::FreeComponents() {
     for (auto componentType : GetComponentTypes())
         ECS::Instance()->GetPool(componentType)->FreeComponent(id);
+}
+
+void Entity::AddComponent(ComponentType cType) {
+    mask_.set((int)cType);
 }
 }

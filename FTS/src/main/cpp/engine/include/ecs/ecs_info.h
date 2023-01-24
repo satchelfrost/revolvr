@@ -2,12 +2,13 @@
 
 #include "pch.h"
 
-#define LAST_COMPONENT 3
+#define LAST_COMPONENT 4
 #define COMPONENT_LIST(X) \
     X(Spatial, 0) \
     X(Mesh, 1) \
     X(TrackedSpace, 2) \
-    X(Ritual, LAST_COMPONENT)
+    X(Ritual, 3) \
+    X(Collider, LAST_COMPONENT)
 
 namespace rvr {
 namespace constants {

@@ -2,7 +2,7 @@
 
 #include "pch.h"
 #include "check.h"
-#include "platform/rvr_android_context.h"
+#include "platform/android_context.h"
 
 #include <fstream>
 #include <string>
@@ -13,6 +13,7 @@
 #include <sstream>
 #include <android/asset_manager.h>
 
+namespace rvr {
 class Scanner {
 public:
   Scanner(const std::string& fileName);
@@ -27,3 +28,4 @@ private:
   std::queue<Token> tokens_;
   int currentLine_;
 };
+}

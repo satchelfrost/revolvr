@@ -1,10 +1,10 @@
 #pragma once
 
-#include "pch.h"
-#include "common.h"
-#include "platform/rvr_android_context.h"
-#include "renderer/rvr_vulkan_renderer.h"
-#include "math/xr_linear.h"
+#include <pch.h>
+#include <common.h>
+#include <platform/android_context.h>
+#include <renderer/vulkan_renderer.h>
+#include <math/xr_linear.h>
 
 #include "rvr_reference_space.h"
 #include "xr_app_helpers.h"
@@ -12,6 +12,7 @@
 #include <array>
 #include <cmath>
 
+namespace rvr {
 namespace Side {
     const int LEFT = 0;
     const int RIGHT = 1;
@@ -36,11 +37,11 @@ struct Swapchain {
     int32_t height;
 };
 
-class RVRXRContext {
+class XrContext {
 public:
-    RVRXRContext(RVRAndroidContext* androidContext, RVRVulkanRenderer* vulkanRenderer);
+    XrContext(VulkanRenderer* vulkanRenderer);
 
-    ~RVRXRContext();
+    ~XrContext();
 
     void Initialize();
 
@@ -57,6 +58,11 @@ public:
     void PollActions();
 
     void RefreshTrackedSpaceLocations();
+
+    void AddMainLayer();
+
+    void BeginFrame();
+    void EndFrame();
 
 private:
 
@@ -89,8 +95,7 @@ private:
 
     void LogActionSourceName(XrAction action, const std::string& actionName) const;
 
-    const RVRAndroidContext* androidContext_;
-    RVRVulkanRenderer* vulkanRenderer_;
+    VulkanRenderer* vulkanRenderer_;
 
     XrInstance xrInstance_{XR_NULL_HANDLE};
     XrSystemId xrSystemId_{XR_NULL_SYSTEM_ID};
@@ -105,8 +110,11 @@ private:
 
 public:
     XrSession session{XR_NULL_HANDLE};
-    XrTime predictedDisplayTime{XR_NO_DURATION};
     XrSpace appSpace{XR_NULL_HANDLE};
+
+    XrFrameState frameState{XR_TYPE_FRAME_STATE};
+    std::vector<XrCompositionLayerProjectionView> projectionLayerViews;
+    XrCompositionLayerProjection mainLayer{XR_TYPE_COMPOSITION_LAYER_PROJECTION};
 
     std::vector<XrView> views;
     std::vector<XrViewConfigurationView> configViews;
@@ -118,5 +126,8 @@ public:
 
     InputState input;
     TrackedSpaceLocations trackedSpaceLocations;
-};
 
+private:
+    std::vector<XrCompositionLayerBaseHeader*> layers_;
+};
+}
