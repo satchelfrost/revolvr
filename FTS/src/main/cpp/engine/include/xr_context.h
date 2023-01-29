@@ -8,7 +8,7 @@
 
 #include "rvr_reference_space.h"
 #include "xr_app_helpers.h"
-#include <input_state.h>
+#include <include/action/action_manager.h>
 
 #include <array>
 #include <cmath>
@@ -107,7 +107,7 @@ public:
     std::map<XrSwapchain, std::vector<XrSwapchainImageBaseHeader*>> swapchainImageMap;
     int64_t colorSwapchainFormat{-1};
 
-    InputState input;
+    ActionManager actionManager;
     TrackedSpaceLocations trackedSpaceLocations;
 
 private:

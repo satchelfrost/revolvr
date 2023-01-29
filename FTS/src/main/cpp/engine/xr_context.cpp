@@ -7,13 +7,6 @@ XrContext::XrContext(VulkanRenderer* vulkanRenderer) : vulkanRenderer_(vulkanRen
 }
 
 XrContext::~XrContext() {
-    if (input.actionSet != XR_NULL_HANDLE) {
-        for (auto hand : {Side::LEFT, Side::RIGHT}) {
-            xrDestroySpace(input.handSpace[hand]);
-        }
-        xrDestroyActionSet(input.actionSet);
-    }
-
     for (Swapchain swapchain : swapchains) {
         xrDestroySwapchain(swapchain.handle);
     }
@@ -40,6 +33,7 @@ void XrContext::Initialize() {
     CreateInstance();
     InitializeSystem();
     InitializeSession();
+    actionManager.CreateActionSpace(session);
     CreateSwapchains();
 }
 
@@ -115,81 +109,19 @@ void XrContext::InitializeSession() {
 }
 
 void XrContext::InitializeActions() {
-    input.Init(xrInstance_);
-
-
-
-
-
-    std::array<XrPath, Side::COUNT> selectPath;
-    std::array<XrPath, Side::COUNT> squeezeValuePath;
-    std::array<XrPath, Side::COUNT> squeezeForcePath;
-    std::array<XrPath, Side::COUNT> squeezeClickPath;
-    std::array<XrPath, Side::COUNT> posePath;
-    std::array<XrPath, Side::COUNT> hapticPath;
-    std::array<XrPath, Side::COUNT> menuClickPath;
-    std::array<XrPath, Side::COUNT> bClickPath;
-    std::array<XrPath, Side::COUNT> triggerValuePath;
-    CHECK_XRCMD(xrStringToPath(xrInstance_, "/user/hand/left/input/select/click", &selectPath[Side::LEFT]));
-    CHECK_XRCMD(xrStringToPath(xrInstance_, "/user/hand/right/input/select/click", &selectPath[Side::RIGHT]));
-    CHECK_XRCMD(xrStringToPath(xrInstance_, "/user/hand/left/input/squeeze/value", &squeezeValuePath[Side::LEFT]));
-    CHECK_XRCMD(xrStringToPath(xrInstance_, "/user/hand/right/input/squeeze/value", &squeezeValuePath[Side::RIGHT]));
-    CHECK_XRCMD(xrStringToPath(xrInstance_, "/user/hand/left/input/squeeze/force", &squeezeForcePath[Side::LEFT]));
-    CHECK_XRCMD(xrStringToPath(xrInstance_, "/user/hand/right/input/squeeze/force", &squeezeForcePath[Side::RIGHT]));
-    CHECK_XRCMD(xrStringToPath(xrInstance_, "/user/hand/left/input/squeeze/click", &squeezeClickPath[Side::LEFT]));
-    CHECK_XRCMD(xrStringToPath(xrInstance_, "/user/hand/right/input/squeeze/click", &squeezeClickPath[Side::RIGHT]));
-    CHECK_XRCMD(xrStringToPath(xrInstance_, "/user/hand/left/input/grip/pose", &posePath[Side::LEFT]));
-    CHECK_XRCMD(xrStringToPath(xrInstance_, "/user/hand/right/input/grip/pose", &posePath[Side::RIGHT]));
-    CHECK_XRCMD(xrStringToPath(xrInstance_, "/user/hand/left/output/haptic", &hapticPath[Side::LEFT]));
-    CHECK_XRCMD(xrStringToPath(xrInstance_, "/user/hand/right/output/haptic", &hapticPath[Side::RIGHT]));
-    CHECK_XRCMD(xrStringToPath(xrInstance_, "/user/hand/left/input/menu/click", &menuClickPath[Side::LEFT]));
-    CHECK_XRCMD(xrStringToPath(xrInstance_, "/user/hand/right/input/menu/click", &menuClickPath[Side::RIGHT]));
-    CHECK_XRCMD(xrStringToPath(xrInstance_, "/user/hand/left/input/b/click", &bClickPath[Side::LEFT]));
-    CHECK_XRCMD(xrStringToPath(xrInstance_, "/user/hand/right/input/b/click", &bClickPath[Side::RIGHT]));
-    CHECK_XRCMD(xrStringToPath(xrInstance_, "/user/hand/left/input/trigger/value", &triggerValuePath[Side::LEFT]));
-    CHECK_XRCMD(xrStringToPath(xrInstance_, "/user/hand/right/input/trigger/value", &triggerValuePath[Side::RIGHT]));
-
-    // Suggest bindings for the Oculus Touch.
-    {
-        XrPath oculusTouchInteractionProfilePath;
-        CHECK_XRCMD(
-                xrStringToPath(xrInstance_, "/interaction_profiles/oculus/touch_controller", &oculusTouchInteractionProfilePath));
-        std::vector<XrActionSuggestedBinding> bindings{{{input.grabAction, squeezeValuePath[Side::LEFT]},
-                                                        {input.grabAction, squeezeValuePath[Side::RIGHT]},
-                                                        {input.poseAction, posePath[Side::LEFT]},
-                                                        {input.poseAction, posePath[Side::RIGHT]},
-                                                        {input.quitAction, menuClickPath[Side::LEFT]},
-                                                        {input.vibrateAction, hapticPath[Side::LEFT]},
-                                                        {input.vibrateAction, hapticPath[Side::RIGHT]}}};
-        XrInteractionProfileSuggestedBinding suggestedBindings{XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING};
-        suggestedBindings.interactionProfile = oculusTouchInteractionProfilePath;
-        suggestedBindings.suggestedBindings = bindings.data();
-        suggestedBindings.countSuggestedBindings = (uint32_t)bindings.size();
-        CHECK_XRCMD(xrSuggestInteractionProfileBindings(xrInstance_, &suggestedBindings));
-    }
-
-    XrActionSpaceCreateInfo actionSpaceInfo{XR_TYPE_ACTION_SPACE_CREATE_INFO};
-    actionSpaceInfo.action = input.poseAction;
-    actionSpaceInfo.poseInActionSpace.orientation.w = 1.f;
-    actionSpaceInfo.subactionPath = input.handSubactionPath[Side::LEFT];
-    CHECK_XRCMD(xrCreateActionSpace(session, &actionSpaceInfo, &input.handSpace[Side::LEFT]));
-    actionSpaceInfo.subactionPath = input.handSubactionPath[Side::RIGHT];
-    CHECK_XRCMD(xrCreateActionSpace(session, &actionSpaceInfo, &input.handSpace[Side::RIGHT]));
-
+    // Todo: put this inside of actionManager.Init()
+    actionManager.Init(xrInstance_);
     XrSessionActionSetsAttachInfo attachInfo{XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO};
     attachInfo.countActionSets = 1;
-    attachInfo.actionSets = &input.actionSet;
+    attachInfo.actionSets = &actionManager.actionSet;
     CHECK_XRCMD(xrAttachSessionActionSets(session, &attachInfo));
 }
 
 void XrContext::InitializeReferenceSpaces() {
     CHECK(session != XR_NULL_HANDLE);
-    RVRReferenceSpace referenceSpaces[] = { //RVRReferenceSpace::RVRHead,
+    RVRReferenceSpace referenceSpaces[] = {
             RVRReferenceSpace::Hud,
-            //RVRReferenceSpace::RVRHeadInitial,
             RVRReferenceSpace::TrackedOrigin
-            //RVRReferenceSpace::RVRStageRight,
-            //RVRReferenceSpace::RVRStageLeft
     };
 
     for (const auto& referenceSpace : referenceSpaces) {
@@ -306,10 +238,11 @@ void XrContext::PollXrEvents(bool* exitRenderLoop, bool* requestRestart) {
                 break;
             }
             case XR_TYPE_EVENT_DATA_INTERACTION_PROFILE_CHANGED:
-                LogActionSourceName(input.grabAction, "Grab");
-                LogActionSourceName(input.quitAction, "Quit");
-                LogActionSourceName(input.poseAction, "Pose");
-                LogActionSourceName(input.vibrateAction, "Vibrate");
+                // Todo: reduce line count somehow
+                LogActionSourceName(actionManager.GetAction(ActionType::Grab)->GetAction(), "Grab");
+                LogActionSourceName(actionManager.GetAction(ActionType::Quit)->GetAction(), "Quit");
+                LogActionSourceName(actionManager.GetAction(ActionType::Pose)->GetAction(), "Pose");
+                LogActionSourceName(actionManager.GetAction(ActionType::Vibrate)->GetAction(), "Vibrate");
                 break;
             case XR_TYPE_EVENT_DATA_REFERENCE_SPACE_CHANGE_PENDING:
             default: {
@@ -321,35 +254,28 @@ void XrContext::PollXrEvents(bool* exitRenderLoop, bool* requestRestart) {
 }
 
 void XrContext::PollActions() {
-    input.handActive = {XR_FALSE, XR_FALSE};
-    input.SyncActions(session);
+    // Updates all actions
+    actionManager.Update(session);
 
-    // Get pose and grab action state and start haptic vibrate when hand is 90% squeezed.
-    for (auto hand : {Side::LEFT, Side::RIGHT}) {
-        XrActionStateGetInfo getInfo{XR_TYPE_ACTION_STATE_GET_INFO};
-        getInfo.action = input.grabAction;
-        getInfo.subactionPath = input.handSubactionPath[hand];
+    // Left right hand scale
+    auto grab = dynamic_cast<Grab*>(actionManager.GetAction(ActionType::Grab));
+    for (Hand hand : grab->hands)
+        actionManager.handScale[(int)hand] = 1.0f - 0.5 * grab->GetHandState(hand).currentState;
 
-        XrActionStateFloat grabValue{XR_TYPE_ACTION_STATE_FLOAT};
-        CHECK_XRCMD(xrGetActionStateFloat(session, &getInfo, &grabValue));
-        if (grabValue.isActive == XR_TRUE) {
-            // Scale the rendered hand by 1.0f (open) to 0.5f (fully squeezed).
-            input.handScale[hand] = 1.0f - 0.5f * grabValue.currentState;
-            if (grabValue.currentState > 0.9f) {
-                input.VibrateWithAmplitude(0.5, session, hand);
-            }
-        }
+    // Apply vibration
+    auto vibrate = dynamic_cast<Vibrate*>(actionManager.GetAction(ActionType::Vibrate));
+    for (Hand hand : vibrate->hands)
+        vibrate->ApplyVibration(session, hand, 0.5);
 
-        getInfo.action = input.poseAction;
-        XrActionStatePose poseState{XR_TYPE_ACTION_STATE_POSE};
-        CHECK_XRCMD(xrGetActionStatePose(session, &getInfo, &poseState));
-        input.handActive[hand] = poseState.isActive;
-    }
+    // Check if pose is active
+    auto pose = dynamic_cast<Pose*>(actionManager.GetAction(ActionType::Pose));
+    actionManager.handActive = {XR_FALSE, XR_FALSE};
+    for (Hand hand : pose->hands)
+        actionManager.handActive[(int)hand] = pose->isHandActive(hand);
 
-    // There were no subaction paths specified for the quit action, because we don't care which hand did it.
-    XrActionStateGetInfo getInfo{XR_TYPE_ACTION_STATE_GET_INFO, nullptr, input.quitAction, XR_NULL_PATH};
-    XrActionStateBoolean quitValue{XR_TYPE_ACTION_STATE_BOOLEAN};
-    CHECK_XRCMD(xrGetActionStateBoolean(session, &getInfo, &quitValue));
+    // Check for quitting
+    auto quit = dynamic_cast<Quit*>(actionManager.GetAction(ActionType::Quit));
+    XrActionStateBoolean quitValue = quit->boolState;
     if ((quitValue.isActive == XR_TRUE) && (quitValue.changedSinceLastSync == XR_TRUE) && (quitValue.currentState == XR_TRUE)) {
         CHECK_XRCMD(xrRequestExitSession(session));
     }
@@ -451,27 +377,31 @@ void XrContext::LogActionSourceName(XrAction action, const std::string& actionNa
 }
 
 void XrContext::RefreshTrackedSpaceLocations() {
+    auto pose = dynamic_cast<Pose*>(actionManager.GetAction(ActionType::Pose));
     for (auto trackedSpaceLocation : trackedSpaceLocations.locations) {
         XrSpaceLocation spaceLocation{XR_TYPE_SPACE_LOCATION};
         XrResult res;
         switch(trackedSpaceLocation) {
             case TrackedSpaceLocations::LeftHand:
-                res = xrLocateSpace(input.handSpace[Side::LEFT],
-                                    appSpace, frameState.predictedDisplayTime,
+                res = xrLocateSpace(pose->GetHandSpace(Hand::Left),
+                                    appSpace,
+                                    frameState.predictedDisplayTime,
                                     &spaceLocation);
                 if (TrackedSpaceLocations::ValidityCheck(res, spaceLocation))
                     trackedSpaceLocations.leftHand = spaceLocation;
                 break;
             case TrackedSpaceLocations::RightHand:
-                res = xrLocateSpace(input.handSpace[Side::RIGHT],
-                                    appSpace, frameState.predictedDisplayTime,
+                res = xrLocateSpace(pose->GetHandSpace(Hand::Right),
+                                    appSpace,
+                                    frameState.predictedDisplayTime,
                                     &spaceLocation);
                 if (TrackedSpaceLocations::ValidityCheck(res, spaceLocation))
                     trackedSpaceLocations.rightHand = spaceLocation;
                 break;
             case TrackedSpaceLocations::VrOrigin:
                 res = xrLocateSpace(initializedRefSpaces_[RVRReferenceSpace::TrackedOrigin],
-                                    appSpace, frameState.predictedDisplayTime,
+                                    appSpace,
+                                    frameState.predictedDisplayTime,
                                     &spaceLocation);
                 if (TrackedSpaceLocations::ValidityCheck(res, spaceLocation))
                     trackedSpaceLocations.vrOrigin = spaceLocation;

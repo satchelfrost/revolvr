@@ -113,15 +113,23 @@ bool App::RenderLayer(std::vector<XrCompositionLayerProjectionView>& projectionL
         cube.Pose = spatial->worldPose;
         cube.Scale = spatial->scale;
 
+        // Don't render hands if not active
+        if (spatial->id == 1 && !xrContext_->actionManager.handActive[(int)Hand::Left])
+            continue;
+
+        if (spatial->id == 2 && !xrContext_->actionManager.handActive[(int)Hand::Right])
+            continue;
+
         if (spatial->id == 1) // left hand from scene description
-            cube.Scale = {cube.Scale.x * xrContext_->input.handScale[Side::LEFT],
-                          cube.Scale.y * xrContext_->input.handScale[Side::LEFT],
-                          cube.Scale.z * xrContext_->input.handScale[Side::LEFT]};
+            cube.Scale = {cube.Scale.x * xrContext_->actionManager.handScale[(int)Hand::Left],
+                          cube.Scale.y * xrContext_->actionManager.handScale[(int)Hand::Left],
+                          cube.Scale.z * xrContext_->actionManager.handScale[(int)Hand::Left]};
 
         if (spatial->id == 2) // left hand from scene description
-            cube.Scale = {cube.Scale.x * xrContext_->input.handScale[Side::RIGHT],
-                          cube.Scale.y * xrContext_->input.handScale[Side::RIGHT],
-                          cube.Scale.z * xrContext_->input.handScale[Side::RIGHT]};
+            cube.Scale = {cube.Scale.x * xrContext_->actionManager.handScale[(int)Hand::Right],
+                          cube.Scale.y * xrContext_->actionManager.handScale[(int)Hand::Right],
+                          cube.Scale.z * xrContext_->actionManager.handScale[(int)Hand::Right]};
+
 
         renderBuffer_.push_back(cube);
     }
