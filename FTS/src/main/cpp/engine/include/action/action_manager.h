@@ -24,8 +24,9 @@ public:
     std::array<float, (size_t)Hand::Count> handScale;
     std::array<XrBool32, (size_t)Hand::Count> handActive{};
 
-    // Todo: Does this need to be public
     void CreateActionSpace(XrSession& session);
+
+    std::vector<Action*> GetActions() { return actions_; }
 
 private:
     void CreateActionSet();

@@ -76,7 +76,7 @@ private:
                                         bool* exitRenderLoop,
                                         bool* requestRestart);
 
-    void LogActionSourceName(XrAction action, const std::string& actionName) const;
+    void LogActionSourceName(Action* action) const;
 
     VulkanRenderer* vulkanRenderer_;
 

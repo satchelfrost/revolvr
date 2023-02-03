@@ -5,6 +5,6 @@
 namespace rvr {
 class Vibrate : public HapticAction {
 public:
-    Vibrate(XrActionSet actionSet, std::array<XrPath, (size_t)Hand::Count> handSubactionPath);
+    Vibrate(XrActionSet actionSet, HandPathArray handSubactionPath);
 };
 }

@@ -5,7 +5,7 @@
 namespace rvr {
 class HapticAction : public Action {
 public:
-    HapticAction(XrActionSet actionSet, std::array<XrPath, (size_t)Hand::Count> handSubactionPath,
+    HapticAction(XrActionSet actionSet, HandPathArray handSubactionPath,
                  std::string actionPath, ActionType type);
     void Update(XrSession& session) override;
     void Reset();

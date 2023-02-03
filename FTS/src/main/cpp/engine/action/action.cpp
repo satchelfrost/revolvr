@@ -1,7 +1,6 @@
 #include <action/action.h>
 #include <common.h>
 
-#include <utility>
 #define ACTION_TYPE_CASE_STR(ENUM, NUM) case ActionType::ENUM: data = #ENUM; break;
 
 namespace rvr {
@@ -17,7 +16,7 @@ std::string toString(ActionType actionType) {
     return data;
 }
 
-Action::Action(XrActionSet actionSet, std::array<XrPath, (size_t)Hand::Count> handSubactionPath, std::string actionPath,
+Action::Action(XrActionSet actionSet, HandPathArray handSubactionPath, std::string actionPath,
                ActionType pType, Hand handConfig) :
 handSubactionPath_(handSubactionPath),
 actionSet_(actionSet),

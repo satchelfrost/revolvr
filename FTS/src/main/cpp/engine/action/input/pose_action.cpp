@@ -2,7 +2,7 @@
 #include <common.h>
 
 namespace rvr {
-PoseAction::PoseAction(XrActionSet actionSet, std::array<XrPath, (size_t)Hand::Count> handSubactionPath,
+PoseAction::PoseAction(XrActionSet actionSet, HandPathArray handSubactionPath,
                        std::string actionPath, ActionType type) :
 Action(actionSet, handSubactionPath, std::move(actionPath), type, Hand::Both),
 actionSpacesCreated_(false) {
@@ -42,7 +42,8 @@ try {
     return handState_.at((int)hand).isActive;
 }
 catch (std::out_of_range& e) {
-    THROW(Fmt("Attempted to get handState in Pose, No such hand %d", hand));
+    THROW(Fmt("Attempted to get handState in Pose, No such hand %d for actionType %s",
+                   hand, toString(type).c_str()));
 }
 }
 
@@ -51,7 +52,8 @@ XrSpace PoseAction::GetHandSpace(Hand hand) {
         return handSpace_.at((int)hand);
     }
     catch (std::out_of_range& e) {
-        THROW(Fmt("Attempted to get handSpace in Pose, No such hand %d", hand));
+        THROW(Fmt("Attempted to get handSpace in Pose, No such hand %d for actionType %s",
+                       hand, toString(type).c_str()));
     }
 }
 

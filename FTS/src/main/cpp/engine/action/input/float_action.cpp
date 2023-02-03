@@ -4,7 +4,7 @@
 #include <utility>
 
 namespace rvr {
-FloatAction::FloatAction(XrActionSet actionSet, std::array<XrPath, (size_t)Hand::Count> handSubactionPath,
+FloatAction::FloatAction(XrActionSet actionSet, HandPathArray handSubactionPath,
                          std::string actionPath, ActionType type) :
 Action(actionSet, handSubactionPath, std::move(actionPath), type, Hand::Both) {
     CreateAction(XR_ACTION_TYPE_FLOAT_INPUT);
@@ -27,7 +27,8 @@ XrActionStateFloat FloatAction::GetHandState(Hand hand) {
         return handState_.at((int)hand);
     }
     catch (std::out_of_range& e) {
-        THROW(Fmt("Attempted to get handState in Grab, No such hand %d", hand));
+        THROW(Fmt("Attempted to get handState in Grab, No such hand %d for actionType %s",
+                       hand, toString(type).c_str()));
     }
 }
 }

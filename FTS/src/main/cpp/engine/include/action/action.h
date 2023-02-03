@@ -36,6 +36,8 @@ enum class Hand {
     Both = 3
 };
 
+typedef std::array<XrPath, (size_t)Hand::Count> HandPathArray;
+
 class Action {
 public:
     virtual void Update(XrSession& session) = 0;
@@ -44,7 +46,7 @@ public:
     const ActionType type;
     std::vector<Hand> hands;
 
-    Action(XrActionSet actionSet, std::array<XrPath, (size_t)Hand::Count> handSubactionPath,
+    Action(XrActionSet actionSet, HandPathArray handSubactionPath,
            std::string actionPath, ActionType type, Hand handConfig);
     virtual ~Action() = default;
 
@@ -52,7 +54,7 @@ protected:
     void CreateAction(XrActionType actionType);
     XrPath GetSubactionPath(Hand hand);
 
-    std::array<XrPath, (size_t)Hand::Count> handSubactionPath_{};
+    HandPathArray handSubactionPath_{};
     XrAction action_;
     XrActionSet actionSet_;
     std::string actionPath_;

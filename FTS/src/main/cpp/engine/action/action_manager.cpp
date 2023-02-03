@@ -43,8 +43,8 @@ void ActionManager::CreateSubactionPaths() {
 void ActionManager::SuggestOculusBindings() {
     XrPath oculusTouchInteractionProfilePath;
     CHECK_XRCMD(xrStringToPath(instance_,
-                               "/interaction_profiles/oculus/touch_controller",
-                               &oculusTouchInteractionProfilePath));
+                                    "/interaction_profiles/oculus/touch_controller",
+                                    &oculusTouchInteractionProfilePath));
 
     // Setup action bindings for each hand if possible
     std::vector<XrActionSuggestedBinding> bindings;

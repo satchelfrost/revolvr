@@ -4,7 +4,7 @@
 #include <utility>
 
 namespace rvr {
-Vec2Action::Vec2Action(XrActionSet actionSet, std::array<XrPath, (size_t) Hand::Count> handSubactionPath,
+Vec2Action::Vec2Action(XrActionSet actionSet, HandPathArray handSubactionPath,
                        std::string actionPath, ActionType type) :
 Action(actionSet, handSubactionPath, std::move(actionPath), type, Hand::Both) {
     CreateAction(XR_ACTION_TYPE_VECTOR2F_INPUT);
@@ -20,7 +20,8 @@ XrActionStateVector2f Vec2Action::GetHandState(Hand hand) {
         return handState_.at((int)hand);
     }
     catch (std::out_of_range& e) {
-        THROW(Fmt("Attempted to get handState in Vec2, No such hand %d", hand));
+        THROW(Fmt("Attempted to get handState in Vec2, No such hand %d for actionType",
+                       hand, toString(type).c_str()));
     }
 }
 

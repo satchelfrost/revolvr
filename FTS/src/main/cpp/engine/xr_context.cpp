@@ -238,11 +238,8 @@ void XrContext::PollXrEvents(bool* exitRenderLoop, bool* requestRestart) {
                 break;
             }
             case XR_TYPE_EVENT_DATA_INTERACTION_PROFILE_CHANGED:
-//                // Todo: reduce line count somehow
-//                LogActionSourceName(actionManager.GetAction(ActionType::Grab)->GetAction(), "Grab");
-//                LogActionSourceName(actionManager.GetAction(ActionType::Quit)->GetAction(), "Quit");
-//                LogActionSourceName(actionManager.GetAction(ActionType::Pose)->GetAction(), "Pose");
-//                LogActionSourceName(actionManager.GetAction(ActionType::Vibrate)->GetAction(), "Vibrate");
+                for (auto action : actionManager.GetActions())
+                    LogActionSourceName(action);
                 break;
             case XR_TYPE_EVENT_DATA_REFERENCE_SPACE_CHANGE_PENDING:
             default: {
@@ -277,14 +274,14 @@ void XrContext::PollActions() {
 
     // Check for quitting
     auto quit = dynamic_cast<BoolAction*>(actionManager.GetAction(ActionType::Menu));
-    XrActionStateBoolean quitValue = quit->GetHandState(Hand::Left);
+    XrActionStateBoolean quitValue = quit->CurrHandState(Hand::Left);
     if ((quitValue.isActive == XR_TRUE) && (quitValue.changedSinceLastSync == XR_TRUE) && (quitValue.currentState == XR_TRUE)) {
         CHECK_XRCMD(xrRequestExitSession(session));
     }
 
     // A button pressed
     auto a = dynamic_cast<BoolAction*>(actionManager.GetAction(ActionType::A));
-    if (a->GetHandState(Hand::Right).currentState)
+    if (a->StateTurnedOn(Hand::Right))
         Log::Write(Log::Level::Info, "A button pressed");
 
     // left joystick
@@ -296,8 +293,8 @@ void XrContext::PollActions() {
 }
 
 void XrContext::HandleSessionStateChangedEvent(const XrEventDataSessionStateChanged& stateChangedEvent,
-                                            bool* exitRenderLoop,
-                                            bool* requestRestart) {
+                                               bool* exitRenderLoop,
+                                               bool* requestRestart) {
     const XrSessionState oldState = xrSessionState_;
     xrSessionState_ = stateChangedEvent.state;
 
@@ -353,9 +350,9 @@ bool XrContext::IsSessionFocused() const {
     return xrSessionState_ == XR_SESSION_STATE_FOCUSED;
 }
 
-void XrContext::LogActionSourceName(XrAction action, const std::string& actionName) const {
+void XrContext::LogActionSourceName(Action* action) const {
     XrBoundSourcesForActionEnumerateInfo getInfo = {XR_TYPE_BOUND_SOURCES_FOR_ACTION_ENUMERATE_INFO};
-    getInfo.action = action;
+    getInfo.action = action->GetAction();
     uint32_t pathCount = 0;
     CHECK_XRCMD(xrEnumerateBoundSourcesForAction(session, &getInfo, 0, &pathCount, nullptr));
     std::vector<XrPath> paths(pathCount);
@@ -387,7 +384,8 @@ void XrContext::LogActionSourceName(XrAction action, const std::string& actionNa
     }
 
     Log::Write(Log::Level::Info,
-               Fmt("%s action is bound to %s", actionName.c_str(), ((!sourceName.empty()) ? sourceName.c_str() : "nothing")));
+               Fmt("%s action is bound to %s", toString(action->type).c_str(),
+                       ((!sourceName.empty()) ? sourceName.c_str() : "nothing")));
 }
 
 void XrContext::RefreshTrackedSpaceLocations() {

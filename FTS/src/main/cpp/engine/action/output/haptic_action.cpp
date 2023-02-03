@@ -4,7 +4,7 @@
 #include <utility>
 
 namespace rvr {
-HapticAction::HapticAction(XrActionSet actionSet, std::array<XrPath, (size_t)Hand::Count> handSubactionPath,
+HapticAction::HapticAction(XrActionSet actionSet, HandPathArray handSubactionPath,
                            std::string actionPath, ActionType type) :
 Action(actionSet, handSubactionPath, std::move(actionPath), type, Hand::Both) {
     CreateAction(XR_ACTION_TYPE_VIBRATION_OUTPUT);
@@ -24,7 +24,7 @@ void HapticAction::Reset() {
 void HapticAction::ApplyVibration(XrSession &session, Hand hand, float amplitude, float frequency, XrDuration duration) {
     XrHapticActionInfo hapticActionInfo{XR_TYPE_HAPTIC_ACTION_INFO};
     hapticActionInfo.action = action_;
-    hapticActionInfo.subactionPath = handSubactionPath_[(int)hand];
+    hapticActionInfo.subactionPath = GetSubactionPath(hand);
     vibration_.amplitude = amplitude;
     vibration_.frequency = frequency;
     vibration_.duration  = duration;
