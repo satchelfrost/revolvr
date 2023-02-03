@@ -22,11 +22,11 @@ struct Swapchain {
 
 class XrContext {
 public:
-    XrContext(VulkanRenderer* vulkanRenderer);
-
     ~XrContext();
 
-    void Initialize();
+    void Initialize(VulkanRenderer* vulkanRenderer);
+
+    static XrContext* Instance();
 
     // Manage session lifecycle to track if Render should be called.
     bool IsSessionRunning() const;
@@ -48,8 +48,9 @@ public:
     void EndFrame();
 
 private:
+    static XrContext* instance_;
 
-    void InitializePlatformLoader();
+    static void InitializePlatformLoader();
 
     // Create an Instance and other basic instance-level initialization.
     void CreateInstance();

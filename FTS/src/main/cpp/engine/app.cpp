@@ -15,9 +15,9 @@ App::App() : requestRestart_(false), exitRenderLoop_(false) {
 }
 
 App::~App() {
-    delete xrContext_;
     delete vulkanRenderer_;
     delete AndroidContext::Instance();
+    delete xrContext_;
 }
 
 void App::Run(struct android_app *app) {
@@ -33,7 +33,8 @@ void App::Run(struct android_app *app) {
     vulkanRenderer_ = new VulkanRenderer();
 
     // Create xr abstraction
-    xrContext_ = new XrContext(vulkanRenderer_);
+    xrContext_ = XrContext::Instance();
+    xrContext_->Initialize(vulkanRenderer_);
 
     // Initialize ECS
     ECS::Instance()->Init();

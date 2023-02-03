@@ -2,8 +2,13 @@
 #include <platform/android_context.h>
 
 namespace rvr {
-XrContext::XrContext(VulkanRenderer* vulkanRenderer) : vulkanRenderer_(vulkanRenderer) {
-    Initialize();
+
+XrContext* XrContext::instance_ = nullptr;
+
+XrContext* XrContext::Instance() {
+    if (!instance_)
+        instance_ = new XrContext();
+    return instance_;
 }
 
 XrContext::~XrContext() {
@@ -28,7 +33,9 @@ XrContext::~XrContext() {
     }
 }
 
-void XrContext::Initialize() {
+void XrContext::Initialize(VulkanRenderer* vulkanRenderer) {
+    vulkanRenderer_ = vulkanRenderer;
+
     InitializePlatformLoader();
     CreateInstance();
     InitializeSystem();
@@ -279,10 +286,6 @@ void XrContext::PollActions() {
         CHECK_XRCMD(xrRequestExitSession(session));
     }
 
-    // A button pressed
-    auto a = dynamic_cast<BoolAction*>(actionManager.GetAction(ActionType::A));
-    if (a->StateTurnedOn(Hand::Right))
-        Log::Write(Log::Level::Info, "A button pressed");
 
     // left joystick
     auto joystick = dynamic_cast<Vec2Action*>(actionManager.GetAction(ActionType::Joystick));

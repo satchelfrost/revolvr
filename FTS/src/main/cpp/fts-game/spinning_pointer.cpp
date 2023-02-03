@@ -1,5 +1,6 @@
 #include "spinning_pointer.h"
 #include <ecs/ecs.h>
+#include <ecs/system/input_system.h>
 
 SpinningPointer::SpinningPointer(rvr::type::EntityId id) : Ritual(id), rightHandColliderId_(15) {
     spatial_ = rvr::ECS::Instance()->GetComponent<rvr::Spatial>(id);
@@ -27,6 +28,12 @@ void SpinningPointer::Update(float delta) {
     spatial_->pose.position.z = transAmt;
     if (abs(transAmt) > 0.25)
         transDirection_ *= -1;
+
+    if (rvr::ButtonPressed(rvr::ActionType::A))
+        Log::Write(Log::Level::Info, "A button pressed");
+
+    if (rvr::ButtonPressed(rvr::ActionType::X))
+        Log::Write(Log::Level::Info, "X button pressed");
 }
 
 void SpinningPointer::OnNotify(rvr::Event* event) {
