@@ -2,8 +2,21 @@
 #include <common.h>
 
 #include <utility>
+#define ACTION_TYPE_CASE_STR(ENUM, NUM) case ActionType::ENUM: data = #ENUM; break;
 
 namespace rvr {
+std::string toString(ActionType actionType) {
+    std::string data;
+    switch (actionType) {
+        ACTION_LIST(ACTION_TYPE_CASE_STR)
+        default:
+            return "ActionType unrecognized";
+    }
+    std::transform(data.begin(), data.end(), data.begin(),
+                   [](unsigned char c){return std::tolower(c);});
+    return data;
+}
+
 Action::Action(XrActionSet actionSet, std::array<XrPath, (size_t)Hand::Count> handSubactionPath, std::string actionPath,
                ActionType pType, Hand handConfig) :
 handSubactionPath_(handSubactionPath),
@@ -23,20 +36,18 @@ type(pType) {
         case Hand::Right:
             hands = {Hand::Right};
             break;
-        case Hand::Unspecified:
-            hands = {Hand::Unspecified};
-            break;
         default:
             THROW(Fmt("Hand configuration %d is invalid", handConfig))
     }
 }
 
-void Action::CreateAction(XrActionType actionType, const char *actionName, const char *localizedName) {
-    XrActionCreateInfo actionInfo{XR_TYPE_ACTION_CREATE_INFO};
+void Action::CreateAction(XrActionType actionType) {
+    XrActionCreateInfo actionInfo = {};
+    actionInfo.type = XR_TYPE_ACTION_CREATE_INFO;
     actionInfo.next = nullptr;
     actionInfo.actionType = actionType;
-    strcpy_s(actionInfo.actionName, actionName);
-    strcpy_s(actionInfo.localizedActionName, localizedName);
+    strcpy_s(actionInfo.actionName, toString(type).c_str());
+    strcpy_s(actionInfo.localizedActionName, toString(type).c_str());
 
     if (bothHands_) {
         actionInfo.countSubactionPaths = uint32_t(handSubactionPath_.size());
@@ -47,37 +58,10 @@ void Action::CreateAction(XrActionType actionType, const char *actionName, const
         actionInfo.subactionPaths = nullptr;
     }
 
+    Log::Write(Log::Level::Info, Fmt("Action name %s", actionInfo.actionName));
     CHECK_XRCMD(xrCreateAction(actionSet_, &actionInfo, &action_));
 }
 
-void Action::UpdateActionStateFloat(Hand hand, XrActionStateFloat &floatState, XrSession& session) {
-    XrActionStateGetInfo getInfo{XR_TYPE_ACTION_STATE_GET_INFO};
-    getInfo.action = action_;
-    getInfo.subactionPath = GetSubactionPath(hand);
-    CHECK_XRCMD(xrGetActionStateFloat(session, &getInfo, &floatState));
-}
-
-void Action::CreateActionSpace(Hand hand, XrSpace& space, XrSession& session) {
-    XrActionSpaceCreateInfo actionSpaceInfo{XR_TYPE_ACTION_SPACE_CREATE_INFO};
-    actionSpaceInfo.action = action_;
-    actionSpaceInfo.poseInActionSpace.orientation.w = 1.f;
-    actionSpaceInfo.subactionPath = GetSubactionPath(hand);
-    CHECK_XRCMD(xrCreateActionSpace(session, &actionSpaceInfo, &space));
-}
-
-void Action::UpdateActionIsPoseAction(Hand hand, XrActionStatePose &poseState, XrSession& session) {
-    XrActionStateGetInfo getInfo{XR_TYPE_ACTION_STATE_GET_INFO};
-    getInfo.action = action_;
-    getInfo.subactionPath = GetSubactionPath(hand);
-    CHECK_XRCMD(xrGetActionStatePose(session, &getInfo, &poseState));
-}
-
-void Action::UpdateActionStateBool(Hand hand, XrActionStateBoolean &boolState, XrSession& session) {
-    XrActionStateGetInfo getInfo{XR_TYPE_ACTION_STATE_GET_INFO};
-    getInfo.action = action_;
-    getInfo.subactionPath = GetSubactionPath(hand);
-    CHECK_XRCMD(xrGetActionStateBoolean(session, &getInfo, &boolState));
-}
 
 XrPath Action::GetSubactionPath(Hand hand) {
     if (bothHands_) {

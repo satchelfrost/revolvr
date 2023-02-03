@@ -1,20 +1,28 @@
-#include <action/input/grab.h>
+#include <action/input/float_action.h>
 #include <common.h>
 
+#include <utility>
+
 namespace rvr {
-Grab::Grab(XrActionSet actionSet, std::array<XrPath, (size_t)Hand::Count> handSubactionPath) :
-Action(actionSet, handSubactionPath, "/input/squeeze/value", ActionType::Grab, Hand::Both) {
-    CreateAction(XR_ACTION_TYPE_FLOAT_INPUT,
-                 "grab_object",
-                 "Grab object");
+FloatAction::FloatAction(XrActionSet actionSet, std::array<XrPath, (size_t)Hand::Count> handSubactionPath,
+                         std::string actionPath, ActionType type) :
+Action(actionSet, handSubactionPath, std::move(actionPath), type, Hand::Both) {
+    CreateAction(XR_ACTION_TYPE_FLOAT_INPUT);
 }
 
-void Grab::Update(XrSession& session) {
+void FloatAction::Update(XrSession& session) {
     for (Hand hand : hands)
-        UpdateActionStateFloat(hand, handState_[(int)hand], session);
+        UpdateActionStateFloat(hand, session);
 }
 
-XrActionStateFloat Grab::GetHandState(Hand hand) {
+void FloatAction::UpdateActionStateFloat(Hand hand, XrSession& session) {
+    XrActionStateGetInfo getInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+    getInfo.action = action_;
+    getInfo.subactionPath = GetSubactionPath(hand);
+    CHECK_XRCMD(xrGetActionStateFloat(session, &getInfo, &handState_[(int)hand]));
+}
+
+XrActionStateFloat FloatAction::GetHandState(Hand hand) {
     try {
         return handState_.at((int)hand);
     }

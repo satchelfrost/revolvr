@@ -3,20 +3,37 @@
 #include <pch.h>
 #include <array>
 
+#define LAST_ACTION 13
+#define ACTION_LIST(x)           \
+    x(GripTrigger, 0)            \
+    x(GripPose, 1)               \
+    x(Menu, 2)                   \
+    x(Vibrate, 3)                \
+    x(IndexTrigger, 4)           \
+    x(AimPose, 5)                \
+    x(A, 6)                      \
+    x(B, 7)                      \
+    x(X, 8)                      \
+    x(Y, 9)                      \
+    x(ThumbStickTouch, 10)       \
+    x(ThumbStickRestTouch, 11)   \
+    x(TriggerTouch, 12)          \
+    x(Joystick, LAST_ACTION)     \
+
+#define BUILD_ENUM(ENUM, NUM) ENUM = NUM,
+
 namespace rvr {
 enum class ActionType {
-    Grab    = 0,
-    Pose    = 1,
-    Quit    = 2,
-    Vibrate = 3
+    ACTION_LIST(BUILD_ENUM)
 };
+
+std::string toString(ActionType actionType);
 
 enum class Hand {
     Left = 0,
     Right = 1,
     Count = 2,
-    Unspecified = 3,
-    Both = 4
+    Both = 3
 };
 
 class Action {
@@ -27,14 +44,12 @@ public:
     const ActionType type;
     std::vector<Hand> hands;
 
-protected:
     Action(XrActionSet actionSet, std::array<XrPath, (size_t)Hand::Count> handSubactionPath,
            std::string actionPath, ActionType type, Hand handConfig);
-    void CreateAction(XrActionType actionType, const char* actionName, const char* localizedName);
-    void CreateActionSpace(Hand hand, XrSpace& space, XrSession& session);
-    void UpdateActionStateFloat(Hand hand, XrActionStateFloat& floatState, XrSession& session);
-    void UpdateActionStateBool(Hand hand, XrActionStateBoolean& boolState, XrSession& session);
-    void UpdateActionIsPoseAction(Hand hand, XrActionStatePose& poseState, XrSession& session);
+    virtual ~Action() = default;
+
+protected:
+    void CreateAction(XrActionType actionType);
     XrPath GetSubactionPath(Hand hand);
 
     std::array<XrPath, (size_t)Hand::Count> handSubactionPath_{};

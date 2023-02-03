@@ -3,11 +3,8 @@
 #include <pch.h>
 #include <array>
 #include <action/action.h>
-
-#include <action/input/grab.h>
-#include <action/input/pose.h>
-#include <action/input/quit.h>
-#include <action/output/vibrate.h>
+#include <action/input/oculus_input_actions.h>
+#include <action/output/oculus_output_actions.h>
 
 namespace rvr {
 class ActionManager {
@@ -40,6 +37,6 @@ private:
 
     XrInstance instance_;
     std::vector<Action*> actions_;
-    static const int NUM_ACTIONS = 4;
+    static const int NUM_ACTIONS = LAST_ACTION + 1;
 };
 }

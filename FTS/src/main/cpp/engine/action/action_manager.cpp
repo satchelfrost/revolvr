@@ -1,6 +1,9 @@
 #include <include/action/action_manager.h>
 #include <common.h>
 
+
+#define POPULATE_ACTIONS(ENUM, NUM) actions_[(int)ActionType::ENUM] = new ENUM(actionSet, handSubactionPath);
+
 namespace rvr {
 ActionManager::ActionManager() {
     actions_.resize(NUM_ACTIONS);
@@ -11,6 +14,8 @@ ActionManager::~ActionManager() {
     if (actionSet != XR_NULL_HANDLE) {
         xrDestroyActionSet(actionSet);
     }
+    for (auto action : actions_)
+        delete action;
 }
 
 void ActionManager::Init(XrInstance& instance) {
@@ -18,12 +23,7 @@ void ActionManager::Init(XrInstance& instance) {
 
     CreateActionSet();
     CreateSubactionPaths();
-
-    actions_[(int)ActionType::Grab]    = new Grab(actionSet, handSubactionPath);
-    actions_[(int)ActionType::Pose]    = new Pose(actionSet, handSubactionPath);
-    actions_[(int)ActionType::Vibrate] = new Vibrate(actionSet, handSubactionPath);
-    actions_[(int)ActionType::Quit]    = new Quit(actionSet, handSubactionPath);
-
+    ACTION_LIST(POPULATE_ACTIONS)
     SuggestOculusBindings();
 }
 
@@ -80,9 +80,11 @@ void ActionManager::SyncActions(XrSession& session) {
 }
 
 void ActionManager::CreateActionSpace(XrSession &session) {
-    Action* action = actions_.at((int)ActionType::Pose);
-    Pose* pose = dynamic_cast<Pose*>(action);
-    pose->CreateActionSpaces(session);
+    auto gripPose = dynamic_cast<GripPose*>(actions_.at((int)ActionType::GripPose));
+    gripPose->CreateActionSpaces(session);
+
+    auto aimPose = dynamic_cast<AimPose*>(actions_.at((int)ActionType::AimPose));
+    aimPose->CreateActionSpaces(session);
 }
 
 Action* ActionManager::GetAction(ActionType type) {

@@ -238,11 +238,11 @@ void XrContext::PollXrEvents(bool* exitRenderLoop, bool* requestRestart) {
                 break;
             }
             case XR_TYPE_EVENT_DATA_INTERACTION_PROFILE_CHANGED:
-                // Todo: reduce line count somehow
-                LogActionSourceName(actionManager.GetAction(ActionType::Grab)->GetAction(), "Grab");
-                LogActionSourceName(actionManager.GetAction(ActionType::Quit)->GetAction(), "Quit");
-                LogActionSourceName(actionManager.GetAction(ActionType::Pose)->GetAction(), "Pose");
-                LogActionSourceName(actionManager.GetAction(ActionType::Vibrate)->GetAction(), "Vibrate");
+//                // Todo: reduce line count somehow
+//                LogActionSourceName(actionManager.GetAction(ActionType::Grab)->GetAction(), "Grab");
+//                LogActionSourceName(actionManager.GetAction(ActionType::Quit)->GetAction(), "Quit");
+//                LogActionSourceName(actionManager.GetAction(ActionType::Pose)->GetAction(), "Pose");
+//                LogActionSourceName(actionManager.GetAction(ActionType::Vibrate)->GetAction(), "Vibrate");
                 break;
             case XR_TYPE_EVENT_DATA_REFERENCE_SPACE_CHANGE_PENDING:
             default: {
@@ -257,28 +257,42 @@ void XrContext::PollActions() {
     // Updates all actions
     actionManager.Update(session);
 
-    // Left right hand scale
-    auto grab = dynamic_cast<Grab*>(actionManager.GetAction(ActionType::Grab));
-    for (Hand hand : grab->hands)
-        actionManager.handScale[(int)hand] = 1.0f - 0.5 * grab->GetHandState(hand).currentState;
+    // Todo: the following below can be decoupled into rituals,
+    //  once that is done PollActions() can be deleted in favor of actionManager.Update()
 
-    // Apply vibration
-    auto vibrate = dynamic_cast<Vibrate*>(actionManager.GetAction(ActionType::Vibrate));
-    for (Hand hand : vibrate->hands)
-        vibrate->ApplyVibration(session, hand, 0.5);
+    // Left right hand scale & vibration
+    auto grab = dynamic_cast<FloatAction*>(actionManager.GetAction(ActionType::GripTrigger));
+    auto vibrate = dynamic_cast<HapticAction*>(actionManager.GetAction(ActionType::Vibrate));
+    for (Hand hand : grab->hands) {
+        actionManager.handScale[(int)hand] = 1.0f - 0.5 * grab->GetHandState(hand).currentState;
+        if (grab->GetHandState(hand).currentState > 0.9)
+            vibrate->ApplyVibration(session, hand, 0.5);
+    }
 
     // Check if pose is active
-    auto pose = dynamic_cast<Pose*>(actionManager.GetAction(ActionType::Pose));
+    auto pose = dynamic_cast<PoseAction*>(actionManager.GetAction(ActionType::GripPose));
     actionManager.handActive = {XR_FALSE, XR_FALSE};
     for (Hand hand : pose->hands)
         actionManager.handActive[(int)hand] = pose->isHandActive(hand);
 
     // Check for quitting
-    auto quit = dynamic_cast<Quit*>(actionManager.GetAction(ActionType::Quit));
-    XrActionStateBoolean quitValue = quit->boolState;
+    auto quit = dynamic_cast<BoolAction*>(actionManager.GetAction(ActionType::Menu));
+    XrActionStateBoolean quitValue = quit->GetHandState(Hand::Left);
     if ((quitValue.isActive == XR_TRUE) && (quitValue.changedSinceLastSync == XR_TRUE) && (quitValue.currentState == XR_TRUE)) {
         CHECK_XRCMD(xrRequestExitSession(session));
     }
+
+    // A button pressed
+    auto a = dynamic_cast<BoolAction*>(actionManager.GetAction(ActionType::A));
+    if (a->GetHandState(Hand::Right).currentState)
+        Log::Write(Log::Level::Info, "A button pressed");
+
+    // left joystick
+    auto joystick = dynamic_cast<Vec2Action*>(actionManager.GetAction(ActionType::Joystick));
+    float x = joystick->GetHandState(Hand::Left).currentState.x;
+    float y = joystick->GetHandState(Hand::Left).currentState.y;
+    if (x != 0 && y != 0)
+        Log::Write(Log::Level::Info, Fmt("left joystick = {%.2f, %.2f}", x, y));
 }
 
 void XrContext::HandleSessionStateChangedEvent(const XrEventDataSessionStateChanged& stateChangedEvent,
@@ -377,7 +391,7 @@ void XrContext::LogActionSourceName(XrAction action, const std::string& actionNa
 }
 
 void XrContext::RefreshTrackedSpaceLocations() {
-    auto pose = dynamic_cast<Pose*>(actionManager.GetAction(ActionType::Pose));
+    auto pose = dynamic_cast<PoseAction*>(actionManager.GetAction(ActionType::GripPose));
     for (auto trackedSpaceLocation : trackedSpaceLocations.locations) {
         XrSpaceLocation spaceLocation{XR_TYPE_SPACE_LOCATION};
         XrResult res;

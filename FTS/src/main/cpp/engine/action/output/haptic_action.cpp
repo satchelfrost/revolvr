@@ -1,24 +1,27 @@
-#include <action/output/vibrate.h>
+#include <action/output/haptic_action.h>
 #include <common.h>
 
+#include <utility>
+
 namespace rvr {
-Vibrate::Vibrate(XrActionSet actionSet, std::array<XrPath, (size_t)Hand::Count> handSubactionPath) :
-Action(actionSet, handSubactionPath, "/output/haptic", ActionType::Vibrate, Hand::Both) {
+HapticAction::HapticAction(XrActionSet actionSet, std::array<XrPath, (size_t)Hand::Count> handSubactionPath,
+                           std::string actionPath, ActionType type) :
+Action(actionSet, handSubactionPath, std::move(actionPath), type, Hand::Both) {
     CreateAction(XR_ACTION_TYPE_VIBRATION_OUTPUT);
     Reset();
 }
 
-void Vibrate::Update(XrSession& session) {
+void HapticAction::Update(XrSession& session) {
     Reset();
 }
 
-void Vibrate::Reset() {
+void HapticAction::Reset() {
     vibration_.amplitude = 0.0;
     vibration_.duration = XR_MIN_HAPTIC_DURATION;
     vibration_.frequency = XR_FREQUENCY_UNSPECIFIED;
 }
 
-void Vibrate::ApplyVibration(XrSession &session, Hand hand, float amplitude, float frequency, XrDuration duration) {
+void HapticAction::ApplyVibration(XrSession &session, Hand hand, float amplitude, float frequency, XrDuration duration) {
     XrHapticActionInfo hapticActionInfo{XR_TYPE_HAPTIC_ACTION_INFO};
     hapticActionInfo.action = action_;
     hapticActionInfo.subactionPath = handSubactionPath_[(int)hand];
