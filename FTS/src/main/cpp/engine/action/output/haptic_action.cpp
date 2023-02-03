@@ -4,9 +4,7 @@
 namespace rvr {
 Vibrate::Vibrate(XrActionSet actionSet, std::array<XrPath, (size_t)Hand::Count> handSubactionPath) :
 Action(actionSet, handSubactionPath, "/output/haptic", ActionType::Vibrate, Hand::Both) {
-    CreateAction(XR_ACTION_TYPE_VIBRATION_OUTPUT,
-                 "vibrate_hand",
-                 "Vibrate Hand");
+    CreateAction(XR_ACTION_TYPE_VIBRATION_OUTPUT);
     Reset();
 }
 
