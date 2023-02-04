@@ -7,14 +7,8 @@ Spatial.orientation {0, 0, 0, 1}
 TrackedSpace.type {LeftHand}
 Spatial.scale {0.1, 0.1, 0.1}
 Mesh {}
-
-[entity id=2 name=Right_Hand]
-TrackedSpace.type {RightHand}
-Spatial.scale {0.1, 0.1, 0.1}
-Mesh {}
-
-[entity id=15 name=RightHandCollider parent=2]
-Spatial {}
+Ritual.type {LeftHandBehavior}
+Ritual.can_update {false}
 Collider.type {Sphere}
 Collider.radius {0.05}
 # Collider.type {AABB}
@@ -22,8 +16,10 @@ Collider.radius {0.05}
 # Collider.half_y {0.05}
 # Collider.half_z {0.05}
 
-[entity id=16 name=LeftHandCollider parent=1]
-Spatial {}
+[entity id=2 name=Right_Hand]
+TrackedSpace.type {RightHand}
+Spatial.scale {0.1, 0.1, 0.1}
+Mesh {}
 Collider.type {Sphere}
 Collider.radius {0.05}
 # Collider.type {AABB}
@@ -36,7 +32,7 @@ Spatial.scale {0.01, 0.01, 0.5}
 Spatial.position {0, 0, -0.25}
 Mesh {}
 Ritual.type {SpinningPointer}
-Ritual.can_update {false}
+Ritual.can_update {true}
 
 [entity id=4 name=WorldOriginMesh]
 Mesh {}
