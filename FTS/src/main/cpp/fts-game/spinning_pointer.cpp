@@ -1,6 +1,6 @@
 #include "spinning_pointer.h"
 #include <ecs/ecs.h>
-#include <ecs/system/input_system.h>
+#include <ecs/system/io_system.h>
 
 SpinningPointer::SpinningPointer(rvr::type::EntityId id) : Ritual(id) {
     spatial_ = rvr::ECS::Instance()->GetComponent<rvr::Spatial>(id);
@@ -14,7 +14,7 @@ void SpinningPointer::Begin() {
 }
 
 void SpinningPointer::Update(float delta) {
-    if (rvr::ButtonPressed(rvr::ActionType::A))
+    if (rvr::system::io::ButtonPressed(rvr::ActionType::A))
         wandMoving_ = !wandMoving_;
 
     if (wandMoving_)

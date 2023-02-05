@@ -7,7 +7,6 @@
 namespace rvr {
 ActionManager::ActionManager() {
     actions_.resize(NUM_ACTIONS);
-    handScale = {{1.0f, 1.0f}};
 }
 
 ActionManager::~ActionManager() {
@@ -79,7 +78,7 @@ void ActionManager::SyncActions(XrSession& session) {
     CHECK_XRCMD(xrSyncActions(session, &syncInfo));
 }
 
-void ActionManager::CreateActionSpace(XrSession &session) {
+void ActionManager::CreateActionSpaces(XrSession &session) {
     auto gripPose = dynamic_cast<GripPose*>(actions_.at((int)ActionType::GripPose));
     gripPose->CreateActionSpaces(session);
 

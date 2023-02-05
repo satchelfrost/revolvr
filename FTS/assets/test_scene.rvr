@@ -7,8 +7,8 @@ Spatial.orientation {0, 0, 0, 1}
 TrackedSpace.type {LeftHand}
 Spatial.scale {0.1, 0.1, 0.1}
 Mesh {}
-Ritual.type {LeftHandBehavior}
-Ritual.can_update {false}
+Ritual.type {HandBehavior}
+Ritual.can_update {true}
 Collider.type {Sphere}
 Collider.radius {0.05}
 # Collider.type {AABB}
@@ -20,6 +20,8 @@ Collider.radius {0.05}
 TrackedSpace.type {RightHand}
 Spatial.scale {0.1, 0.1, 0.1}
 Mesh {}
+Ritual.type {HandBehavior}
+Ritual.can_update {true}
 Collider.type {Sphere}
 Collider.radius {0.05}
 # Collider.type {AABB}

@@ -20,7 +20,7 @@ void PoseAction::Update(XrSession& session) {
     if (!actionSpacesCreated_)
         return;
     for (Hand hand : hands)
-        UpdateActionIsPoseAction(hand, session);
+        UpdateActionStatePose(hand, session);
 }
 
 void PoseAction::CreateActionSpaces(XrSession &session) {
@@ -37,7 +37,7 @@ void PoseAction::CreateActionSpace(Hand hand, XrSession& session) {
     CHECK_XRCMD(xrCreateActionSpace(session, &actionSpaceInfo, &handSpace_[(int)hand]));
 }
 
-XrBool32 PoseAction::isHandActive(Hand hand) {
+XrBool32 PoseAction::IsHandActive(Hand hand) {
 try {
     return handState_.at((int)hand).isActive;
 }
@@ -57,7 +57,7 @@ XrSpace PoseAction::GetHandSpace(Hand hand) {
     }
 }
 
-void PoseAction::UpdateActionIsPoseAction(Hand hand, XrSession& session) {
+void PoseAction::UpdateActionStatePose(Hand hand, XrSession& session) {
     XrActionStateGetInfo getInfo{XR_TYPE_ACTION_STATE_GET_INFO};
     getInfo.action = action_;
     getInfo.subactionPath = GetSubactionPath(hand);

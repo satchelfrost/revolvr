@@ -37,8 +37,7 @@ public:
     // Process any events in the event queue.
     void PollXrEvents(bool* exitRenderLoop, bool* requestRestart);
 
-    // Sample input actions and generate haptic feedback.
-    void PollActions();
+    void UpdateActions();
 
     void RefreshTrackedSpaceLocations();
 

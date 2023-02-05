@@ -5,8 +5,8 @@
 #include <ecs/ecs.h>
 #include <pch.h>
 
-namespace rvr {
-void SpatialSystem::UpdateTrackedSpaces(XrContext *context) {
+namespace rvr::system::spatial{
+void UpdateTrackedSpaces(XrContext *context) {
     // First refresh the tracked spaces
     context->RefreshTrackedSpaceLocations();
     auto trackedSpaceLocations = context->trackedSpaceLocations;
@@ -30,7 +30,7 @@ void SpatialSystem::UpdateTrackedSpaces(XrContext *context) {
     }
 }
 
-void SpatialSystem::CalculateWorldPosition(type::EntityId id) {
+void CalculateWorldPosition(type::EntityId id) {
     Entity* child = ECS::Instance()->GetEntity(id);
     if (child->HasComponent(ComponentType::TrackedSpace) || (id == constants::ROOT_ID))
         return;
@@ -56,7 +56,7 @@ void SpatialSystem::CalculateWorldPosition(type::EntityId id) {
     }
 }
 
-void SpatialSystem::UpdateSpatials() {
+void UpdateSpatials() {
     auto components = ECS::Instance()->GetComponents(ComponentType::Spatial);
     for (auto [eid, component] : components)
         CalculateWorldPosition(component->id);

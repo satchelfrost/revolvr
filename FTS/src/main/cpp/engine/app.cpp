@@ -5,6 +5,7 @@
 #include <ecs/ecs.h>
 #include <ecs/system/collision_system.h>
 #include <ecs/system/ritual_system.h>
+#include <ecs/system/io_system.h>
 
 namespace rvr {
 static void app_handle_cmd(struct android_app* app, int32_t cmd) {
@@ -58,7 +59,7 @@ void App::Run(struct android_app *app) {
 
         // Begin frame sequence
         xrContext_->BeginFrame();
-        xrContext_->PollActions();
+        xrContext_->UpdateActions();
         UpdateSystems();
         Render();
         xrContext_->EndFrame();
@@ -69,10 +70,10 @@ void App::Run(struct android_app *app) {
 
 
 void App::UpdateSystems() {
-    SpatialSystem::UpdateTrackedSpaces(xrContext_);
-    SpatialSystem::UpdateSpatials();
-    CollisionSystem::RunCollisionChecks();
-    RitualSystem::Update(deltaTime_);
+    system::spatial::UpdateTrackedSpaces(xrContext_);
+    system::spatial::UpdateSpatials();
+    system::collision::RunCollisionChecks();
+    system::ritual::Update(deltaTime_);
 }
 
 void App::Render() {
@@ -109,29 +110,10 @@ bool App::RenderLayer(std::vector<XrCompositionLayerProjectionView>& projectionL
     projectionLayerViews.resize(viewCountOutput);
 
     // Convert renderable to a cube for now
-    for (auto spatial : RenderSystem::GetRenderSpatials()) {
+    for (auto spatial : system::render::GetRenderSpatials()) {
         Cube cube{};
         cube.Pose = spatial->worldPose;
         cube.Scale = spatial->scale;
-
-        // Don't render hands if not active
-        if (spatial->id == 1 && !xrContext_->actionManager.handActive[(int)Hand::Left])
-            continue;
-
-        if (spatial->id == 2 && !xrContext_->actionManager.handActive[(int)Hand::Right])
-            continue;
-
-        if (spatial->id == 1) // left hand from scene description
-            cube.Scale = {cube.Scale.x * xrContext_->actionManager.handScale[(int)Hand::Left],
-                          cube.Scale.y * xrContext_->actionManager.handScale[(int)Hand::Left],
-                          cube.Scale.z * xrContext_->actionManager.handScale[(int)Hand::Left]};
-
-        if (spatial->id == 2) // left hand from scene description
-            cube.Scale = {cube.Scale.x * xrContext_->actionManager.handScale[(int)Hand::Right],
-                          cube.Scale.y * xrContext_->actionManager.handScale[(int)Hand::Right],
-                          cube.Scale.z * xrContext_->actionManager.handScale[(int)Hand::Right]};
-
-
         renderBuffer_.push_back(cube);
     }
 

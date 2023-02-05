@@ -13,11 +13,11 @@ public:
     ~PoseAction();
     void Update(XrSession& session) override;
     void CreateActionSpaces(XrSession& session);
-    XrBool32 isHandActive(Hand hand);
+    XrBool32 IsHandActive(Hand hand);
     XrSpace GetHandSpace(Hand hand);
 
 private:
-    void UpdateActionIsPoseAction(Hand hand, XrSession& session);
+    void UpdateActionStatePose(Hand hand, XrSession& session);
     void CreateActionSpace(Hand hand, XrSession& session);
     HandSpaceArray handSpace_{};
     HandPoseArray handState_{{{XR_TYPE_ACTION_STATE_POSE},

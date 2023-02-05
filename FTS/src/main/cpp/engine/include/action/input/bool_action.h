@@ -11,10 +11,10 @@ public:
     BoolAction(XrActionSet actionSet, HandPathArray handSubactionPath,
                std::string actionPath, ActionType type, Hand handConfig);
     void Update(XrSession& session) override;
-    XrActionStateBoolean CurrHandState(Hand hand);
-    XrActionStateBoolean PrevHandState(Hand hand);
-    bool StateTurnedOn(Hand hand);
-    bool StateTurnedOff(Hand hand);
+    XrActionStateBoolean CurrHandState();
+    XrActionStateBoolean PrevHandState();
+    bool StateTurnedOn();
+    bool StateTurnedOff();
 private:
     HandBoolArray handState_{{{XR_TYPE_ACTION_STATE_BOOLEAN},
                               {XR_TYPE_ACTION_STATE_BOOLEAN}}};

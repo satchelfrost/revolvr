@@ -40,7 +40,7 @@ void XrContext::Initialize(VulkanRenderer* vulkanRenderer) {
     CreateInstance();
     InitializeSystem();
     InitializeSession();
-    actionManager.CreateActionSpace(session);
+    actionManager.CreateActionSpaces(session);
     CreateSwapchains();
 }
 
@@ -257,45 +257,11 @@ void XrContext::PollXrEvents(bool* exitRenderLoop, bool* requestRestart) {
     }
 }
 
-void XrContext::PollActions() {
-    // Updates all actions
+void XrContext::UpdateActions() {
     actionManager.Update(session);
-
-    // Todo: the following below can be decoupled into rituals,
-    //  once that is done PollActions() can be deleted in favor of actionManager.Update()
-
-    // Left right hand scale & vibration
-    auto grab = dynamic_cast<FloatAction*>(actionManager.GetAction(ActionType::GripTrigger));
-    auto vibrate = dynamic_cast<HapticAction*>(actionManager.GetAction(ActionType::Vibrate));
-    for (Hand hand : grab->hands) {
-        actionManager.handScale[(int)hand] = 1.0f - 0.5 * grab->GetHandState(hand).currentState;
-        if (grab->GetHandState(hand).currentState > 0.9)
-            vibrate->ApplyVibration(session, hand, 0.5);
-    }
-
-    // Check if pose is active
-    auto pose = dynamic_cast<PoseAction*>(actionManager.GetAction(ActionType::GripPose));
-    actionManager.handActive = {XR_FALSE, XR_FALSE};
-    for (Hand hand : pose->hands)
-        actionManager.handActive[(int)hand] = pose->isHandActive(hand);
-
-    // Check for quitting
-    auto quit = dynamic_cast<BoolAction*>(actionManager.GetAction(ActionType::Menu));
-    XrActionStateBoolean quitValue = quit->CurrHandState(Hand::Left);
-    if ((quitValue.isActive == XR_TRUE) && (quitValue.changedSinceLastSync == XR_TRUE) && (quitValue.currentState == XR_TRUE)) {
-        CHECK_XRCMD(xrRequestExitSession(session));
-    }
-
-
-    // left joystick
-    auto joystick = dynamic_cast<Vec2Action*>(actionManager.GetAction(ActionType::Joystick));
-    float x = joystick->GetHandState(Hand::Left).currentState.x;
-    float y = joystick->GetHandState(Hand::Left).currentState.y;
-    if (x != 0 && y != 0)
-        Log::Write(Log::Level::Info, Fmt("left joystick = {%.2f, %.2f}", x, y));
 }
 
-void XrContext::HandleSessionStateChangedEvent(const XrEventDataSessionStateChanged& stateChangedEvent,
+    void XrContext::HandleSessionStateChangedEvent(const XrEventDataSessionStateChanged& stateChangedEvent,
                                                bool* exitRenderLoop,
                                                bool* requestRestart) {
     const XrSessionState oldState = xrSessionState_;
