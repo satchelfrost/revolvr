@@ -4,11 +4,8 @@
 #include "xr_app_helpers.h"
 #include "ecs/entity/entity.h"
 
-namespace rvr {
-class SpatialSystem {
-public:
-    static void UpdateTrackedSpaces(XrContext* context);
-    static void UpdateSpatials();
-    static void CalculateWorldPosition(type::EntityId id);
-};
+namespace rvr::system::spatial {
+void UpdateTrackedSpaces(XrContext* context);
+void UpdateSpatials();
+void CalculateWorldPosition(type::EntityId id);
 }
