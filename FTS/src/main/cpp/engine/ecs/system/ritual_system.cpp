@@ -2,15 +2,15 @@
 #include <ecs/component/component_type.h>
 #include <ecs/ecs.h>
 
-namespace rvr {
-void RitualSystem::Update(float dt) {
+namespace rvr::system::ritual{
+void Update(float dt) {
     for (auto entityId : ECS::Instance()->GetEids(ComponentType::Ritual)) {
         auto ritual = ECS::Instance()->GetComponent<Ritual>(entityId);
         if (ritual->canUpdate)
             ritual->Update(dt);
     }
 }
-void RitualSystem::Begin() {
+void Begin() {
     for (auto entityId : ECS::Instance()->GetEids(ComponentType::Ritual)) {
         auto ritual = ECS::Instance()->GetComponent<Ritual>(entityId);
         ritual->Begin();

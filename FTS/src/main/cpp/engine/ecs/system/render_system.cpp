@@ -1,9 +1,8 @@
 #include "ecs/system/render_system.h"
-#include "ecs/system/spatial_system.h"
 #include "ecs/ecs.h"
 
-namespace rvr {
-std::vector<Spatial *> RenderSystem::GetRenderSpatials() {
+namespace rvr::system::render{
+std::vector<Spatial *> GetRenderSpatials() {
     std::vector<Spatial*> spatials;
     auto components = ECS::Instance()->GetComponents(ComponentType::Mesh);
     spatials.reserve(components.size());

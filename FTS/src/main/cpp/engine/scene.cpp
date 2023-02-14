@@ -16,7 +16,7 @@ void Scene::LoadScene(const std::string &sceneName) {
     InitUnits(units);
     CreateHierarchy();
     CreateRituals(units);
-    RitualSystem::Begin();
+    system::ritual::Begin();
     Log::Write(Log::Level::Info, Fmt("Loaded scene %s", sceneName.c_str()));
 }
 

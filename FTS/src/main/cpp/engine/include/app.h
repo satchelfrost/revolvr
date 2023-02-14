@@ -34,9 +34,12 @@ protected:
 
 private:
     float deltaTime_;
-    rvr::Scene scene_;
+    Scene scene_;
     VulkanRenderer* vulkanRenderer_;
     XrContext* xrContext_;
     std::vector<Cube> renderBuffer_;
+
+    bool requestRestart_; // TODO: do something with this variable
+    bool exitRenderLoop_; // TODO: do something with this variable
 };
 }
