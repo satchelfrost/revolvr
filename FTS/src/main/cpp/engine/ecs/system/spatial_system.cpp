@@ -16,13 +16,13 @@ void SpatialSystem::UpdateTrackedSpaces(XrContext *context) {
         auto [spatial, tracked] = ECS::Instance()->GetComponentPair<Spatial, TrackedSpace>(entityId);
         switch (tracked->type) {
             case TrackedSpaceType::VROrigin:
-                spatial->worldPose = trackedSpaceLocations.vrOrigin.pose;
+                spatial->worldTransform = math::Transform(trackedSpaceLocations.vrOrigin.pose);
                 break;
             case TrackedSpaceType::LeftHand:
-                spatial->worldPose = trackedSpaceLocations.leftHand.pose;
+                spatial->worldTransform = math::Transform(trackedSpaceLocations.leftHand.pose);
                 break;
             case TrackedSpaceType::RightHand:
-                spatial->worldPose = trackedSpaceLocations.rightHand.pose;
+                spatial->worldTransform = math::Transform(trackedSpaceLocations.rightHand.pose);
                 break;
             default:
                 break;
@@ -41,17 +41,24 @@ void SpatialSystem::CalculateWorldPosition(type::EntityId id) {
     auto parentSpatial = ECS::Instance()->GetComponent<Spatial>(parent->id);
 
     // Calculate position based on parent
-    XrQuaternionf_Multiply(&childSpatial->worldPose.orientation, &childSpatial->pose.orientation,
-                           &parentSpatial->worldPose.orientation);
-    XrVector3f offset = XrQuaternionf_Rotate(parentSpatial->worldPose.orientation, childSpatial->pose.position);
-    XrVector3f_Add(&childSpatial->worldPose.position, &offset, &parentSpatial->worldPose.position);
+//    XrQuaternionf_Multiply(&childSpatial->worldPose.orientation, &childSpatial->pose.orientation,
+//                           &parentSpatial->worldPose.orientation);
+    childSpatial->worldTransform.SetOrientation(childSpatial->transform.GetOrientation()
+                                                * parentSpatial->worldTransform.GetOrientation());
+//    XrVector3f offset = XrQuaternionf_Rotate(parentSpatial->worldPose.orientation, childSpatial->pose.position);
+    glm::vec3 offset = glm::rotate(parentSpatial->worldTransform.GetOrientation(),
+                                   childSpatial->transform.GetPosition());
+//    XrVector3f_Add(&childSpatial->worldPose.position, &offset, &parentSpatial->worldPose.position);
+    childSpatial->worldTransform.SetPosition(offset + parentSpatial->worldTransform.GetPosition());
 
     // Place objects relative to the origin
     if (parent->HasComponent(ComponentType::TrackedSpace)) {
         auto ts = ECS::Instance()->GetComponent<TrackedSpace>(parent->id);
         if (ts->type == TrackedSpaceType::VROrigin) {
-            XrVector3f_Sub(&childSpatial->worldPose.position, &childSpatial->worldPose.position,
-                           &parentSpatial->pose.position);
+//            XrVector3f_Sub(&childSpatial->worldPose.position, &childSpatial->worldPose.position,
+//                           &parentSpatial->pose.position);
+            childSpatial->worldTransform.SetPosition(childSpatial->worldTransform.GetPosition()
+                                                     - parentSpatial->transform.GetPosition());
         }
     }
 }

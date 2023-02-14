@@ -6,7 +6,10 @@
 namespace rvr::math {
 
 Transform::Transform()
-: pose_(), scale_(1,1,1) {}
+: pose_(Pose::Indentity()), scale_(1,1,1) {}
+
+Transform::Transform(const Pose& pose)
+: pose_(pose), scale_(1,1,1) {}
 
 Transform::Transform(const Pose& pose, const glm::vec3& scale)
 : pose_(pose), scale_(scale) {}
@@ -21,15 +24,15 @@ glm::mat4 Transform::ToMat4() const {
 }
 
 glm::vec3 Transform::GetXAxis() const {
-    return matrix::GetXAxis(GetOrientation());
+    return matrix::GetXAxis(pose_.ToMat4());
 }
 
 glm::vec3 Transform::GetYAxis() const {
-    return matrix::GetYAxis(GetOrientation());
+    return matrix::GetYAxis(pose_.ToMat4());
 }
 
 glm::vec3 Transform::GetZAxis() const {
-    return matrix::GetZAxis(GetOrientation());
+    return matrix::GetZAxis(pose_.ToMat4());
 }
 
 glm::vec3 Transform::GetScale() const {
@@ -44,11 +47,15 @@ void Transform::SetScale(float x, float y, float z) {
     SetScale(glm::vec3(x, y, z));
 }
 
-glm::mat3 Transform::GetOrientation() const {
-    return glm::toMat3(pose_.orientation_);
+glm::quat Transform::GetOrientation() const {
+    return pose_.orientation_;
 }
 
 void Transform::SetOrientation(const glm::mat3& orientation) {
+    pose_.orientation_ = orientation;
+}
+
+void Transform::SetOrientation(const glm::quat& orientation) {
     pose_.orientation_ = orientation;
 }
 
@@ -89,7 +96,7 @@ Transform Transform::Scaled(glm::vec3 scale) const {
 }
 
 Transform Transform::Identity() {
-    return {};
+    return {Pose::Indentity(), glm::vec3(1,1,1)};
 }
 
 } // namespace rvr::math

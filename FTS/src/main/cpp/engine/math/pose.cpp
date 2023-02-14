@@ -34,6 +34,11 @@ glm::mat4 Pose::ToMat4() const {
     return rotation_matrix * translation_matrix;
 }
 
+glm::mat3 Pose::ToMat3() const {
+    return glm::toMat3(orientation_);
+}
+
+
 void Pose::Translate(const glm::vec3& offset) {
     position_ += offset;
 }
@@ -67,7 +72,7 @@ Pose Pose::Rotated(float axis_x, float axis_y, float axis_z, float angle) const 
 }
 
 Pose Pose::Indentity() {
-    return {}; // Same as returning Pose()
+    return {glm::zero<glm::vec3>(), glm::identity<glm::quat>()}; // Same as returning Pose()
 }
 
 } // namespace rvr::math

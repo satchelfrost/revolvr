@@ -10,6 +10,7 @@ private:
 
 public:
     Transform();
+    Transform(const Pose& pose);
     Transform(const Pose& pose, const glm::vec3& scale);
     Transform(const glm::mat4& matrix);
 
@@ -23,8 +24,9 @@ public:
     void SetScale(const glm::vec3& scale);
     void SetScale(float x, float y, float z);
 
-    glm::mat3 GetOrientation() const;
+    glm::quat GetOrientation() const;
     void SetOrientation(const glm::mat3& orientation);
+    void SetOrientation(const glm::quat& orientation);
 
     glm::vec3 GetPosition() const;
     void SetPosition(float x, float y, float z);

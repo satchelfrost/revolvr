@@ -1,6 +1,7 @@
 #pragma once
 #include "pch.h"
 #include <glm/glm.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 namespace rvr::math::quaternion {
     glm::quat ToQuat(const XrQuaternionf& quaternion);

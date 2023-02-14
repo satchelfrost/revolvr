@@ -15,6 +15,7 @@ struct Pose {
     Pose(const glm::mat4& matrix);
 
     glm::mat4 ToMat4() const;
+    glm::mat3 ToMat3() const;
 
     void Translate(const glm::vec3& offset);
     void Translate(float offset_x, float offset_y, float offset_z);
