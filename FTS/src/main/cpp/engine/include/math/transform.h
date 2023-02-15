@@ -1,13 +1,12 @@
 #pragma once
 
-#include "math.h"
 #include "linear_math.h"
 
 namespace rvr::math {
 class Transform {
-private:
-    Pose pose_;
-    glm::vec3 scale_;
+public:
+    Pose pose;
+    glm::vec3 scale;
 
 public:
     Transform();
@@ -21,8 +20,6 @@ public:
     glm::vec3 GetYAxis() const;
     glm::vec3 GetZAxis() const;
 
-    glm::vec3 GetScale() const;
-    void SetScale(const glm::vec3& scale);
     void SetScale(float x, float y, float z);
 
     glm::quat GetOrientation() const;

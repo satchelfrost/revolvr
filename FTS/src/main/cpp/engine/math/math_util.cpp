@@ -116,6 +116,10 @@ namespace quaternion {
     glm::quat FromEuler(float angle_x, float angle_y, float angle_z) {
         return FromEuler(glm::vec3(angle_x, angle_y, angle_z));
     }
+
+    glm::quat Identity() {
+        return glm::identity<glm::quat>();
+    }
 } // namespace quaternion
 
 namespace vector {

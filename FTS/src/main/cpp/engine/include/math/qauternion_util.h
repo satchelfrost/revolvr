@@ -9,4 +9,5 @@ namespace rvr::math::quaternion {
 
     glm::quat FromEuler(glm::vec3 euler_angles);
     glm::quat FromEuler(float angle_x, float angle_y, float angle_z);
+    glm::quat Identity();
 } // namespace rvr::math::quaternion

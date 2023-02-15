@@ -5,8 +5,8 @@
 
 namespace rvr::math {
 struct Pose {
-    glm::quat orientation_;
-    glm::vec3 position_;
+    glm::quat orientation;
+    glm::vec3 position;
 
     Pose();
     Pose(const XrPosef& xr_pose);
@@ -16,6 +16,7 @@ struct Pose {
 
     glm::mat4 ToMat4() const;
     glm::mat3 ToMat3() const;
+    XrPosef ToXrPosef() const;
 
     void Translate(const glm::vec3& offset);
     void Translate(float offset_x, float offset_y, float offset_z);
@@ -27,7 +28,7 @@ struct Pose {
     Pose Rotated(const glm::vec3& axis, float angle) const;
     Pose Rotated(float axis_x, float axis_y, float axis_z, float angle) const;
 
-    static Pose Indentity();
+    static Pose Identity();
 
 }; // Pose
 } //namespace rvr::math
