@@ -1,9 +1,8 @@
-#include <include/math/xr_linear.h>
-#include <ecs/system/spatial_system.h>
-#include <ecs/component/types/tracked_space.h>
-#include <ecs/component/types/spatial.h>
-#include <ecs/ecs.h>
 #include <pch.h>
+#include <ecs/ecs.h>
+#include <ecs/system/spatial_system.h>
+#include <ecs/component/types/spatial.h>
+#include <ecs/component/types/tracked_space.h>
 
 namespace rvr::system::spatial{
 void UpdateTrackedSpaces(XrContext *context) {
@@ -16,13 +15,13 @@ void UpdateTrackedSpaces(XrContext *context) {
         auto [spatial, tracked] = ECS::Instance()->GetComponentPair<Spatial, TrackedSpace>(entityId);
         switch (tracked->type) {
             case TrackedSpaceType::VROrigin:
-                spatial->worldTransform = math::Transform(trackedSpaceLocations.vrOrigin.pose);
+                spatial->world = math::Transform(trackedSpaceLocations.vrOrigin.pose);
                 break;
             case TrackedSpaceType::LeftHand:
-                spatial->worldTransform = math::Transform(trackedSpaceLocations.leftHand.pose);
+                spatial->world = math::Transform(trackedSpaceLocations.leftHand.pose);
                 break;
             case TrackedSpaceType::RightHand:
-                spatial->worldTransform = math::Transform(trackedSpaceLocations.rightHand.pose);
+                spatial->world = math::Transform(trackedSpaceLocations.rightHand.pose);
                 break;
             default:
                 break;
@@ -43,13 +42,15 @@ void CalculateWorldPosition(type::EntityId id) {
     // Calculate position based on parent
 //    XrQuaternionf_Multiply(&childSpatial->worldPose.orientation, &childSpatial->pose.orientation,
 //                           &parentSpatial->worldPose.orientation);
-    childSpatial->worldTransform.SetOrientation(childSpatial->transform.GetOrientation()
-                                                * parentSpatial->worldTransform.GetOrientation());
+    childSpatial->world.pose.orientation = childSpatial->local.GetOrientation()
+                                           * parentSpatial->world.GetOrientation();
 //    XrVector3f offset = XrQuaternionf_Rotate(parentSpatial->worldPose.orientation, childSpatial->pose.position);
-    glm::vec3 offset = glm::rotate(parentSpatial->worldTransform.GetOrientation(),
-                                   childSpatial->transform.GetPosition());
+    glm::vec3 offset = glm::rotate(parentSpatial->world.GetOrientation(),
+                                   childSpatial->local.GetPosition());
 //    XrVector3f_Add(&childSpatial->worldPose.position, &offset, &parentSpatial->worldPose.position);
-    childSpatial->worldTransform.SetPosition(offset + parentSpatial->worldTransform.GetPosition());
+    childSpatial->world.pose.position = offset + parentSpatial->world.GetPosition();
+
+    //TODO: Add world.scale calculation
 
     // Place objects relative to the origin
     if (parent->HasComponent(ComponentType::TrackedSpace)) {
@@ -57,8 +58,8 @@ void CalculateWorldPosition(type::EntityId id) {
         if (ts->type == TrackedSpaceType::VROrigin) {
 //            XrVector3f_Sub(&childSpatial->worldPose.position, &childSpatial->worldPose.position,
 //                           &parentSpatial->pose.position);
-            childSpatial->worldTransform.SetPosition(childSpatial->worldTransform.GetPosition()
-                                                     - parentSpatial->transform.GetPosition());
+            childSpatial->world.pose.position = childSpatial->world.GetPosition()
+                                                - parentSpatial->local.GetPosition();
         }
     }
 }

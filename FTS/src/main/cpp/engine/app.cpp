@@ -1,11 +1,11 @@
 #include <app.h>
+#include <ecs/ecs.h>
+#include <ecs/component/types/spatial.h>
+#include <ecs/system/collision_system.h>
+#include <ecs/system/io_system.h>
 #include <ecs/system/spatial_system.h>
 #include <ecs/system/render_system.h>
-#include <ecs/component/types/spatial.h>
-#include <ecs/ecs.h>
-#include <ecs/system/collision_system.h>
 #include <ecs/system/ritual_system.h>
-#include <ecs/system/io_system.h>
 
 namespace rvr {
 static void app_handle_cmd(struct android_app* app, int32_t cmd) {
@@ -112,8 +112,8 @@ bool App::RenderLayer(std::vector<XrCompositionLayerProjectionView>& projectionL
     // Convert renderable to a cube for now
     for (auto spatial : system::render::GetRenderSpatials()) {
         Cube cube{};
-        cube.Pose = spatial->worldPose;
-        cube.Scale = spatial->scale;
+        cube.Pose = spatial->world.pose.ToXrPosef();
+        cube.Scale = math::vector::ToXrVector3f(spatial->world.scale);
         renderBuffer_.push_back(cube);
     }
 

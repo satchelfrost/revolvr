@@ -6,9 +6,9 @@
 
 HandBehavior::HandBehavior(rvr::type::EntityId id) : Ritual(id) {
     spatial_ = rvr::ECS::Instance()->GetComponent<rvr::Spatial>(id);
-    initXScale = spatial_->scale.x;
-    initYScale = spatial_->scale.y;
-    initZScale = spatial_->scale.z;
+    initXScale = spatial_->local.scale.x;
+    initYScale = spatial_->local.scale.y;
+    initZScale = spatial_->local.scale.z;
 }
 
 void HandBehavior::Begin() {}
@@ -21,21 +21,21 @@ void HandBehavior::Update(float delta) {
     if (value > 0.9)
         rvr::system::io::Vibrate(hand, 0.5);
     float multiplier = 1.0f - 0.5f * value;
-    spatial_->scale.x = initXScale * multiplier;
-    spatial_->scale.y = initYScale * multiplier;
-    spatial_->scale.z = initZScale * multiplier;
+    spatial_->local.scale.x = initXScale * multiplier;
+    spatial_->local.scale.y = initYScale * multiplier;
+    spatial_->local.scale.z = initZScale * multiplier;
 }
 
 void HandBehavior::OnTriggered(rvr::Collider* other) {
     // Check for dummy collision i.e. hands are not tracked yet and so they will be at the origin
     auto hand1 = rvr::ECS::Instance()->GetComponent<rvr::Spatial>(id);
     auto hand2 = rvr::ECS::Instance()->GetComponent<rvr::Spatial>(other->id);
-    if ((hand1->worldPose.position.x == 0 &&
-         hand1->worldPose.position.y == 0 &&
-         hand1->worldPose.position.z == 0) ||
-        (hand2->worldPose.position.x == 0 &&
-         hand2->worldPose.position.y == 0 &&
-         hand2->worldPose.position.z == 0))
+    if ((hand1->world.pose.position.x == 0 &&
+         hand1->world.pose.position.y == 0 &&
+         hand1->world.pose.position.z == 0) ||
+        (hand2->world.pose.position.x == 0 &&
+         hand2->world.pose.position.y == 0 &&
+         hand2->world.pose.position.z == 0))
         return;
 
     Log::Write(Log::Level::Info, Fmt("Collision source %d", id));

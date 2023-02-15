@@ -15,12 +15,14 @@ bool SphereCollider::TestCollision(Collider* other) {
             auto thisSpatial = ECS::Instance()->GetComponent<Spatial>(id);
 
             // TODO: Might be replaced with "Vector3 d = thisSpatial->transform.position - otherSpatial.transform.position"
-            XrVector3f dir = {thisSpatial->worldPose.position.x - otherSpatial->worldPose.position.x,
-                              thisSpatial->worldPose.position.y - otherSpatial->worldPose.position.y,
-                              thisSpatial->worldPose.position.z - otherSpatial->worldPose.position.z};
+//            XrVector3f dir = {thisSpatial->worldPose.position.x - otherSpatial->worldPose.position.x,
+//                              thisSpatial->worldPose.position.y - otherSpatial->worldPose.position.y,
+//                              thisSpatial->worldPose.position.z - otherSpatial->worldPose.position.z};
+            glm::vec3 dir = thisSpatial->world.GetPosition() - otherSpatial->world.GetPosition();
 
             // TODO: Might be replaced with "dist2 = Dot(d, d)"
-            float dist2 = (dir.x * dir.x) + (dir.y * dir.y) + (dir.z * dir.z);
+//            float dist2 = (dir.x * dir.x) + (dir.y * dir.y) + (dir.z * dir.z);
+            float dist2 = glm::dot(dir, dir);
 
             auto otherSphere = reinterpret_cast<SphereCollider*>(other);
             float radiusSum = radius + otherSphere->radius;

@@ -2,15 +2,16 @@
 #include <ecs/component/component_factory.h>
 #include <ecs/component/all_components.h>
 #include <all_ritual_types.h>
-#include <include/ecs/component/types/colliders/sphere_collider.h>
-#include <include/ecs/component/types/colliders/aabb_collider.h>
+#include <ecs/component/types/colliders/sphere_collider.h>
+#include <ecs/component/types/colliders/aabb_collider.h>
+#include <math/linear_math.h>
 
 #define RITUAL_CASE(TYPE, NUM) case game::RitualType::TYPE: ritual = new TYPE(entity->id); break;
 
 namespace rvr::componentFactory {
 void CreateSpatial(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
     // Scale
-    XrVector3f scale{};
+    glm::vec3 scale{};
     auto scaleField = fields.find("Spatial.scale");
     if (scaleField != fields.end()) {
         try {
@@ -25,7 +26,7 @@ void CreateSpatial(Entity *entity, const std::map<std::string, Parser::Field>& f
     }
 
     // Position
-    XrVector3f position{};
+    glm::vec3 position{};
     auto posField = fields.find("Spatial.position");
     if (posField != fields.end()) {
         try {
@@ -40,7 +41,7 @@ void CreateSpatial(Entity *entity, const std::map<std::string, Parser::Field>& f
     }
 
     // Orientation
-    XrQuaternionf orientation{0, 0, 0, 1};
+    glm::quat orientation = math::quaternion::Identity();
     auto oriField = fields.find("Spatial.orientation");
     if (oriField != fields.end()) {
         try {
@@ -48,19 +49,34 @@ void CreateSpatial(Entity *entity, const std::map<std::string, Parser::Field>& f
             float y = oriField->second.floatValues.at(1);
             float z = oriField->second.floatValues.at(2);
             float w = oriField->second.floatValues.at(3);
-            orientation = {x, y, z, w};
+            orientation = {w, x, y, z};
         }
         catch (std::out_of_range& e) {
-            ENTITY_ERR("Out of range, Spatial.quaternion was expecting 3 floats.",entity->GetName());
+            ENTITY_ERR("Out of range, Spatial.orientation was expecting 4 floats.",entity->GetName());
+        }
+    }
+
+    // TODO: Check for both Spatial.{orientation, euler}. They should be mutually exclusive
+    // Euler based Orientation
+    auto eulerField = fields.find("Spatial.euler");
+    if (eulerField != fields.end()) {
+        try {
+            float x = eulerField->second.floatValues.at(0);
+            float y = eulerField->second.floatValues.at(1);
+            float z = eulerField->second.floatValues.at(2);
+            orientation = math::quaternion::FromEuler(x, y, z);
+        }
+        catch (std::out_of_range& e) {
+            ENTITY_ERR("Out of range, Spatial.euler was expecting 3 floats.",entity->GetName());
         }
     }
 
     // Create and assign spatial
     auto spatial = new Spatial(entity->id);
     ECS::Instance()->Assign(entity, spatial);
-    spatial->pose.position = position;
-    spatial->pose.orientation = orientation;
-    spatial->scale = scale;
+    spatial->local.SetPosition(position);
+    spatial->local.SetOrientation(orientation);
+    spatial->local.scale = scale;
 }
 
 void CreateTrackedSpace(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
