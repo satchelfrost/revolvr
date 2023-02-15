@@ -70,6 +70,7 @@ void App::Run(struct android_app *app) {
 
 
 void App::UpdateSystems() {
+    // TODO: Move UpdateSpatials to the end of the function as a catch all
     system::spatial::UpdateTrackedSpaces(xrContext_);
     system::spatial::UpdateSpatials();
     system::collision::RunCollisionChecks();

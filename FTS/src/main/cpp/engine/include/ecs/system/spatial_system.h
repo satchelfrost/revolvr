@@ -7,5 +7,5 @@
 namespace rvr::system::spatial {
 void UpdateTrackedSpaces(XrContext* context);
 void UpdateSpatials();
-void CalculateWorldPosition(type::EntityId id);
+void UpdateWorldTransform(type::EntityId id);
 }

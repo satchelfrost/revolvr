@@ -11,7 +11,7 @@
 namespace rvr::componentFactory {
 void CreateSpatial(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
     // Scale
-    glm::vec3 scale{};
+    glm::vec3 scale{1, 1 ,1};
     auto scaleField = fields.find("Spatial.scale");
     if (scaleField != fields.end()) {
         try {
@@ -26,7 +26,7 @@ void CreateSpatial(Entity *entity, const std::map<std::string, Parser::Field>& f
     }
 
     // Position
-    glm::vec3 position{};
+    glm::vec3 position{0, 0, 0};
     auto posField = fields.find("Spatial.position");
     if (posField != fields.end()) {
         try {

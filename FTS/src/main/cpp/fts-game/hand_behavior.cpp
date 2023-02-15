@@ -21,9 +21,9 @@ void HandBehavior::Update(float delta) {
     if (value > 0.9)
         rvr::system::io::Vibrate(hand, 0.5);
     float multiplier = 1.0f - 0.5f * value;
-    spatial_->local.scale.x = initXScale * multiplier;
-    spatial_->local.scale.y = initYScale * multiplier;
-    spatial_->local.scale.z = initZScale * multiplier;
+    spatial_->world.scale.x = initXScale * multiplier;
+    spatial_->world.scale.y = initYScale * multiplier;
+    spatial_->world.scale.z = initZScale * multiplier;
 }
 
 void HandBehavior::OnTriggered(rvr::Collider* other) {

@@ -4,11 +4,10 @@
 #include <common.h>
 #include <platform/android_context.h>
 #include <renderer/vulkan_renderer.h>
-#include <math/xr_linear.h>
 
 #include "rvr_reference_space.h"
 #include "xr_app_helpers.h"
-#include <include/action/action_manager.h>
+#include <action/action_manager.h>
 
 #include <array>
 #include <cmath>

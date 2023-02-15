@@ -2,7 +2,6 @@
 
 #include <pch.h>
 #include <common.h>
-#include <math/xr_linear.h>
 #include <platform/android_context.h>
 #include <renderer/vulkan_renderer.h>
 #include <xr_context.h>
