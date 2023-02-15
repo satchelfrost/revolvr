@@ -1,6 +1,7 @@
 #pragma once
 
 #include "math.h"
+#include "linear_math.h"
 
 namespace rvr::math {
 class Transform {

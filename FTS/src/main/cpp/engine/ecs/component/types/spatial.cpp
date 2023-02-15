@@ -1,5 +1,5 @@
 #include "include/ecs/component/types/spatial.h"
-#include <math/math.h>
+#include "include/math/linear_math.h"
 
 namespace rvr {
 Spatial::Spatial(type::EntityId pId) :
