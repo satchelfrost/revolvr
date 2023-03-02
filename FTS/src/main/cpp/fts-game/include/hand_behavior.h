@@ -3,6 +3,7 @@
 #include <ecs/ecs_info.h>
 #include <ecs/component/types/ritual.h>
 #include <ecs/component/types/spatial.h>
+#include <math/linear_math.h>
 
 class HandBehavior : public rvr::Ritual {
 public:
@@ -13,7 +14,5 @@ public:
 
 private:
     rvr::Spatial* spatial_;
-    float initXScale;
-    float initYScale;
-    float initZScale;
+    glm::vec3 initScale_;
 };
