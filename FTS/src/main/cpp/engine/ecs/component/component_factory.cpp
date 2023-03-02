@@ -40,24 +40,8 @@ void CreateSpatial(Entity *entity, const std::map<std::string, Parser::Field>& f
         }
     }
 
-    // Orientation
-    glm::quat orientation = math::quaternion::Identity();
-    auto oriField = fields.find("Spatial.orientation");
-    if (oriField != fields.end()) {
-        try {
-            float x = oriField->second.floatValues.at(0);
-            float y = oriField->second.floatValues.at(1);
-            float z = oriField->second.floatValues.at(2);
-            float w = oriField->second.floatValues.at(3);
-            orientation = {w, x, y, z};
-        }
-        catch (std::out_of_range& e) {
-            ENTITY_ERR("Out of range, Spatial.orientation was expecting 4 floats.",entity->GetName());
-        }
-    }
-
-    // TODO: Check for both Spatial.{orientation, euler}. They should be mutually exclusive
     // Euler based Orientation
+    glm::quat orientation{1,0,0,0};
     auto eulerField = fields.find("Spatial.euler");
     if (eulerField != fields.end()) {
         try {
@@ -72,11 +56,8 @@ void CreateSpatial(Entity *entity, const std::map<std::string, Parser::Field>& f
     }
 
     // Create and assign spatial
-    auto spatial = new Spatial(entity->id);
+    auto spatial = new Spatial(entity->id, position, orientation, scale);
     ECS::Instance()->Assign(entity, spatial);
-    spatial->local.SetPosition(position);
-    spatial->local.SetOrientation(orientation);
-    spatial->local.scale = scale;
 }
 
 void CreateTrackedSpace(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
