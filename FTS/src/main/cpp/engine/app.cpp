@@ -70,11 +70,10 @@ void App::Run(struct android_app *app) {
 
 
 void App::UpdateSystems() {
-    // TODO: Move UpdateSpatials to the end of the function as a catch all
     system::spatial::UpdateTrackedSpaces(xrContext_);
-    system::spatial::UpdateSpatials();
     system::collision::RunCollisionChecks();
     system::ritual::Update(deltaTime_);
+    system::spatial::UpdateSpatials();
 }
 
 void App::Render() {
@@ -113,8 +112,8 @@ bool App::RenderLayer(std::vector<XrCompositionLayerProjectionView>& projectionL
     // Convert renderable to a cube for now
     for (auto spatial : system::render::GetRenderSpatials()) {
         Cube cube{};
-        cube.Pose = spatial->world.pose.ToXrPosef();
-        cube.Scale = math::vector::ToXrVector3f(spatial->world.scale);
+        cube.Pose = spatial->GetWorld().GetPose().ToXrPosef();
+        cube.Scale = math::vector::ToXrVector3f(spatial->GetWorld().GetScale());
         renderBuffer_.push_back(cube);
     }
 
