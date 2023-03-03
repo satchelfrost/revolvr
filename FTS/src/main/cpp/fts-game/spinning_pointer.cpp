@@ -1,6 +1,7 @@
 #include "spinning_pointer.h"
 #include <ecs/ecs.h>
 #include <ecs/system/io_system.h>
+#include <include/math/linear_math.h>
 
 SpinningPointer::SpinningPointer(rvr::type::EntityId id) : Ritual(id) {
     spatial_ = rvr::ECS::Instance()->GetComponent<rvr::Spatial>(id);
@@ -26,12 +27,16 @@ void SpinningPointer::OnTriggered(rvr::Collider* other) {}
 void SpinningPointer::MoveWand(float delta) {
     // Rotate by the turn speed every frame
     turnAmt_ = (turnAmt_ + turnSpeed_) % 360;
-    float angle = 3.14f * (float)turnAmt_ / 180.0f;
-    spatial_->pose.orientation = XrQuaternionf_CreateFromVectorAngle({0, 1, 0}, angle);
+    auto angle = (float)turnAmt_;
+    auto axis = spatial_->GetLocal().GetYAxis();
+    auto orientation = rvr::math::quaternion::FromAxisAngle(axis, angle);
+    spatial_->SetLocalOrientation(orientation);
 
     // Frame-rate independent translation back and forth
-    float transAmt = spatial_->pose.position.z + 0.1f * delta * (float)transDirection_;
-    spatial_->pose.position.z = transAmt;
-    if (abs(transAmt) > 0.25)
+    glm::vec3 velocity{0, 0, 0.1};
+    glm::vec3 offset = velocity * (delta * (float)transDirection_);
+    glm::vec3 newPosition = spatial_->GetLocal().GetPosition() + offset;
+    spatial_->SetLocalPosition(newPosition);
+    if (abs(newPosition.z) > 0.25)
         transDirection_ *= -1;
 }

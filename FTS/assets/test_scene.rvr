@@ -30,7 +30,7 @@ Collider.radius {0.05}
 # Collider.half_z {0.05}
 
 [entity id=3 name=Pointer parent=2]
-Spatial.scale {0.01, 0.01, 0.5}
+Spatial.scale {0.1, 0.1, 5}
 Spatial.position {0, 0, -0.25}
 Mesh {}
 Ritual.type {SpinningPointer}

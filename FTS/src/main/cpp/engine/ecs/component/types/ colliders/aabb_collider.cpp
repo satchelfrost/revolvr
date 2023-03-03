@@ -12,9 +12,9 @@ bool AABBCollider::TestCollision(Collider* other) {
         case ColliderType::AABB: {
             // Get the spatials
             auto otherSpatial = ECS::Instance()->GetComponent<Spatial>(other->id);
-            auto otherPos = otherSpatial->worldPose.position;
+            auto otherPos = otherSpatial->GetWorld().GetPosition();
             auto thisSpatial = ECS::Instance()->GetComponent<Spatial>(id);
-            auto thisPos = thisSpatial->worldPose.position;
+            auto thisPos = thisSpatial->GetWorld().GetPosition();
             auto otherAABB = reinterpret_cast<AABBCollider*>(other);
 
             if (abs(thisPos.x - otherPos.x) > (halfX + otherAABB->halfX))
