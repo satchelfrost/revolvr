@@ -8,6 +8,7 @@ Scanner::Scanner(const std::string& fileName) : currentLine_(1) {
   off_t file_length = AAsset_getLength(file);
   char *file_content = new char[file_length + 1];
   AAsset_read(file, file_content, file_length);
+  AAsset_close(file);
   file_content[file_length] = '\0';
 
   inputStream_ = std::istringstream(file_content);
@@ -19,6 +20,8 @@ Scanner::Scanner(const std::string& fileName) : currentLine_(1) {
     Tokenize(line);
     currentLine_++;
   }
+
+  delete[] file_content;
 }
 
 void Scanner::ReadLines() {
