@@ -2,11 +2,12 @@
 
 #include "ecs/component/component.h"
 
-#define LAST_TRACKED_SPACE 2
+#define LAST_TRACKED_SPACE 3
 #define TRACKED_SPACE_LIST(X) \
-    X(VROrigin, 0) \
+    X(Player, 0) \
     X(LeftHand, 1) \
-    X(RightHand, LAST_TRACKED_SPACE)           \
+    X(RightHand, 2)           \
+    X(Head, LAST_TRACKED_SPACE)           \
 
 
 #define BUILD_ENUM(ENUM, NUM) ENUM = NUM,
