@@ -1,7 +1,13 @@
-[entity id=0 name=VR_Origin]
-TrackedSpace.type {VROrigin}
+[entity id=0 name=Player]
+TrackedSpace.type {Player}
 Spatial.position {3, 0, 0}
 Spatial.orientation {0, 0, 0, 1}
+
+[entity id=15 name=Head]
+TrackedSpace.type {Head}
+Audio.track_name {sting_victory_orch_03}
+Audio.volume {0.2}
+Spatial {}
 
 [entity id=1 name=Left_Hand]
 TrackedSpace.type {LeftHand}
@@ -39,7 +45,6 @@ Ritual.can_update {true}
 [entity id=4 name=WorldOriginMesh]
 Mesh {}
 Spatial.scale {0.5, 0.5, 0.5}
-Spatial.position {0, 0.5, 0}
 
 [entity id=5 name=Back_Mesh]
 Mesh {}
@@ -57,15 +62,14 @@ Mesh {}
 Spatial.scale {4, 0.5, 0.5}
 Spatial.position {3, 0.25, -5}
 
-[entity id=8]
+[entity id=8 name=moving_box]
 Mesh {}
-Spatial.scale {4, 0.5, 0.5}
-Spatial.position {3, 0.25, -5}
-
-[entity id=9]
-Mesh {}
-Spatial.scale {4, 0.5, 0.5}
-Spatial.position {3, 1.25, -5}
+Spatial.scale {0.5, 0.5, 0.5}
+Spatial.position {3, 1.25, -3}
+Ritual.type {MovingSoundBox}
+Audio.track_name {ui_laser_shoot_01}
+Audio.loop {false}
+Audio.spatialize {true}
 
 [entity id=10]
 Mesh {}
@@ -87,7 +91,7 @@ Mesh {}
 Spatial.scale {4, 0.5, 0.5}
 Spatial.position {3, 5.25, -5}
 
-[entity id=14 name=Floor_Mesh]
-Mesh {}
-Spatial.scale {4, 0.125, 4}
-Spatial.position {3, 0, 0}
+#[entity id=14 name=Floor_Mesh]
+#Mesh {}
+#Spatial.scale {4, 0.125, 4}
+#Spatial.position {3, 0, 0}
