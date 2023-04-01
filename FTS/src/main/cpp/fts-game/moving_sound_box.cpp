@@ -1,0 +1,35 @@
+#include "moving_sound_box.h"
+#include <common.h>
+#include <ecs/ecs.h>
+#include <ecs/component/types/spatial.h>
+#include <global_context.h>
+#include <action/io.h>
+#include <helper_macros.h>
+
+MovingSoundBox::MovingSoundBox(rvr::type::EntityId id) : Ritual(id) {
+    spatial_ = GetComponent<rvr::Spatial>(id);
+    audio_ = GetComponent<rvr::Audio>(id);
+}
+
+void MovingSoundBox::Begin() {}
+
+void MovingSoundBox::Update(float delta) {
+    // Move the sound box
+    auto leftJoy = GetJoystickXY(rvr::Hand::Left);
+    auto rightJoy = GetJoystickXY(rvr::Hand::Right);
+    auto pos = spatial_->GetLocal().GetPosition();
+    float speed = 3.0f;
+    pos.z -=  leftJoy.y * speed * delta;
+    pos.x +=  leftJoy.x * speed * delta;
+    pos.y += rightJoy.y * speed * delta;
+    spatial_->SetLocalPosition(pos);
+
+    // Play the sound
+    if (ButtonPressed(rvr::ActionType::X))
+        audio_->Play();
+
+    if (ButtonPressed(rvr::ActionType::Y))
+        GetComponent<rvr::Audio>(15)->Play();
+}
+
+void MovingSoundBox::OnTriggered(rvr::Collider* other) {}
