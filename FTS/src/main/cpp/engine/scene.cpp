@@ -2,7 +2,7 @@
 #include "ecs/component/all_components.h"
 #include "ecs/ecs.h"
 #include "rvr_parser/parser.h"
-#include <ecs/entity/entity_factory.h>
+#include <global_context.h>
 #include <ecs/component/component_factory.h>
 #include <ecs/system/ritual_system.h>
 
@@ -26,7 +26,7 @@ void Scene::InitUnits(const std::vector<Parser::Unit> &units) {
         InitUnit(unit);
 
     // Fill any holes potentially created by scene description
-    ECS::Instance()->FillHoles();
+    GlobalContext::Inst()->GetECS()->FillHoles();
 }
 
 void Scene::InitUnit(const Parser::Unit& unit) {
@@ -63,7 +63,7 @@ Entity* Scene::CreateEntity(const Parser::Heading& heading) {
     Entity* entity;
     try {
         type::EntityId id = heading.strKeyNumVal.at("id");
-        entity = EntityFactory::CreateEntity(id);
+        entity = GlobalContext::Inst()->GetECS()->CreateNewEntity(id);
     }
     catch (std::out_of_range& e) {
         THROW("Entity did not contain id");
@@ -107,8 +107,8 @@ void Scene::SaveHierarchyInfo(Entity* entity, const Parser::Heading& heading) {
 
 void Scene::CreateHierarchy() {
     for (auto [childId, parentId] : parentIdMap_) {
-        auto parent = ECS::Instance()->GetEntity(parentId);
-        auto child = ECS::Instance()->GetEntity(childId);
+        auto parent = GlobalContext::Inst()->GetECS()->GetEntity(parentId);
+        auto child = GlobalContext::Inst()->GetECS()->GetEntity(childId);
         CHECK_MSG(parent, Fmt("Parent id %d was null", parentId));
         CHECK_MSG(child, Fmt("Child id %d was null", childId));
         parent->AddChild(child);
@@ -121,7 +121,7 @@ void Scene::CreateRituals(const std::vector<Parser::Unit>& units) {
             for (const auto& [cType, fields] : unit.fields) {
                 if (cType == ComponentType::Ritual) {
                     type::EntityId id = unit.heading.strKeyNumVal.at("id");
-                    auto entity = ECS::Instance()->GetEntity(id);
+                    auto entity = GlobalContext::Inst()->GetECS()->GetEntity(id);
                     componentFactory::CreateRitual(entity, fields);
                 }
             }

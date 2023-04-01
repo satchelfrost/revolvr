@@ -1,8 +1,10 @@
 #include <pch.h>
-#include <ecs/ecs.h>
 #include <ecs/system/spatial_system.h>
 #include <ecs/component/types/spatial.h>
 #include <ecs/component/types/tracked_space.h>
+#include <global_context.h>
+
+#define GetComponentPair GlobalContext::Inst()->GetECS()->GetComponentPair
 
 namespace rvr::system::spatial{
 void UpdateTrackedSpaces(XrContext *context) {
@@ -11,10 +13,10 @@ void UpdateTrackedSpaces(XrContext *context) {
     auto trackedSpaceLocations = context->trackedSpaceLocations;
 
     // Update each spatial that has a corresponding tracked space
-    for (auto entityId : ECS::Instance()->GetEids(ComponentType::TrackedSpace)) {
-        auto [spatial, tracked] = ECS::Instance()->GetComponentPair<Spatial, TrackedSpace>(entityId);
+    for (auto entityId : GlobalContext::Inst()->GetECS()->GetEids(ComponentType::TrackedSpace)) {
+        auto [spatial, tracked] = GetComponentPair<Spatial, TrackedSpace>(entityId);
         switch (tracked->type) {
-            case TrackedSpaceType::VROrigin:
+            case TrackedSpaceType::Player:
                 spatial->SetWorld(math::Transform(trackedSpaceLocations.vrOrigin.pose,
                                                   spatial->GetWorld().GetScale()));
                 break;
@@ -26,6 +28,10 @@ void UpdateTrackedSpaces(XrContext *context) {
                 spatial->SetWorld(math::Transform(trackedSpaceLocations.rightHand.pose,
                                                   spatial->GetWorld().GetScale()));
                 break;
+            case TrackedSpaceType::Head:
+                spatial->SetWorld(math::Transform(trackedSpaceLocations.head.pose,
+                                                  spatial->GetWorld().GetScale()));
+                break;
             default:
                 break;
         }
@@ -33,7 +39,7 @@ void UpdateTrackedSpaces(XrContext *context) {
 }
 
 void UpdateSpatials() {
-    auto components = ECS::Instance()->GetComponents(ComponentType::Spatial);
+    auto components = GlobalContext::Inst()->GetECS()->GetComponents(ComponentType::Spatial);
     for (auto [eid, component] : components)
         dynamic_cast<Spatial *>(component)->UpdateWorld();
 }

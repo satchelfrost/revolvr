@@ -1,15 +1,19 @@
-#include <ecs/ecs.h>
 #include <ecs/component/component_factory.h>
 #include <ecs/component/all_components.h>
 #include <all_ritual_types.h>
+#include <audio/wav_audio_source.h>
 #include <ecs/component/types/colliders/sphere_collider.h>
 #include <ecs/component/types/colliders/aabb_collider.h>
+#include <ecs/component/types/audio/spatial_audio.h>
+#include <global_context.h>
 #include <math/linear_math.h>
 
+#define Assign GlobalContext::Inst()->GetECS()->Assign
 #define RITUAL_CASE(TYPE, NUM) case game::RitualType::TYPE: ritual = new TYPE(entity->id); break;
 
 namespace rvr::componentFactory {
 void CreateSpatial(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
+
     // Scale
     glm::vec3 scale{1, 1 ,1};
     auto scaleField = fields.find("Spatial.scale");
@@ -57,7 +61,7 @@ void CreateSpatial(Entity *entity, const std::map<std::string, Parser::Field>& f
 
     // Create and assign spatial
     auto spatial = new Spatial(entity->id, position, orientation, scale);
-    ECS::Instance()->Assign(entity, spatial);
+    Assign(entity, spatial);
 }
 
 void CreateTrackedSpace(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
@@ -67,7 +71,11 @@ void CreateTrackedSpace(Entity *entity, const std::map<std::string, Parser::Fiel
         try {
             std::string trackedSpaceStr = tsTypeField->second.strValues.at(0);
             TrackedSpaceType trackedSpaceType = toTrackedSpaceTypeEnum(trackedSpaceStr);
-            ECS::Instance()->Assign(entity, new TrackedSpace(entity->id, trackedSpaceType));
+            if (trackedSpaceType == TrackedSpaceType::Head)
+                GlobalContext::Inst()->headEntityId = entity->id;
+            if (trackedSpaceType == TrackedSpaceType::Player)
+                GlobalContext::Inst()->playerEntityId = entity->id;
+            Assign(entity, new TrackedSpace(entity->id, trackedSpaceType));
         }
         catch (std::out_of_range& e) {
             ENTITY_ERR("Out of bounds, TrackedSpace.type was expecting 1 string",entity->GetName());
@@ -79,7 +87,7 @@ void CreateTrackedSpace(Entity *entity, const std::map<std::string, Parser::Fiel
 }
 
 void CreateMesh(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
-    ECS::Instance()->Assign(entity, new Mesh(entity->id));
+    Assign(entity, new Mesh(entity->id));
 }
 
 void CreateRitual(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
@@ -120,7 +128,7 @@ void CreateRitual(Entity *entity, const std::map<std::string, Parser::Field>& fi
         default:
             ENTITY_ERR("Ritual.type unspecified, cannot construct ritual",entity->GetName());
     }
-    ECS::Instance()->Assign(entity, ritual);
+    Assign(entity, ritual);
     ritual->canUpdate = canUpdate;
 }
 
@@ -175,12 +183,12 @@ void CreateCollider(Entity *entity, const std::map<std::string, Parser::Field>& 
     if (colliderType == Collider::ColliderType::Sphere) {
         if (radiusField == fields.end())
             ENTITY_ERR("Sphere collider requires radius",entity->GetName());
-        ECS::Instance()->Assign(entity, new SphereCollider(entity->id, radius));
+        Assign(entity, new SphereCollider(entity->id, radius));
     }
     else if (colliderType == Collider::ColliderType::AABB) {
         if ((halfXField == fields.end()) || (halfYField == fields.end()) || (halfZField == fields.end()))
             ENTITY_ERR("AABB collider requires half extents x, y, & z",entity->GetName());
-        ECS::Instance()->Assign(entity, new AABBCollider(entity->id, halfX, halfY, halfZ));
+        Assign(entity, new AABBCollider(entity->id, halfX, halfY, halfZ));
     }
     else {
         Log::Write(Log::Level::Warning,
@@ -188,5 +196,71 @@ void CreateCollider(Entity *entity, const std::map<std::string, Parser::Field>& 
                         entity->GetName().c_str(),
                         Collider::ColliderTypeToString(colliderType).c_str()));
     }
+}
+
+void CreateAudio(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
+    // Track Name
+    std::string trackName;
+    auto nameField = fields.find("Audio.track_name");
+    if (nameField != fields.end()) {
+        try {
+            trackName = nameField->second.strValues.at(0) + ".wav";
+        }
+        catch (std::out_of_range& e) {
+            ENTITY_ERR("Out of range, Audio.track_name was expecting a string",entity->GetName());
+        }
+    }
+
+    // Volume
+    float volume = 1.0;
+    auto volumeField = fields.find("Audio.volume");
+    if (volumeField != fields.end()) {
+        try {
+            volume = volumeField->second.floatValues.at(0);
+        }
+        catch (std::out_of_range& e) {
+            ENTITY_ERR("Out of range, Audio.volume was expecting a float",entity->GetName());
+        }
+    }
+
+    // Loop
+    bool loop = false;
+    auto loopField = fields.find("Audio.loop");
+    if (loopField != fields.end()) {
+        try {
+            std::string strBool = loopField->second.strValues.at(0);
+            loop = (strBool == "false") ? false : true;
+        }
+        catch (std::out_of_range& e) {
+            ENTITY_ERR("Out of range, Audio.loop was expecting a boolean",entity->GetName());
+        }
+    }
+
+    // spatialize
+    bool spatialize = false;
+    auto spatializeField = fields.find("Audio.spatialize");
+    if (spatializeField!= fields.end()) {
+        try {
+            std::string strBool = spatializeField->second.strValues.at(0);
+            spatialize = (strBool == "false") ? false : true;
+        }
+        catch (std::out_of_range& e) {
+            ENTITY_ERR("Out of range, Audio.spatialize was expecting a boolean",entity->GetName());
+        }
+    }
+
+    // Create and assign audio
+    Audio* audio;
+    if (spatialize) {
+        auto wavAudioSource = new WavAudioSource(trackName.c_str(), false);
+        audio = new SpatialAudio(entity->id, wavAudioSource);
+    }
+    else {
+        auto wavAudioSource = new WavAudioSource(trackName.c_str(), true);
+        audio = new Audio(entity->id, wavAudioSource);
+    }
+    Assign(entity, audio);
+    audio->Loop(loop);
+    audio->volume = volume;
 }
 }
