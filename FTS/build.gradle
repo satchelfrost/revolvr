@@ -10,10 +10,10 @@ android {
   project.archivesBaseName = "fts"
 
   dependencies {
-    implementation 'com.android.support:appcompat-v7:26.0.0'
+    implementation 'com.android.support:appcompat-v7:27.1.1'
   }
 
-  compileSdkVersion 26
+  compileSdkVersion 27
   ndkVersion '21.0.6113669'
 
   defaultConfig {
@@ -21,8 +21,8 @@ android {
     // be unique on a system.  If you don't change it, a new app
     // will replace an older one.
     applicationId "com.imminenteminence." + project.archivesBaseName
-    minSdkVersion 24
-    targetSdkVersion 25
+    minSdkVersion 27
+    targetSdkVersion 27
 
     // override app plugin abiFilters for 64-bit support
     externalNativeBuild {
