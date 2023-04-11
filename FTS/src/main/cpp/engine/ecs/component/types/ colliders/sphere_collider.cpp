@@ -1,6 +1,6 @@
 #include <ecs/component/types/colliders/sphere_collider.h>
 #include <common.h>
-#include <ecs/ecs.h>
+#include <global_context.h>
 #include <ecs/component/types/spatial.h>
 
 namespace rvr {
@@ -11,8 +11,8 @@ bool SphereCollider::TestCollision(Collider* other) {
     switch (other->type) {
         case ColliderType::Sphere: {
             // Get the spatials
-            auto otherSpatial = ECS::Instance()->GetComponent<Spatial>(other->id);
-            auto thisSpatial = ECS::Instance()->GetComponent<Spatial>(id);
+            auto otherSpatial = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(other->id);
+            auto thisSpatial =  GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(id);
 
             glm::vec3 dir = thisSpatial->GetWorld().GetPosition() - otherSpatial->GetWorld().GetPosition();
 

@@ -1,7 +1,10 @@
-#include <ecs/ecs.h>
 #include <ecs/component/types/spatial.h>
 #include <ecs/component/types/tracked_space.h>
 #include <math/linear_math.h>
+#include <global_context.h>
+
+#define GetComponent GlobalContext::Inst()->GetECS()->GetComponent
+#define GetEntity GlobalContext::Inst()->GetECS()->GetEntity
 
 namespace rvr {
 Spatial::Spatial(type::EntityId pId)
@@ -73,12 +76,12 @@ void Spatial::SetWorldOrientation(const glm::quat& orientation) {
 }
 
 void Spatial::UpdateWorld() {
-    Entity* child = ECS::Instance()->GetEntity(id);
+    Entity* child = GetEntity(id);
     if (id == constants::ROOT_ID)
         return;
 
     auto parent = child->GetParent();
-    auto parentSpatial = ECS::Instance()->GetComponent<Spatial>(parent->id);
+    auto parentSpatial = GetComponent<Spatial>(parent->id);
     parentSpatial->UpdateWorld();
 
     if (child->HasComponent(ComponentType::TrackedSpace)) {
@@ -91,10 +94,10 @@ void Spatial::UpdateWorld() {
         world.SetPosition(offset + parentSpatial->world.GetPosition());
         world.SetScale(local.GetScale() * parentSpatial->world.GetScale());
 
-        // Place objects relative to the origin
+        // Place objects relative to the player position
         if (parent->HasComponent(ComponentType::TrackedSpace)) {
-            auto ts = ECS::Instance()->GetComponent<TrackedSpace>(parent->id);
-            if (ts->type == TrackedSpaceType::VROrigin) {
+            auto ts = GetComponent<TrackedSpace>(parent->id);
+            if (ts->type == TrackedSpaceType::Player) {
                 world.SetPosition(world.GetPosition() - parentSpatial->local.GetPosition());
             }
         }

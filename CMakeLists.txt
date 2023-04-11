@@ -22,10 +22,21 @@ set_target_properties(
   ${CMAKE_CURRENT_SOURCE_DIR}/libs/meta/OpenXR/Libs/Android/${ANDROID_ABI}/${CMAKE_BUILD_TYPE}/libopenxr_loader.so
 )
 
+# Add meta audio sdk for spatial audio
+add_library(ovraudio SHARED IMPORTED)
+
+# Set the location of the ovraudio library
+set_target_properties(
+        ovraudio
+        PROPERTIES IMPORTED_LOCATION
+        ${CMAKE_CURRENT_SOURCE_DIR}/libs/meta/AudioSDK/Libs/Android/${ANDROID_ABI}/libovraudio64.so
+)
+
 # Find android libraries
 find_library(android-log log REQUIRED)
 find_library(android android REQUIRED)
 find_library(vulkan vulkan REQUIRED)
+find_library(aaudio aaudio REQUIRED)
 
 # Add the FTS subdirectory
 add_subdirectory("FTS")

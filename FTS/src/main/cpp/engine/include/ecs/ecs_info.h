@@ -2,13 +2,14 @@
 
 #include "pch.h"
 
-#define LAST_COMPONENT 4
+#define LAST_COMPONENT 5
 #define COMPONENT_LIST(X) \
     X(Spatial, 0) \
     X(Mesh, 1) \
     X(TrackedSpace, 2) \
     X(Ritual, 3) \
-    X(Collider, LAST_COMPONENT)
+    X(Collider, 4) \
+    X(Audio, LAST_COMPONENT)
 
 namespace rvr {
 namespace constants {

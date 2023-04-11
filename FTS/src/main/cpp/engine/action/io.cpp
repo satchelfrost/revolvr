@@ -1,7 +1,7 @@
-#include <ecs/system/io_system.h>
-#include <action/input/bool_action.h>
+#include <action/io.h>
+#include "include/action/input/bool_action.h"
 
-namespace rvr::system::io {
+namespace rvr {
 bool ButtonPressed(ActionType type) {
     auto action = XrContext::Instance()->actionManager.GetAction(type);
     auto button = dynamic_cast<BoolAction*>(action);

@@ -37,7 +37,7 @@ void XrContext::Initialize(VulkanRenderer* vulkanRenderer) {
     vulkanRenderer_ = vulkanRenderer;
 
     InitializePlatformLoader();
-    CreateInstance();
+    CreateXrInstance();
     InitializeSystem();
     InitializeSession();
     actionManager.CreateActionSpaces(session);
@@ -59,7 +59,7 @@ void XrContext::InitializePlatformLoader() {
     }
 }
 
-void XrContext::CreateInstance() {
+void XrContext::CreateXrInstance() {
     CHECK(xrInstance_ == XR_NULL_HANDLE);
 
     // Create union of extensions required by platform and graphics plugins.
@@ -128,7 +128,8 @@ void XrContext::InitializeReferenceSpaces() {
     CHECK(session != XR_NULL_HANDLE);
     RVRReferenceSpace referenceSpaces[] = {
             RVRReferenceSpace::Hud,
-            RVRReferenceSpace::TrackedOrigin
+            RVRReferenceSpace::TrackedOrigin,
+            RVRReferenceSpace::Head
     };
 
     for (const auto& referenceSpace : referenceSpaces) {
@@ -386,6 +387,14 @@ void XrContext::RefreshTrackedSpaceLocations() {
                                     &spaceLocation);
                 if (TrackedSpaceLocations::ValidityCheck(res, spaceLocation))
                     trackedSpaceLocations.vrOrigin = spaceLocation;
+                break;
+            case TrackedSpaceLocations::Head:
+                res = xrLocateSpace(initializedRefSpaces_[RVRReferenceSpace::Head],
+                                    appSpace,
+                                    frameState.predictedDisplayTime,
+                                    &spaceLocation);
+                if (TrackedSpaceLocations::ValidityCheck(res, spaceLocation))
+                    trackedSpaceLocations.head = spaceLocation;
                 break;
         }
     }

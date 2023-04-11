@@ -1,5 +1,5 @@
 #include "include/ecs/entity/entity.h"
-#include "include/ecs/ecs.h"
+#include <global_context.h>
 #include "check.h"
 
 namespace rvr {
@@ -72,7 +72,7 @@ void Entity::Destroy() {
         child->Destroy();
     }
     FreeComponents();
-    ECS::Instance()->FreeEntity(id);
+    GlobalContext::Inst()->GetECS()->FreeEntity(id);
 }
 
 bool Entity::Active() {
@@ -81,7 +81,7 @@ bool Entity::Active() {
 
 void Entity::FreeComponents() {
     for (auto componentType : GetComponentTypes())
-        ECS::Instance()->GetPool(componentType)->FreeComponent(id);
+        GlobalContext::Inst()->GetECS()->GetPool(componentType)->FreeComponent(id);
 }
 
 void Entity::AddComponent(ComponentType cType) {

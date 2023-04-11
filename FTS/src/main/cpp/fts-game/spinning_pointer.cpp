@@ -1,21 +1,22 @@
 #include "spinning_pointer.h"
 #include <ecs/ecs.h>
-#include <ecs/system/io_system.h>
+#include <action/io.h>
 #include <include/math/linear_math.h>
+#include <helper_macros.h>
+#include <global_context.h>
 
 SpinningPointer::SpinningPointer(rvr::type::EntityId id) : Ritual(id) {
-    spatial_ = rvr::ECS::Instance()->GetComponent<rvr::Spatial>(id);
+    spatial_ = GetComponent<rvr::Spatial>(id);
     turnAmt_ = 0;
     turnSpeed_ = 3;
     transDirection_ = 1;
     wandMoving_ = false;
 }
 
-void SpinningPointer::Begin() {
-}
+void SpinningPointer::Begin() {}
 
 void SpinningPointer::Update(float delta) {
-    if (rvr::system::io::ButtonPressed(rvr::ActionType::A))
+    if (ButtonPressed(rvr::ActionType::A))
         wandMoving_ = !wandMoving_;
 
     if (wandMoving_)
@@ -40,3 +41,4 @@ void SpinningPointer::MoveWand(float delta) {
     if (abs(newPosition.z) > 0.25)
         transDirection_ *= -1;
 }
+

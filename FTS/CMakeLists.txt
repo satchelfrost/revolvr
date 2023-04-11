@@ -28,8 +28,9 @@ target_include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/fts-game
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/fts-game/include
   ${CMAKE_CURRENT_SOURCE_DIR}/../libs/khronos/openxr/OpenXR-SDK/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/../libs/meta/AudioSDK/include
   ${ANDROID_NDK}/sources/android/native_app_glue/
 )
 
 # Adding libraries to link to fts.
-target_link_libraries(fts openxr_loader glm ${android-log} ${android} ${vulkan})
+target_link_libraries(fts openxr_loader ovraudio glm ${android-log} ${android} ${vulkan} ${aaudio})

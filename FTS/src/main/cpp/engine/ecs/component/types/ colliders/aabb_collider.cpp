@@ -1,7 +1,7 @@
 #include <ecs/component/types/colliders/aabb_collider.h>
 #include <common.h>
-#include <ecs/ecs.h>
 #include <ecs/component/types/spatial.h>
+#include <global_context.h>
 
 namespace rvr {
 AABBCollider::AABBCollider(type::EntityId pId, float halfX, float halfY, float halfZ) :
@@ -11,9 +11,9 @@ bool AABBCollider::TestCollision(Collider* other) {
     switch (other->type) {
         case ColliderType::AABB: {
             // Get the spatials
-            auto otherSpatial = ECS::Instance()->GetComponent<Spatial>(other->id);
+            auto otherSpatial = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(other->id);
             auto otherPos = otherSpatial->GetWorld().GetPosition();
-            auto thisSpatial = ECS::Instance()->GetComponent<Spatial>(id);
+            auto thisSpatial = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(id);
             auto thisPos = thisSpatial->GetWorld().GetPosition();
             auto otherAABB = reinterpret_cast<AABBCollider*>(other);
 

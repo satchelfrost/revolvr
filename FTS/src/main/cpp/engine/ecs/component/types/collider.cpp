@@ -1,6 +1,6 @@
 #include <ecs/component/types/collider.h>
 #include <common.h>
-#include <ecs/ecs.h>
+#include <global_context.h>
 
 namespace rvr {
 Collider::Collider(ColliderType pType, type::EntityId pId) :
@@ -27,9 +27,9 @@ Collider::ColliderType Collider::StrToColliderTypeEnum(const std::string& str) {
 }
 
 void Collider::Collided(Collider *other) {
-    auto entity = ECS::Instance()->GetEntity(id);
+    auto entity = GlobalContext::Inst()->GetECS()->GetEntity(id);
     if (entity->HasComponent(ComponentType::Ritual)) {
-        auto ritual = ECS::Instance()->GetComponent<Ritual>(id);
+        auto ritual = GlobalContext::Inst()->GetECS()->GetComponent<Ritual>(id);
         ritual->OnTriggered(other);
     }
 }

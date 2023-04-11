@@ -52,11 +52,13 @@ struct TrackedSpaceLocations {
     XrSpaceLocation leftHand{XR_TYPE_SPACE_LOCATION};
     XrSpaceLocation rightHand{XR_TYPE_SPACE_LOCATION};
     XrSpaceLocation vrOrigin{XR_TYPE_SPACE_LOCATION};
+    XrSpaceLocation head{XR_TYPE_SPACE_LOCATION};
 
     enum TrackedSpaceLocation {
         LeftHand,
         RightHand,
-        VrOrigin
+        VrOrigin,
+        Head
     };
 
     static bool ValidityCheck(XrResult res, XrSpaceLocation location) {
@@ -66,5 +68,5 @@ struct TrackedSpaceLocations {
                (location.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT);
     }
 
-    std::vector<TrackedSpaceLocation> locations = {LeftHand, RightHand, VrOrigin};
+    std::vector<TrackedSpaceLocation> locations = {LeftHand, RightHand, VrOrigin, Head};
 };

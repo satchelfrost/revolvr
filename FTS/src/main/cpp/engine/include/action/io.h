@@ -1,9 +1,9 @@
 #pragma once
 
-#include <action/action.h>
-#include <xr_context.h>
+#include "action.h"
+#include "../xr_context.h"
 
-namespace rvr::system::io {
+namespace rvr {
 // Buttons
 bool ButtonPressed(ActionType type);
 bool ButtonDown(ActionType type);

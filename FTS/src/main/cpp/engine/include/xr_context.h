@@ -51,7 +51,7 @@ private:
     static void InitializePlatformLoader();
 
     // Create an Instance and other basic instance-level initialization.
-    void CreateInstance();
+    void CreateXrInstance();
 
     // Select a System for the view configuration specified in the Options and initialize the graphics device for the selected
     // system.
