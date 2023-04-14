@@ -25,6 +25,7 @@ enum class TrackedSpaceType {
 class TrackedSpace : public Component {
 public:
     TrackedSpace(type::EntityId pId, TrackedSpaceType trackedSpaceType);
+    virtual Component* Clone(type::EntityId newEntityId) override;
     const TrackedSpaceType type;
 };
 

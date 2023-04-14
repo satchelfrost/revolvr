@@ -33,4 +33,8 @@ bool AABBCollider::TestCollision(Collider* other) {
             THROW(Fmt("Collider type %d unrecognized", other->type))
     }
 }
+
+Component *AABBCollider::Clone(type::EntityId newEntityId) {
+    return new AABBCollider(newEntityId, this->halfX, this->halfY, this->halfZ);
+}
 }

@@ -72,4 +72,8 @@ void SpatialAudio::Play() {
     Audio::Play();
     circularBuffer_.Clear();
 }
+
+Component *SpatialAudio::Clone(type::EntityId newEntityId) {
+    return new SpatialAudio(newEntityId, this->wavAudioSource_);
+}
 }

@@ -30,4 +30,8 @@ bool SphereCollider::TestCollision(Collider* other) {
             THROW(Fmt("Collider type %d unrecognized", other->type))
     }
 }
+
+Component *SphereCollider::Clone(type::EntityId newEntityId) {
+    return new SphereCollider(newEntityId, this->radius);
+}
 }

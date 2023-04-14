@@ -8,7 +8,7 @@ class ECS {
 public:
     void Init();
     static ECS* Instance();
-    void Assign(Entity* entity, Component* cType);
+    void Assign(Entity* entity, Component* component);
     void FreeEntity(type::EntityId id);
     std::map<type::EntityId, Component*> GetComponents(ComponentType cType);
     ComponentPool* GetPool(ComponentType cType);

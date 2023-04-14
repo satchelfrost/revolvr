@@ -10,6 +10,7 @@ public:
     virtual void Render(float* targetData, int32_t numSamples) override;
     virtual void Play() override;
     static void ResetHead();
+    virtual Component* Clone(type::EntityId newEntityId) override;
 
 private:
     void Spatialize();

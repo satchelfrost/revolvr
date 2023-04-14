@@ -52,4 +52,11 @@ void Audio::RenderSilence(float *start, int32_t numSamples) {
         start[i] = 0;
 }
 
+Component *Audio::Clone(type::EntityId newEntityId) {
+    auto audio = new Audio(newEntityId, this->wavAudioSource_);
+    audio->readFrameIndex_ = 0;
+    audio->isLooping_ = this->isLooping_.load();
+    audio->volume = this->volume;
+    return audio;
+}
 }
