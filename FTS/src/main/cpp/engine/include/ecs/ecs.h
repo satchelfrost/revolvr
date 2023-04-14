@@ -3,7 +3,6 @@
 #include "ecs/entity/entity_pool.h"
 #include "ecs/component/component_pool_manager.h"
 
-
 namespace rvr {
 class ECS {
 public:
@@ -11,7 +10,7 @@ public:
     static ECS* Instance();
     void Assign(Entity* entity, Component* cType);
     void FreeEntity(type::EntityId id);
-    std::unordered_map<type::EntityId, Component*> GetComponents(ComponentType cType);
+    std::map<type::EntityId, Component*> GetComponents(ComponentType cType);
     ComponentPool* GetPool(ComponentType cType);
     std::vector<type::EntityId> GetEids(ComponentType cType);
     Entity* CreateNewEntity(type::EntityId id);

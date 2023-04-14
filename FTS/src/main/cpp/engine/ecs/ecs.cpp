@@ -1,6 +1,5 @@
 #include "ecs/ecs.h"
 
-
 namespace rvr {
 ECS* ECS::instance_ = nullptr;
 
@@ -15,7 +14,7 @@ void ECS::Init() {
     componentPoolManager_ = new ComponentPoolManager();
 }
 
-std::unordered_map<type::EntityId, Component*> ECS::GetComponents(ComponentType cType) {
+std::map<type::EntityId, Component*> ECS::GetComponents(ComponentType cType) {
     return GetPool(cType)->GetComponents();
 }
 

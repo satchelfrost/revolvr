@@ -34,7 +34,7 @@ void ComponentPool::FreeComponent(type::EntityId id) {
     components_.erase(id);
 }
 
-std::unordered_map<type::EntityId, Component *> ComponentPool::GetComponents() {
+std::map<type::EntityId, Component *> ComponentPool::GetComponents() {
     return components_;
 }
 }
