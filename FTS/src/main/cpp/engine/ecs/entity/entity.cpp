@@ -1,6 +1,6 @@
-#include "include/ecs/entity/entity.h"
+#include <include/ecs/entity/entity.h>
 #include <global_context.h>
-#include "check.h"
+#include <check.h>
 
 namespace rvr {
 Entity::Entity(int entityId) : id(entityId), parent_(nullptr) {}
@@ -86,5 +86,15 @@ void Entity::FreeComponents() {
 
 void Entity::AddComponent(ComponentType cType) {
     mask_.set((int)cType);
+}
+
+Entity *Entity::Clone(type::EntityId newEntityId) {
+    auto newEntity = GlobalContext::Inst()->GetECS()->CreateNewEntity(newEntityId);
+    for (auto componentType : GetComponentTypes()) {
+        auto component = GlobalContext::Inst()->GetECS()->GetPool(componentType)->GetComponent(id);
+        auto newComponent = component->Clone(newEntityId);
+        GlobalContext::Inst()->GetECS()->Assign(newEntity, newComponent);
+    }
+    return newEntity;
 }
 }
