@@ -84,6 +84,9 @@ void Spatial::UpdateWorld() {
         return;
 
     auto parent = child->GetParent();
+
+    CHECK_MSG(parent, Fmt("Entity %s is an orphan", child->GetName().c_str()));
+
     auto parentSpatial = GetComponent<Spatial>(parent->id);
     parentSpatial->UpdateWorld();
 

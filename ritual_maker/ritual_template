@@ -8,6 +8,7 @@
 #pragma once
 
 #include <ecs/ecs_info.h>
+#include <ecs/component/types/ritual.h>
 
 class @class_name : public rvr::Ritual {
 public:

@@ -57,7 +57,7 @@ void Action::CreateAction(XrActionType actionType) {
         actionInfo.subactionPaths = nullptr;
     }
 
-    Log::Write(Log::Level::Info, Fmt("Action name %s", actionInfo.actionName));
+//    Log::Write(Log::Level::Info, Fmt("Action name %s", actionInfo.actionName));
     CHECK_XRCMD(xrCreateAction(actionSet_, &actionInfo, &action_));
 }
 

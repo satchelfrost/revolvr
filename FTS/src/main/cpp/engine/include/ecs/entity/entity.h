@@ -16,6 +16,7 @@ public:
     void SetName(std::string name);
     std::string GetName();
     Entity* Clone(type::EntityId newEntityId);
+    Entity* Clone();
 
 
     // Tree related methods

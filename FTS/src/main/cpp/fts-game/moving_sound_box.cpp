@@ -24,10 +24,11 @@ void MovingSoundBox::Update(float delta) {
     pos.y += rightJoy.y * speed * delta;
     spatial_->SetLocalPosition(pos);
 
-    // Play the sound
+    // Play the laser spatial audio sound
     if (ButtonPressed(rvr::ActionType::X))
         audio_->Play();
 
+    // Play the achievement jingle (regular audio)
     if (ButtonPressed(rvr::ActionType::Y))
         GetComponent<rvr::Audio>(15)->Play();
 }

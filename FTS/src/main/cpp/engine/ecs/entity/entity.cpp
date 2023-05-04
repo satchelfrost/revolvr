@@ -47,14 +47,17 @@ void Entity::AddChild(Entity* child) {
 void Entity::RemoveFromParent() {
     if (parent_) {
         auto& children = parent_->GetChildren();
-        auto childItr = std::find(children.begin(), children.end(), this);
-        CHECK(childItr != children.end());
-        children.erase(childItr);
+        children.remove(this);
+        parent_ = nullptr;
+    }
+    else {
+        Log::Write(Log::Level::Warning, Fmt("Entity with id %d has no parent", id));
     }
 }
 
 void Entity::SetParent(Entity* parent) {
-    RemoveFromParent();
+    if (parent_)
+        RemoveFromParent();
     parent_ = parent;
 }
 
@@ -67,6 +70,9 @@ std::list<Entity*>& Entity::GetChildren() {
 }
 
 void Entity::Destroy() {
+    if (!Active())
+        THROW(Fmt("Attempting to destroy inactive entity %d", id));
+
     RemoveFromParent();
     for (auto child : GetChildren()) {
         child->Destroy();
@@ -93,6 +99,16 @@ Entity *Entity::Clone(type::EntityId newEntityId) {
     for (auto componentType : GetComponentTypes()) {
         auto component = GlobalContext::Inst()->GetECS()->GetPool(componentType)->GetComponent(id);
         auto newComponent = component->Clone(newEntityId);
+        GlobalContext::Inst()->GetECS()->Assign(newEntity, newComponent);
+    }
+    return newEntity;
+}
+
+Entity *Entity::Clone() {
+    auto newEntity = GlobalContext::Inst()->GetECS()->CreateNewEntity();
+    for (auto componentType : GetComponentTypes()) {
+        auto component = GlobalContext::Inst()->GetECS()->GetPool(componentType)->GetComponent(id);
+        auto newComponent = component->Clone(newEntity->id);
         GlobalContext::Inst()->GetECS()->Assign(newEntity, newComponent);
     }
     return newEntity;

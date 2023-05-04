@@ -26,11 +26,9 @@ bool AudioEngine::start() {
 
     // Retrieves the sample rate of the stream for our oscillator.
     int32_t sampleRate = AAudioStream_getSampleRate(stream_);
-    Log::Write(Log::Level::Info, Fmt("Sample Rate %d", sampleRate));
 
     // Sets the buffer size.
     auto framesPerBurst = AAudioStream_getFramesPerBurst(stream_) * kBufferSizeInBursts;
-    Log::Write(Log::Level::Info, Fmt("Frames per burst %d", framesPerBurst));
     AAudioStream_setBufferSizeInFrames(stream_, framesPerBurst);
 
     // Starts the stream.

@@ -2,11 +2,12 @@
 
 #include <pch.h>
 
-#define LAST_RITUAL 2
+#define LAST_RITUAL 3
 #define RITUALS(X) \
     X(SpinningPointer, 0) \
     X(HandBehavior, 1) \
-    X(MovingSoundBox, LAST_RITUAL) \
+    X(MovingSoundBox, 2) \
+    X(SpawnBox, LAST_RITUAL) \
 
 #define NUM_RITUALS LAST_RITUAL + 1
 #define BUILD_ENUM(ENUM, NUM) ENUM = NUM,
