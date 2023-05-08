@@ -87,7 +87,20 @@ void CreateTrackedSpace(Entity *entity, const std::map<std::string, Parser::Fiel
 }
 
 void CreateMesh(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
-    Assign(entity, new Mesh(entity->id));
+    auto visField = fields.find("Mesh.visible");
+    bool visible = true;
+    if (visField != fields.end()) {
+        try {
+            std::string visStr = visField->second.strValues.at(0);
+            visible = (visStr == "true") ? true : false;
+        }
+        catch (std::out_of_range& e) {
+            ENTITY_ERR("Out of bounds, Mesh.visible was expecting 1 string", entity->GetName());
+        }
+    }
+    auto mesh = new Mesh(entity->id);
+    mesh->visible = visible;
+    Assign(entity, mesh);
 }
 
 void CreateRitual(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
