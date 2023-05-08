@@ -11,8 +11,6 @@ MovingSoundBox::MovingSoundBox(rvr::type::EntityId id) : Ritual(id) {
     audio_ = GetComponent<rvr::Audio>(id);
 }
 
-void MovingSoundBox::Begin() {}
-
 void MovingSoundBox::Update(float delta) {
     // Move the sound box
     auto leftJoy = GetJoystickXY(rvr::Hand::Left);
@@ -25,12 +23,10 @@ void MovingSoundBox::Update(float delta) {
     spatial_->SetLocalPosition(pos);
 
     // Play the laser spatial audio sound
-    if (ButtonPressed(rvr::ActionType::X))
+    if (ButtonPressed(rvr::ActionType::A))
         audio_->Play();
 
     // Play the achievement jingle (regular audio)
-    if (ButtonPressed(rvr::ActionType::Y))
+    if (ButtonPressed(rvr::ActionType::B))
         GetComponent<rvr::Audio>(15)->Play();
 }
-
-void MovingSoundBox::OnTriggered(rvr::Collider* other) {}

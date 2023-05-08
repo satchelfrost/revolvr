@@ -6,14 +6,17 @@
 class SpawnBox : public rvr::Ritual {
 public:
     SpawnBox(rvr::type::EntityId id);
-    
-    virtual void Begin() override;
     virtual void Update(float delta) override;
-    virtual void OnTriggered(rvr::Collider* other) override;
 
 private:
     int offset_;
+    void ManualApproach();
+    void CloneApproach();
     rvr::Entity* CreateBoxManually();
     static rvr::Entity* CreateBoxViaClone();
+    void AdjustBoxPosition(rvr::Entity* entity);
+
     std::vector<rvr::Entity*> spawnedEntities_;
+
+    static constexpr int boxToClonesId = 6;
 };

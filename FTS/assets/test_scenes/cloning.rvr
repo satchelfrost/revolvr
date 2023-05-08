@@ -19,4 +19,5 @@ Ritual.can_update {true}
 
 [entity id=6 name=origin_mesh]
 Spatial.scale {0.5, 0.5, 0.5}
+Spatial.position {1, 0, 0}
 Mesh.visible {false}

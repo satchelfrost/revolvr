@@ -8,9 +8,7 @@
 class MovingSoundBox : public rvr::Ritual {
 public:
     MovingSoundBox(rvr::type::EntityId id);
-    virtual void Begin() override;
     virtual void Update(float delta) override;
-    virtual void OnTriggered(rvr::Collider* other) override;
 
 private:
     rvr::Spatial* spatial_;
