@@ -3,7 +3,7 @@
 #include "common.h"
 
 namespace rvr {
-EntityPool::EntityPool() : nextEntityId_(0) {
+EntityPool::EntityPool() : nextEntityId_(-1) {
     entities_.resize(constants::MAX_ENTITIES);
 }
 
