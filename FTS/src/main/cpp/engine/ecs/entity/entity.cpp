@@ -70,15 +70,22 @@ std::list<Entity*>& Entity::GetChildren() {
 }
 
 void Entity::Destroy() {
-    if (!Active())
-        THROW(Fmt("Attempting to destroy inactive entity %d", id));
-
-    RemoveFromParent();
-    for (auto child : GetChildren()) {
-        child->Destroy();
+    if (!Active()) {
+        Log::Write(Log::Level::Warning, Fmt("Attempting to destroy inactive entity %d", id));
+        return;
     }
+
+    DestroyRecursive();
+    RemoveFromParent();
+}
+
+void Entity::DestroyRecursive() {
+    for (auto child : GetChildren())
+        child->DestroyRecursive();
+
     FreeComponents();
     GlobalContext::Inst()->GetECS()->FreeEntity(id);
+    children_.clear();
 }
 
 bool Entity::Active() {

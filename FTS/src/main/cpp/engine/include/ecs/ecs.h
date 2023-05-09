@@ -13,8 +13,8 @@ public:
     std::map<type::EntityId, Component*> GetComponents(ComponentType cType);
     ComponentPool* GetPool(ComponentType cType);
     std::vector<type::EntityId> GetEids(ComponentType cType);
-    Entity* CreateNewEntity(type::EntityId id);
-    Entity* CreateNewEntity();
+    Entity* CreateNewEntity(type::EntityId id, bool setRootAsParent = true);
+    Entity* CreateNewEntity(bool setRootAsParent = true);
     Entity* GetEntity(type::EntityId id);
     void FillHoles();
 

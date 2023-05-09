@@ -30,6 +30,7 @@ public:
     const int id;
 
 private:
+    void DestroyRecursive();
     void GenerateAndSetName();
     void RemoveFromParent();
 

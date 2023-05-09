@@ -12,19 +12,23 @@ EntityPool::~EntityPool() {
         delete entity;
 }
 
-Entity *EntityPool::CreateNewEntity() {
+Entity *EntityPool::CreateNewEntity(bool setRootAsParent) {
     // First recycle old entities if possible
     if (!inactiveIds_.empty()) {
         auto index = inactiveIds_.back();
         inactiveIds_.pop_back();
         auto entity = entities_.at(index);
         CHECK_MSG(entity, Fmt("Expected inactive entity at index %d, found nullptr instead.", index))
+
+        if (setRootAsParent)
+            GetRoot()->AddChild(entity);
+
         return entity;
     }
-    return CreateNewEntity(nextEntityId_++);
+    return CreateNewEntity(nextEntityId_++, setRootAsParent);
 }
 
-Entity *EntityPool::CreateNewEntity(type::EntityId id) {
+Entity *EntityPool::CreateNewEntity(type::EntityId id, bool setRootAsParent) {
     // Max entity check
     if (id >= constants::MAX_ENTITIES)
         THROW(Fmt("[Entity id %d, MAX_ENTITIES %d] - Adjust max entities in ecs_info.h.",
@@ -42,6 +46,9 @@ Entity *EntityPool::CreateNewEntity(type::EntityId id) {
     // If no available entities create one
     auto entity = new Entity(id);
     entities_.at(id) = entity;
+    if (setRootAsParent)
+        GetRoot()->AddChild(entity);
+
     return entity;
 }
 

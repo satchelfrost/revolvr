@@ -25,26 +25,15 @@ void SpawnBox::Update(float delta) {
 }
 
 rvr::Entity* SpawnBox::CreateBoxManually() {
-    auto entity = rvr::GlobalContext::Inst()->GetECS()->CreateNewEntity();
-    glm::vec3 scale{1, 1 ,1};
-    auto spatial = new rvr::Spatial(entity->id);
-    spatial->SetLocalScale(scale);
-    rvr::GlobalContext::Inst()->GetECS()->Assign(entity, spatial);
-    rvr::GlobalContext::Inst()->GetECS()->Assign(entity, new rvr::Mesh(entity->id));
-
-    // Parent the entity to the root
-    // Todo: Make this parenting
-    auto parent = rvr::GlobalContext::Inst()->GetECS()->GetEntity(0);
-    parent->AddChild(entity);
-
+    auto entity = CreateNewEntity();
+    Assign(entity, new rvr::Spatial(entity->id));
+    Assign(entity, new rvr::Mesh(entity->id));
     return entity;
 }
 
 rvr::Entity* SpawnBox::CreateBoxViaClone() {
-    auto box = rvr::GlobalContext::Inst()->GetECS()->GetEntity(boxToClonesId);
+    auto box = GetEntity(boxToClonesId);
     auto cloneBox = box->Clone();
-    auto parent = rvr::GlobalContext::Inst()->GetECS()->GetEntity(0);
-    parent->AddChild(cloneBox);
     auto mesh = GetComponent<rvr::Mesh>(cloneBox->id);
     mesh->visible = true;
     return cloneBox;
@@ -60,24 +49,19 @@ void SpawnBox::AdjustBoxPosition(rvr::Entity *entity) {
 }
 
 void SpawnBox::ManualApproach() {
-    auto entity = CreateBoxManually();
-    AdjustBoxPosition(entity);
-    spawnedEntities_.push_back(entity);
-    Log::Write(Log::Level::Info, Fmt("Manual entity %d was added", entity->id));
+    auto parent = CreateBoxManually();
+    spawnedEntities_.push_back(parent);
+    AdjustBoxPosition(parent);
 
-//    // Add a child to the entity
-//    auto childEntity = CreateBoxManually();
-//    auto childSpatial = GetComponent<rvr::Spatial>(childEntity->id);
-//    childSpatial->SetLocalScale({0.2, 0.2, 0.2});
-//    auto parentSpatial = GetComponent<rvr::Spatial>(entity->id);
-//    auto newChildPos = parentSpatial->GetLocal().GetPosition();
-//    newChildPos.y += 1;
-//    childSpatial->SetLocalPosition(newChildPos);
-//
-//    entity->AddChild(childEntity);
-//
-//    Log::Write(Log::Level::Info, Fmt("Manual entity %d was added with child %d",
-//                                     entity->id, childEntity->id));
+    // Add a child to the parent entity to test that recursive destroy is working
+    auto childEntity = CreateBoxManually();
+    auto childSpatial = GetComponent<rvr::Spatial>(childEntity->id);
+    childSpatial->SetLocalScale({0.2, 0.2, 0.2});
+    childSpatial->SetLocalPosition({0, 1, 0});
+    parent->AddChild(childEntity);
+
+    Log::Write(Log::Level::Info, Fmt("Manual entity %d was added with child %d",
+                                     parent->id, childEntity->id));
 }
 
 void SpawnBox::CloneApproach() {
@@ -86,4 +70,3 @@ void SpawnBox::CloneApproach() {
     spawnedEntities_.push_back(entity);
     Log::Write(Log::Level::Info, Fmt("Clone entity %d was added", entity->id));
 }
-

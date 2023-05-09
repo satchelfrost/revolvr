@@ -22,12 +22,12 @@ ComponentPool *ECS::GetPool(ComponentType cType) {
     return componentPoolManager_->GetPool(cType);
 }
 
-Entity *ECS::CreateNewEntity(type::EntityId id) {
-    return entityPool_->CreateNewEntity(id);
+Entity *ECS::CreateNewEntity(type::EntityId id, bool setRootAsParent) {
+    return entityPool_->CreateNewEntity(id, setRootAsParent);
 }
 
-Entity *ECS::CreateNewEntity() {
-    return entityPool_->CreateNewEntity();
+Entity *ECS::CreateNewEntity(bool setRootAsParent) {
+    return entityPool_->CreateNewEntity(setRootAsParent);
 }
 
 void ECS::Assign(Entity* entity, Component* component) {

@@ -12,7 +12,7 @@ private:
     int offset_;
     void ManualApproach();
     void CloneApproach();
-    rvr::Entity* CreateBoxManually();
+    static rvr::Entity* CreateBoxManually();
     static rvr::Entity* CreateBoxViaClone();
     void AdjustBoxPosition(rvr::Entity* entity);
 

@@ -7,8 +7,8 @@ class EntityPool {
 public:
     EntityPool();
     ~EntityPool();
-    Entity* CreateNewEntity();
-    Entity* CreateNewEntity(type::EntityId id);
+    Entity* CreateNewEntity(bool setRootAsParent = true);
+    Entity* CreateNewEntity(type::EntityId id, bool setRootAsParent = true);
     void FreeEntity(int entityId);
     Entity* GetRoot();
     Entity* GetEntity(type::EntityId id);
