@@ -1,4 +1,4 @@
-#include <include/ecs/entity/entity.h>
+#include <ecs/entity/entity.h>
 #include <global_context.h>
 #include <check.h>
 
@@ -112,7 +112,10 @@ Entity *Entity::Clone(type::EntityId newEntityId) {
 }
 
 Entity *Entity::Clone() {
+    // First clone any children
     auto newEntity = GlobalContext::Inst()->GetECS()->CreateNewEntity();
+    for (auto child : children_)
+        newEntity->AddChild(child->Clone());
     for (auto componentType : GetComponentTypes()) {
         auto component = GlobalContext::Inst()->GetECS()->GetPool(componentType)->GetComponent(id);
         auto newComponent = component->Clone(newEntity->id);

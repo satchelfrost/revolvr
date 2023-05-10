@@ -18,5 +18,5 @@ private:
 
     std::vector<rvr::Entity*> spawnedEntities_;
 
-    static constexpr int boxToClonesId = 6;
+    static constexpr int prototypeBoxId_ = 6;
 };

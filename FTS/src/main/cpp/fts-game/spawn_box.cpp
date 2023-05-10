@@ -32,11 +32,11 @@ rvr::Entity* SpawnBox::CreateBoxManually() {
 }
 
 rvr::Entity* SpawnBox::CreateBoxViaClone() {
-    auto box = GetEntity(boxToClonesId);
-    auto cloneBox = box->Clone();
-    auto mesh = GetComponent<rvr::Mesh>(cloneBox->id);
-    mesh->visible = true;
-    return cloneBox;
+    auto prototypeBox = GetEntity(prototypeBoxId_);
+    auto box = prototypeBox->Clone();
+    auto mesh = GetComponent<rvr::Mesh>(box->id);
+    mesh->SetVisibilityRecursive(true);
+    return box;
 }
 
 void SpawnBox::AdjustBoxPosition(rvr::Entity *entity) {
