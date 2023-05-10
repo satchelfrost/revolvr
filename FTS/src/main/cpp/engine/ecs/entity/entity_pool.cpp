@@ -3,7 +3,7 @@
 #include "common.h"
 
 namespace rvr {
-EntityPool::EntityPool() : nextEntityId_(-1) {
+EntityPool::EntityPool() : highestEntityId_(-1) {
     entities_.resize(constants::MAX_ENTITIES);
 }
 
@@ -25,7 +25,7 @@ Entity *EntityPool::CreateNewEntity(bool setRootAsParent) {
 
         return entity;
     }
-    return CreateNewEntity(nextEntityId_++, setRootAsParent);
+    return CreateNewEntity(++highestEntityId_, setRootAsParent);
 }
 
 Entity *EntityPool::CreateNewEntity(type::EntityId id, bool setRootAsParent) {
@@ -40,8 +40,8 @@ Entity *EntityPool::CreateNewEntity(type::EntityId id, bool setRootAsParent) {
         THROW(Fmt("[Entity id %d] - Already exists.", id));
 
     // Highest id so far
-    if (id > nextEntityId_)
-        nextEntityId_ = id + 1;
+    if (id > highestEntityId_)
+        highestEntityId_ = id;
 
     // If no available entities create one
     auto entity = new Entity(id);
@@ -73,7 +73,7 @@ Entity *EntityPool::GetEntity(type::EntityId id) {
 }
 
 void EntityPool::FillHoles() {
-    for (type::EntityId id = 0; id < nextEntityId_; id++) {
+    for (type::EntityId id = 0; id < highestEntityId_; id++) {
         if (entities_.at(id) == nullptr) {
             // create entity without any components
             entities_.at(id) = new Entity(id);

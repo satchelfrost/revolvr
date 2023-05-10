@@ -15,7 +15,7 @@ public:
     void FillHoles();
 
 private:
-    type::EntityId nextEntityId_;
+    type::EntityId highestEntityId_;
     std::vector<Entity*> entities_;
     std::vector<type::EntityId> inactiveIds_;
 };
