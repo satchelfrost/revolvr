@@ -32,9 +32,4 @@ ComponentPool* ComponentPoolManager::GetPool(ComponentType cType) {
 
     return componentPool;
 }
-
-Component* ComponentPoolManager::GetComponent(type::EntityId id, ComponentType cType) {
-    ComponentPool* pool = GetPool(cType);
-    return pool->GetComponent(id);
-}
 }

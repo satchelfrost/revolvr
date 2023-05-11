@@ -4,6 +4,7 @@
 #include <action/io.h>
 #include <ecs/component/types/spatial.h>
 #include <ecs/component/types/mesh.h>
+#include "ecs/component/types/tracked_space.h"
 
 SpawnBox::SpawnBox(rvr::type::EntityId id) : Ritual(id), offset_(0) {}
 

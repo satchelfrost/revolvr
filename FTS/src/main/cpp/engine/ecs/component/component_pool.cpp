@@ -20,7 +20,13 @@ void ComponentPool::AssignComponent(Entity* entity, Component* component) {
 }
 
 Component *ComponentPool::GetComponent(type::EntityId id) {
-    return components_.at(id);
+    try {
+        return components_.at(id);
+    }
+    catch (std::out_of_range& e) {
+        Log::Write(Log::Level::Warning, Fmt("Component does not exist for id %d", id));
+        return nullptr;
+    }
 }
 
 std::vector<type::EntityId> ComponentPool::GetEids() {
