@@ -1,6 +1,6 @@
 #include <ecs/component/component_factory.h>
 #include <ecs/component/all_components.h>
-#include <all_ritual_types.h>
+#include <rituals.h>
 #include <audio/wav_audio_source.h>
 #include <ecs/component/types/colliders/sphere_collider.h>
 #include <ecs/component/types/colliders/aabb_collider.h>
@@ -9,7 +9,7 @@
 #include <math/linear_math.h>
 
 #define Assign GlobalContext::Inst()->GetECS()->Assign
-#define RITUAL_CASE(TYPE, NUM) case game::RitualType::TYPE: ritual = new TYPE(entity->id); break;
+#define RITUAL_CASE(TYPE) case RitualType::TYPE: ritual = new TYPE(entity->id); break;
 
 namespace rvr::componentFactory {
 void CreateSpatial(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
@@ -105,12 +105,12 @@ void CreateMesh(Entity *entity, const std::map<std::string, Parser::Field>& fiel
 
 void CreateRitual(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
     // RitualType - Required
-    game::RitualType rType;
+    RitualType rType;
     auto ritualTypeField = fields.find("Ritual.type");
     if (ritualTypeField != fields.end()) {
         try {
             std::string ritualStr = ritualTypeField->second.strValues.at(0);
-            rType = game::toRitualTypeEnum(ritualStr);
+            rType = GlobalContext::Inst()->ritualMap.StringToEnum(ritualStr);
         }
         catch (std::out_of_range& e) {
             ENTITY_ERR("Out of bounds, Ritual.type was expecting 1 string", entity->GetName());

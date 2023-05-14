@@ -1,7 +1,6 @@
 #pragma once
 
 #include <ecs/component/component.h>
-#include <ritual_type.h>
 #include <ecs/ecs_info.h>
 #include <ecs/entity/entity.h>
 #include <ecs/component/types/collider.h>
