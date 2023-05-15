@@ -1,7 +1,7 @@
 #pragma once
 
 #include <pch.h>
-#include <rituals.h>
+#include <ritual_list.h>
 
 #define BUILD_RITUAL_TYPE_ENUM(ENUM) ENUM,
 
