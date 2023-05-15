@@ -1,24 +1,20 @@
-#include <ritual_map.h>
+#include <ritual_type.h>
 #include <common.h>
 
-#define STRING_RITUAL_PAIR(ENUM) {#ENUM, RitualType::ENUM},
-
 namespace rvr {
-RitualMap::RitualMap() : rMap_({RITUALS(STRING_RITUAL_PAIR)}){}
-
-RitualType RitualMap::StringToEnum(const std::string& str) {
-    try {
-        return rMap_.at(str);
-    }
-    catch (std::out_of_range& e) {
-        THROW(Fmt("[StringToEnum failed] - RitualType %s unrecognized", str.c_str()));
-    }
+const char* toString(RitualType cType) {
+    int index = (int)cType;
+    if (index < 0 || index > constants::IMPLEMENTED_RITUALS)
+        return "RitualType unrecognized";
+    return ritualInfo[index].str;
 }
 
-const char* RitualMap::EnumToString(RitualType type) {
-    for (auto &[key, value]: rMap_)
-        if (value == type)
-            return key.c_str();
-    THROW(Fmt("[EnumToString failed] - RitualType %d unrecognized", type));
+RitualType toRitualTypeEnum(const std::string& str) {
+    for (int i = 0; i < constants::IMPLEMENTED_RITUALS; i++) {
+        std::string enumStr = toString((RitualType)i);
+        if (enumStr == str)
+            return (RitualType)i;
+    }
+    THROW(Fmt("No ritual type found for %s", str.c_str()));
 }
 }

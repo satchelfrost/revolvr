@@ -1,26 +1,21 @@
 #pragma once
 
-#include "pch.h"
-
-#define LAST_COMPONENT 5
-#define COMPONENT_LIST(X) \
-    X(Spatial, 0) \
-    X(Mesh, 1) \
-    X(TrackedSpace, 2) \
-    X(Ritual, 3) \
-    X(Collider, 4) \
-    X(Audio, LAST_COMPONENT)
+#include <pch.h>
+#include <ecs/component/component_type.h>
 
 namespace rvr {
 namespace constants {
-    const int MAX_ENTITIES = 30;
-    const int IMPLEMENTED_COMPONENTS = LAST_COMPONENT + 1;
-    const int ROOT_ID = 0;
+const int MAX_ENTITIES = 30;
+const int ROOT_ID = 0;
+
+#define _IMPLEMENTED_COMPONENTS sizeof componentInfo / sizeof componentInfo[0]
+constexpr int IMPLEMENTED_COMPONENTS = _IMPLEMENTED_COMPONENTS;
+#undef _IMPLEMENTED_COMPONENTS
 }
 
 namespace type {
-    typedef int EntityId;
-    typedef std::bitset<constants::IMPLEMENTED_COMPONENTS> ComponentMask;
+typedef int EntityId;
+typedef std::bitset<constants::IMPLEMENTED_COMPONENTS> ComponentMask;
 }
 }
 

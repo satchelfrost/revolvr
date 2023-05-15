@@ -5,7 +5,7 @@
 #include "logger.h"
 #include "token.h"
 #include "scanner.h"
-#include "include/ecs/component/component_type.h"
+#include <ecs/component/component_type.h>
 #include <map>
 
 namespace rvr {

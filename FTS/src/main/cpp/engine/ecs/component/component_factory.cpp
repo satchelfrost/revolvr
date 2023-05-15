@@ -1,6 +1,8 @@
 #include <ecs/component/component_factory.h>
-#include <ecs/component/all_components.h>
-#include <rituals.h>
+#include <ecs/component/component_hdrs.h>
+#include <ritual_list.h>
+#include <ritual_hdrs.h>
+#include <ritual_type.h>
 #include <audio/wav_audio_source.h>
 #include <ecs/component/types/colliders/sphere_collider.h>
 #include <ecs/component/types/colliders/aabb_collider.h>
@@ -9,7 +11,6 @@
 #include <math/linear_math.h>
 
 #define Assign GlobalContext::Inst()->GetECS()->Assign
-#define RITUAL_CASE(TYPE) case RitualType::TYPE: ritual = new TYPE(entity->id); break;
 
 namespace rvr::componentFactory {
 void CreateSpatial(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
@@ -90,7 +91,7 @@ void CreateMesh(Entity *entity, const std::map<std::string, Parser::Field>& fiel
     if (visField != fields.end()) {
         try {
             std::string visStr = visField->second.strValues.at(0);
-            visible = (visStr == "true") ? true : false;
+            visible = (visStr == "true");
         }
         catch (std::out_of_range& e) {
             ENTITY_ERR("Out of bounds, Mesh.visible was expecting 1 string", entity->GetName());
@@ -108,11 +109,10 @@ void CreateRitual(Entity *entity, const std::map<std::string, Parser::Field>& fi
     if (ritualTypeField != fields.end()) {
         try {
             std::string ritualStr = ritualTypeField->second.strValues.at(0);
-            rType = GlobalContext::Inst()->ritualMap.StringToEnum(ritualStr);
+            rType = toRitualTypeEnum(ritualStr);
         }
         catch (std::out_of_range& e) {
             ENTITY_ERR("Out of bounds, Ritual.type was expecting 1 string", entity->GetName());
-
         }
     }
     else {
@@ -124,8 +124,8 @@ void CreateRitual(Entity *entity, const std::map<std::string, Parser::Field>& fi
     auto canUpdateField = fields.find("Ritual.can_update");
     if (canUpdateField != fields.end()) {
         try {
-            std::string strBool = canUpdateField->second.strValues.at(0);
-            canUpdate = (strBool == "false") ? false : true;
+            std::string updateStr = canUpdateField->second.strValues.at(0);
+            canUpdate = (updateStr == "true");
         }
         catch (std::out_of_range& e ) {
             ENTITY_ERR("Out of bounds, Collider.can_update not found",entity->GetName());
@@ -135,7 +135,9 @@ void CreateRitual(Entity *entity, const std::map<std::string, Parser::Field>& fi
     // Construct and assign ritual
     Ritual* ritual;
     switch (rType) {
-        RITUALS(RITUAL_CASE)
+        #define RITUAL_CASE(TYPE) case RitualType::TYPE: ritual = new TYPE(entity->id); break;
+        RITUAL_LIST(RITUAL_CASE)
+        #undef RITUAL_CASE
         default:
             ENTITY_ERR("Ritual.type unspecified, cannot construct ritual",entity->GetName());
     }

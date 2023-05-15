@@ -1,12 +1,10 @@
 #include "scene.h"
-#include "ecs/component/all_components.h"
+#include "ecs/component/component_hdrs.h"
 #include "ecs/ecs.h"
 #include "rvr_parser/parser.h"
 #include <global_context.h>
 #include <ecs/component/component_factory.h>
 #include <ecs/system/ritual_system.h>
-
-#define CREATE_COMPONENT_CASE(TYPE, NUM) case ComponentType::TYPE: componentFactory::Create ## TYPE(entity, fields); break;
 
 namespace rvr {
 void Scene::LoadScene(const std::string &sceneName) {
@@ -80,11 +78,12 @@ Entity* Scene::CreateEntity(const Parser::Heading& heading) {
     return entity;
 }
 
-void Scene::CreateComponent(Entity* entity, const std::map<std::string, Parser::Field>& fields,
-                            ComponentType cType) {
+void Scene::CreateComponent(Entity* entity, const std::map<std::string, Parser::Field>& fields, ComponentType cType) {
     switch (cType) {
         // See implementations in <ecs/component/component_factory.cpp>
-        COMPONENT_LIST(CREATE_COMPONENT_CASE)
+        #define COMPONENT_CASE(TYPE) case ComponentType::TYPE: componentFactory::Create ## TYPE(entity, fields); break;
+        COMPONENT_LIST(COMPONENT_CASE)
+        #undef COMPONENT_CASE
     default:
         THROW(Fmt("Component type %s unrecognized", toString(cType)))
     }
