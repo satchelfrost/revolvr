@@ -72,9 +72,7 @@ void CreateTrackedSpace(Entity *entity, const std::map<std::string, Parser::Fiel
             std::string trackedSpaceStr = tsTypeField->second.strValues.at(0);
             TrackedSpaceType trackedSpaceType = toTrackedSpaceTypeEnum(trackedSpaceStr);
             if (trackedSpaceType == TrackedSpaceType::Head)
-                GlobalContext::Inst()->headEntityId = entity->id;
-            if (trackedSpaceType == TrackedSpaceType::Player)
-                GlobalContext::Inst()->playerEntityId = entity->id;
+                GlobalContext::Inst()->GetAudioEngine()->SetHeadId(entity->id);
             Assign(entity, new TrackedSpace(entity->id, trackedSpaceType));
         }
         catch (std::out_of_range& e) {

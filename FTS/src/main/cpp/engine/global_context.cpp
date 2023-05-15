@@ -23,7 +23,6 @@ void GlobalContext::Init(android_app *app) {
 
     // Create the audio engine
     audioEngine_ = new AudioEngine();
-//    audioEngine_->start();
 
     // Create android abstraction
     androidContext_ = AndroidContext::Instance();
@@ -42,7 +41,7 @@ void GlobalContext::Init(android_app *app) {
 }
 
 GlobalContext::~GlobalContext() {
-//    delete audioEngine_;
+    delete audioEngine_;
     delete vulkanRenderer_;
     delete androidContext_;
     delete ecs_;

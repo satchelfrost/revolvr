@@ -16,7 +16,7 @@ Audio(pId, wavAudioSource) {
 }
 
 void SpatialAudio::Render(float *targetData, int32_t numSamples) {
-    ResetHead();
+    GlobalContext::Inst()->GetAudioEngine()->ResetHeadForSpatialAudio();
 
     if (isPlaying_) {
         // Check if we've reached the end of the audio data source
@@ -34,14 +34,6 @@ void SpatialAudio::Render(float *targetData, int32_t numSamples) {
     for (int i = 0; i < numSamples; i++)
         if(!circularBuffer_.Dequeue(targetData[i]))
             targetData[i] = 0; // render silence if nothing on the queue
-}
-
-void SpatialAudio::ResetHead() {
-    auto headId = GlobalContext::Inst()->headEntityId;
-    if (headId == -1)
-        THROW(Fmt("Usage of spatial audio requires a TrackedSpace.type Head to be in the scene."));
-    auto head = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(headId);
-    GlobalContext::Inst()->GetAudioEngine()->SetListenerVectors(head->GetWorld());
 }
 
 void SpatialAudio::Spatialize() {

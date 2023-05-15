@@ -66,4 +66,15 @@ void AudioSpatializer::SetListenerVectors(const math::Transform& transform) {
                                 forward.x, forward.y, forward.z,
                                 up.x, up.y, up.z);
 }
+
+void AudioSpatializer::SetHeadId(type::EntityId id) {
+    headEntityId_ = id;
+}
+
+void AudioSpatializer::ResetHeadForSpatialAudio() {
+    if (headEntityId_ == -1)
+        THROW(Fmt("Usage of spatial audio requires a TrackedSpace.type Head to be in the scene."));
+    auto head = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(headEntityId_);
+    SetListenerVectors(head->GetWorld());
+}
 }

@@ -5,7 +5,6 @@
 #include <ecs/ecs.h>
 #include <platform/android_context.h>
 #include <xr_context.h>
-#include <ritual_map.h>
 
 namespace rvr {
 class GlobalContext {
@@ -21,12 +20,6 @@ public:
     VulkanRenderer* GetVulkanRenderer();
     ECS* GetECS();
     AndroidContext* GetAndroidContext();
-
-    // Variables for the global context
-    type::EntityId headEntityId{-1};
-    type::EntityId playerEntityId{-1};
-
-    RitualMap ritualMap;
 
 private:
     static GlobalContext* instance_;
