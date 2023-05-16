@@ -7,3 +7,4 @@
     X(Ritual) \
     X(Collider) \
     X(Audio) \
+    X(Timer) \

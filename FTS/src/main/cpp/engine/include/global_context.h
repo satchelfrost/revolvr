@@ -15,6 +15,7 @@ public:
 
     void UpdateSystems(float deltaTime);
 
+    // TODO: Should these be const?
     AudioEngine* GetAudioEngine();
     XrContext* GetXrContext();
     VulkanRenderer* GetVulkanRenderer();

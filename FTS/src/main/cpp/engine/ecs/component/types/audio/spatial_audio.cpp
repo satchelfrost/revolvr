@@ -6,13 +6,11 @@
 #define OUT_BUFFER_SIZE IN_BUFFER_SIZE * 2
 
 namespace rvr {
-SpatialAudio::SpatialAudio(type::EntityId pId, WavAudioSource *wavAudioSource) :
-Audio(pId, wavAudioSource) {
-    if (wavAudioSource->stereo)
+SpatialAudio::SpatialAudio(type::EntityId pId, const WavAudioSource& wavAudioSource) :
+Audio(pId, wavAudioSource), totalSourceFrames_(wavAudioSource_.GetBufferSize()),
+data_(wavAudioSource_.GetData()){
+    if (wavAudioSource.stereo)
         THROW("Spatial audio must be mono");
-
-    totalSourceFrames_ = wavAudioSource_->GetBufferSize();
-    data_ = wavAudioSource_->GetData();
 }
 
 void SpatialAudio::Render(float *targetData, int32_t numSamples) {
@@ -68,6 +66,11 @@ void SpatialAudio::Play() {
 }
 
 Component *SpatialAudio::Clone(type::EntityId newEntityId) {
-    return new SpatialAudio(newEntityId, this->wavAudioSource_);
+    return new SpatialAudio(*this, newEntityId);
 }
+
+SpatialAudio::SpatialAudio(const SpatialAudio &other, type::EntityId newEntityId) :
+Audio(newEntityId, other.wavAudioSource_), totalSourceFrames_(wavAudioSource_.GetBufferSize()),
+data_(wavAudioSource_.GetData()) {}
+
 }

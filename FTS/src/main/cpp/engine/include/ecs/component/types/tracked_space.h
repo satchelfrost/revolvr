@@ -9,8 +9,6 @@
     X(RightHand, 2)           \
     X(Head, LAST_TRACKED_SPACE)           \
 
-
-
 namespace rvr {
 namespace constants {
     const int NUM_TRACKED_SPACES = LAST_TRACKED_SPACE + 1;
@@ -25,8 +23,11 @@ enum class TrackedSpaceType {
 
 class TrackedSpace : public Component {
 public:
-    TrackedSpace(type::EntityId pId, TrackedSpaceType trackedSpaceType);
+    TrackedSpace(const TrackedSpace& other) = delete;
+    TrackedSpace(const TrackedSpace& other, type::EntityId newEntityId);
     virtual Component* Clone(type::EntityId newEntityId) override;
+
+    TrackedSpace(type::EntityId pId, TrackedSpaceType trackedSpaceType);
     const TrackedSpaceType type;
 };
 

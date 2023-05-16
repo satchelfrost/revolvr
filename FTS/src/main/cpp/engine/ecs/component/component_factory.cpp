@@ -162,7 +162,6 @@ void CreateCollider(Entity *entity, const std::map<std::string, Parser::Field>& 
         ENTITY_ERR("Collider.type not found", entity->GetName());
     }
 
-
     // Radius - Sphere Collider
     float radius;
     auto radiusField = fields.find("Collider.radius");
@@ -242,7 +241,7 @@ void CreateAudio(Entity *entity, const std::map<std::string, Parser::Field>& fie
     if (loopField != fields.end()) {
         try {
             std::string strBool = loopField->second.strValues.at(0);
-            loop = (strBool == "false") ? false : true;
+            loop = (strBool == "true");
         }
         catch (std::out_of_range& e) {
             ENTITY_ERR("Out of range, Audio.loop was expecting a boolean",entity->GetName());
@@ -255,7 +254,7 @@ void CreateAudio(Entity *entity, const std::map<std::string, Parser::Field>& fie
     if (spatializeField!= fields.end()) {
         try {
             std::string strBool = spatializeField->second.strValues.at(0);
-            spatialize = (strBool == "false") ? false : true;
+            spatialize = (strBool == "true");
         }
         catch (std::out_of_range& e) {
             ENTITY_ERR("Out of range, Audio.spatialize was expecting a boolean",entity->GetName());
@@ -265,15 +264,16 @@ void CreateAudio(Entity *entity, const std::map<std::string, Parser::Field>& fie
     // Create and assign audio
     Audio* audio;
     if (spatialize) {
-        auto wavAudioSource = new WavAudioSource(trackName.c_str(), false);
-        audio = new SpatialAudio(entity->id, wavAudioSource);
+        audio = new SpatialAudio(entity->id, WavAudioSource(trackName.c_str(), false));
     }
     else {
-        auto wavAudioSource = new WavAudioSource(trackName.c_str(), true);
-        audio = new Audio(entity->id, wavAudioSource);
+        audio = new Audio(entity->id, WavAudioSource(trackName.c_str(), true));
     }
     Assign(entity, audio);
     audio->Loop(loop);
     audio->volume = volume;
+}
+
+void CreateTimer(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
 }
 }

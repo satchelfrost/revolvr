@@ -10,12 +10,16 @@ class Collider;
 
 class Ritual : public Component {
 public:
+    Ritual(const Ritual &other) = delete;
+    Ritual(const Ritual &other, type::EntityId newEntityId);
+    virtual Component* Clone(type::EntityId newEntityId) override;
+
     Ritual(type::EntityId id);
     virtual ~Ritual() = default;
-    virtual Component* Clone(type::EntityId newEntityId) override;
     virtual void Begin();
     virtual void Update(float delta);
     virtual void OnTriggered(Collider* collider);
+    virtual void OnTimeout();
     bool canUpdate;
 };
 }

@@ -1,15 +1,17 @@
 #include <ecs/component/types/audio.h>
 
+#include <utility>
+
 namespace rvr {
-Audio::Audio(type::EntityId pId, WavAudioSource* wavAudioSource) :
-Component(ComponentType::Audio, pId), volume(1.0), wavAudioSource_(wavAudioSource),
+Audio::Audio(type::EntityId pId, WavAudioSource wavAudioSource) :
+Component(ComponentType::Audio, pId), volume(1.0), wavAudioSource_(std::move(wavAudioSource)),
 isLooping_(false), isPlaying_(false), readFrameIndex_(0) {}
 
 void Audio::Render(float *targetData, int32_t numSamples) {
     if (isPlaying_) {
         int64_t numSamplesToRender = numSamples;
-        int64_t totalSourceFrames  = wavAudioSource_->GetBufferSize();
-        const float* data          = wavAudioSource_->GetData();
+        int64_t totalSourceFrames  = wavAudioSource_.GetBufferSize();
+        const float* data          = wavAudioSource_.GetData();
 
         if (!isLooping_ && readFrameIndex_ + numSamples >= totalSourceFrames) {
             numSamplesToRender = totalSourceFrames - readFrameIndex_;
@@ -53,10 +55,11 @@ void Audio::RenderSilence(float *start, int32_t numSamples) {
 }
 
 Component *Audio::Clone(type::EntityId newEntityId) {
-    auto audio = new Audio(newEntityId, this->wavAudioSource_);
-    audio->readFrameIndex_ = 0;
-    audio->isLooping_ = this->isLooping_.load();
-    audio->volume = this->volume;
-    return audio;
+    return new Audio(*this, newEntityId);
 }
+
+Audio::Audio(const Audio &other, type::EntityId pId) :
+Component(ComponentType::Audio, pId), volume(other.volume), isLooping_(other.isLooping_.load()),
+isPlaying_(other.isPlaying_.load()), readFrameIndex_(other.readFrameIndex_),
+wavAudioSource_(other.wavAudioSource_) {}
 }

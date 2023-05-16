@@ -4,10 +4,11 @@
 namespace rvr {
 Mesh::Mesh(type::EntityId pId) : Component(ComponentType::Mesh, pId), visible(true) {}
 
+Mesh::Mesh(const Mesh &other, type::EntityId newEntityId) :
+Component(ComponentType::Mesh, newEntityId), visible(other.visible) {}
+
 Component *Mesh::Clone(type::EntityId newEntityId) {
-    auto mesh = new Mesh(newEntityId);
-    mesh->visible = this->visible;
-    return mesh;
+    return new Mesh(*this, newEntityId);
 }
 
 void Mesh::SetVisibilityRecursive(bool visibility) {

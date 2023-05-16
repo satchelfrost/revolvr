@@ -12,6 +12,7 @@ public:
         OBB
     };
 
+    Collider(const Collider& other) = delete;
     static std::string ColliderTypeToString(ColliderType type);
     static ColliderType StrToColliderTypeEnum(const std::string& str);
     Collider(ColliderType pType, type::EntityId pId);

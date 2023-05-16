@@ -111,6 +111,9 @@ void Spatial::UpdateWorld() {
 }
 
 Component *Spatial::Clone(type::EntityId newEntityId) {
-    return new Spatial(newEntityId, this->local, this->local);
+    return new Spatial(*this, newEntityId);
 }
+
+Spatial::Spatial(const Spatial& other, type::EntityId newEntityId) :
+Component(ComponentType::Spatial, newEntityId), local(other.local), world(other.world) {}
 }
