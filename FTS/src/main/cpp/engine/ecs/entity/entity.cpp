@@ -1,6 +1,6 @@
-#include "include/ecs/entity/entity.h"
+#include <ecs/entity/entity.h>
 #include <global_context.h>
-#include "check.h"
+#include <check.h>
 
 namespace rvr {
 Entity::Entity(int entityId) : id(entityId), parent_(nullptr) {}
@@ -47,14 +47,17 @@ void Entity::AddChild(Entity* child) {
 void Entity::RemoveFromParent() {
     if (parent_) {
         auto& children = parent_->GetChildren();
-        auto childItr = std::find(children.begin(), children.end(), this);
-        CHECK(childItr != children.end());
-        children.erase(childItr);
+        children.remove(this);
+        parent_ = nullptr;
+    }
+    else {
+        Log::Write(Log::Level::Warning, Fmt("Entity with id %d has no parent", id));
     }
 }
 
 void Entity::SetParent(Entity* parent) {
-    RemoveFromParent();
+    if (parent_)
+        RemoveFromParent();
     parent_ = parent;
 }
 
@@ -67,12 +70,22 @@ std::list<Entity*>& Entity::GetChildren() {
 }
 
 void Entity::Destroy() {
-    RemoveFromParent();
-    for (auto child : GetChildren()) {
-        child->Destroy();
+    if (!Active()) {
+        Log::Write(Log::Level::Warning, Fmt("Attempting to destroy inactive entity %d", id));
+        return;
     }
+
+    DestroyRecursive();
+    RemoveFromParent();
+}
+
+void Entity::DestroyRecursive() {
+    for (auto child : GetChildren())
+        child->DestroyRecursive();
+
     FreeComponents();
     GlobalContext::Inst()->GetECS()->FreeEntity(id);
+    children_.clear();
 }
 
 bool Entity::Active() {
@@ -86,5 +99,28 @@ void Entity::FreeComponents() {
 
 void Entity::AddComponent(ComponentType cType) {
     mask_.set((int)cType);
+}
+
+Entity *Entity::Clone(type::EntityId newEntityId) {
+    auto newEntity = GlobalContext::Inst()->GetECS()->CreateNewEntity(newEntityId);
+    for (auto componentType : GetComponentTypes()) {
+        auto component = GlobalContext::Inst()->GetECS()->GetPool(componentType)->GetComponent(id);
+        auto newComponent = component->Clone(newEntityId);
+        GlobalContext::Inst()->GetECS()->Assign(newEntity, newComponent);
+    }
+    return newEntity;
+}
+
+Entity *Entity::Clone() {
+    // First clone any children
+    auto newEntity = GlobalContext::Inst()->GetECS()->CreateNewEntity();
+    for (auto child : children_)
+        newEntity->AddChild(child->Clone());
+    for (auto componentType : GetComponentTypes()) {
+        auto component = GlobalContext::Inst()->GetECS()->GetPool(componentType)->GetComponent(id);
+        auto newComponent = component->Clone(newEntity->id);
+        GlobalContext::Inst()->GetECS()->Assign(newEntity, newComponent);
+    }
+    return newEntity;
 }
 }

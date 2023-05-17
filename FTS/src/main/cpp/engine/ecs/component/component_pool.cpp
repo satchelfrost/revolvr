@@ -11,14 +11,22 @@ ComponentPool::~ComponentPool() {
 }
 
 void ComponentPool::AssignComponent(Entity* entity, Component* component) {
-    if (components_.find(entity->id) != components_.end())
-        THROW(Fmt("Component associated with id %d already exists"))
+    if (components_.find(entity->id) != components_.end()) {
+        THROW(Fmt("Component %s associated with id %d already exists with type %s", toString(component->type),
+                  entity->id, toString(components_.at(entity->id)->type)));
+    }
     entity->AddComponent(component->type);
     components_.emplace(entity->id, component);
 }
 
 Component *ComponentPool::GetComponent(type::EntityId id) {
-    return components_.at(id);
+    try {
+        return components_.at(id);
+    }
+    catch (std::out_of_range& e) {
+        Log::Write(Log::Level::Warning, Fmt("Component does not exist for id %d", id));
+        return nullptr;
+    }
 }
 
 std::vector<type::EntityId> ComponentPool::GetEids() {
@@ -34,7 +42,7 @@ void ComponentPool::FreeComponent(type::EntityId id) {
     components_.erase(id);
 }
 
-std::unordered_map<type::EntityId, Component *> ComponentPool::GetComponents() {
+std::map<type::EntityId, Component *> ComponentPool::GetComponents() {
     return components_;
 }
 }

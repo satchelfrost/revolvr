@@ -246,8 +246,8 @@ void XrContext::PollXrEvents(bool* exitRenderLoop, bool* requestRestart) {
                 break;
             }
             case XR_TYPE_EVENT_DATA_INTERACTION_PROFILE_CHANGED:
-                for (auto action : actionManager.GetActions())
-                    LogActionSourceName(action);
+//                for (auto action : actionManager.GetActions())
+//                    LogActionSourceName(action);
                 break;
             case XR_TYPE_EVENT_DATA_REFERENCE_SPACE_CHANGE_PENDING:
             default: {
@@ -268,12 +268,12 @@ void XrContext::UpdateActions() {
     const XrSessionState oldState = xrSessionState_;
     xrSessionState_ = stateChangedEvent.state;
 
-    Log::Write(Log::Level::Info,
-               Fmt("XrEventDataSessionStateChanged: state %s->%s session=%lld time=%lld",
-                   to_string(oldState),
-                   to_string(xrSessionState_),
-                   stateChangedEvent.session,
-                   stateChangedEvent.time));
+//    Log::Write(Log::Level::Info,
+//               Fmt("XrEventDataSessionStateChanged: state %s->%s session=%lld time=%lld",
+//                   to_string(oldState),
+//                   to_string(xrSessionState_),
+//                   stateChangedEvent.session,
+//                   stateChangedEvent.time));
 
     if ((stateChangedEvent.session != XR_NULL_HANDLE) && (stateChangedEvent.session != session)) {
         Log::Write(Log::Level::Info, "XrEventDataSessionStateChanged for unknown session");

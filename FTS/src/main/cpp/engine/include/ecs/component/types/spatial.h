@@ -8,6 +8,8 @@ class Spatial : public Component {
 public:
     Spatial(type::EntityId pId);
     Spatial(type::EntityId pId, const glm::vec3& position, const glm::quat& orientation, const glm::vec3& scale);
+    Spatial(type::EntityId pId, math::Transform local, math::Transform world);
+    virtual Component* Clone(type::EntityId newEntityId) override;
 
     math::Transform GetLocal();
     void SetLocal(const math::Transform& value);

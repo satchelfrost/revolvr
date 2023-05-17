@@ -1,0 +1,28 @@
+[entity id=0 name=Player]
+TrackedSpace.type {Player}
+Spatial.position {3, 0, 0}
+Spatial.orientation {0, 0, 0, 1}
+
+[entity id=1 name=Left_Hand]
+TrackedSpace.type {LeftHand}
+Spatial.scale {0.1, 0.1, 0.1}
+Mesh {}
+
+[entity id=2 name=Right_Hand]
+TrackedSpace.type {RightHand}
+Spatial.scale {0.1, 0.1, 0.1}
+Mesh {}
+
+[entity id=3 name=spawn_box]
+Ritual.type {SpawnBox}
+Ritual.can_update {true}
+
+[entity id=6 name=origin_mesh]
+Spatial.scale {0.5, 0.5, 0.5}
+Spatial.position {1, 0, 0}
+Mesh.visible {false}
+
+[entity id=7 name=origin_mesh parent=6]
+Spatial.scale {0.1, 0.1, 0.1}
+Spatial.position {0, 0.5, 0}
+Mesh.visible {false}

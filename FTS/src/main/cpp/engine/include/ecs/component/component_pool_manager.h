@@ -12,7 +12,6 @@ public:
     ~ComponentPoolManager();
     void Assign(Entity* entity, Component* component);
     ComponentPool *GetPool(ComponentType cType);
-    Component* GetComponent(type::EntityId id, ComponentType cType);
 
     template<typename T>
     T *GetComponent(type::EntityId id);
@@ -22,12 +21,11 @@ private:
     std::map<std::type_index, ComponentType> typeToEnum;
 };
 
+/* Warning GetComponent returns nullptr on failure */
 template<typename T>
 T* ComponentPoolManager::GetComponent(type::EntityId id) {
     auto typeIndex = std::type_index(typeid(T));
     ComponentPool* pool = GetPool(typeToEnum.at(typeIndex));
-    T* componentType = dynamic_cast<T*>(pool->GetComponent(id));
-    CHECK_MSG(componentType, Fmt("GetComponent() on entity id %d cast to nullptr", id));
-    return componentType;
+    return dynamic_cast<T*>(pool->GetComponent(id));
 }
 }

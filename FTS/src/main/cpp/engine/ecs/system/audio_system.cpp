@@ -1,9 +1,24 @@
-#include <ecs/system/audio_system.h>
-#include <functional>
-#include <thread>
 #include <audio/audio_engine.h>
+#include <global_context.h>
 
 namespace rvr::system::audio {
+void Mixer::Render(float* audioData, int32_t numFrames) {
+    auto numSamples = numFrames * 2;
+    memset(audioData, 0, sizeof(float) * numSamples);
+    auto components = GlobalContext::Inst()->GetECS()->GetComponents(ComponentType::Audio);
+    for (auto [eid, component] : components) {
+        auto track = dynamic_cast<Audio*>(component);
+        if(!track) {
+            Log::Write(Log::Level::Warning, Fmt("Audio component cast failed on eid %d", eid));
+            continue;
+        }
+        track->Render(mixingBuffer_, numSamples);
+
+        for (int i = 0; i < numSamples; i++)
+            audioData[i] += mixingBuffer_[i] * track->volume;
+    }
+}
+
 aaudio_data_callback_result_t dataCallback(AAudioStream *stream, void *userData, void *audioData,
                                            int32_t numFrames) {
     ((Mixer*) (userData))->Render(static_cast<float*>(audioData), numFrames);
@@ -17,4 +32,5 @@ void errorCallback(AAudioStream *stream, void *userData, aaudio_result_t error){
         new std::thread(restartFunction);
     }
 }
+
 }

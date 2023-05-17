@@ -28,42 +28,42 @@ void AndroidContext::HandleAndroidCmd(android_app *app, int32_t cmd) {
         // application thread from onCreate(). The application thread
         // then calls android_main().
         case APP_CMD_START: {
-            Log::Write(Log::Level::Info, "    APP_CMD_START");
-            Log::Write(Log::Level::Info, "onStart()");
+//            Log::Write(Log::Level::Info, "    APP_CMD_START");
+//            Log::Write(Log::Level::Info, "onStart()");
             break;
         }
         case APP_CMD_RESUME: {
-            Log::Write(Log::Level::Info, "onResume()");
-            Log::Write(Log::Level::Info, "    APP_CMD_RESUME");
+//            Log::Write(Log::Level::Info, "onResume()");
+//            Log::Write(Log::Level::Info, "    APP_CMD_RESUME");
             resumed = true;
             break;
         }
         case APP_CMD_PAUSE: {
-            Log::Write(Log::Level::Info, "onPause()");
-            Log::Write(Log::Level::Info, "    APP_CMD_PAUSE");
+//            Log::Write(Log::Level::Info, "onPause()");
+//            Log::Write(Log::Level::Info, "    APP_CMD_PAUSE");
             resumed = false;
             break;
         }
         case APP_CMD_STOP: {
-            Log::Write(Log::Level::Info, "onStop()");
-            Log::Write(Log::Level::Info, "    APP_CMD_STOP");
+//            Log::Write(Log::Level::Info, "onStop()");
+//            Log::Write(Log::Level::Info, "    APP_CMD_STOP");
             break;
         }
         case APP_CMD_DESTROY: {
-            Log::Write(Log::Level::Info, "onDestroy()");
-            Log::Write(Log::Level::Info, "    APP_CMD_DESTROY");
+//            Log::Write(Log::Level::Info, "onDestroy()");
+//            Log::Write(Log::Level::Info, "    APP_CMD_DESTROY");
             nativeWindow = nullptr;
             break;
         }
         case APP_CMD_INIT_WINDOW: {
-            Log::Write(Log::Level::Info, "surfaceCreated()");
-            Log::Write(Log::Level::Info, "    APP_CMD_INIT_WINDOW");
+//            Log::Write(Log::Level::Info, "surfaceCreated()");
+//            Log::Write(Log::Level::Info, "    APP_CMD_INIT_WINDOW");
             nativeWindow = app->window;
             break;
         }
         case APP_CMD_TERM_WINDOW: {
-            Log::Write(Log::Level::Info, "surfaceDestroyed()");
-            Log::Write(Log::Level::Info, "    APP_CMD_TERM_WINDOW");
+//            Log::Write(Log::Level::Info, "surfaceDestroyed()");
+//            Log::Write(Log::Level::Info, "    APP_CMD_TERM_WINDOW");
             nativeWindow = nullptr;
             break;
         }

@@ -13,9 +13,10 @@ class Ritual : public Component {
 public:
     Ritual(type::EntityId id);
     virtual ~Ritual() = default;
-    virtual void Begin() = 0;
-    virtual void Update(float delta) = 0;
-    virtual void OnTriggered(Collider* collider) = 0;
+    virtual Component* Clone(type::EntityId newEntityId) override;
+    virtual void Begin();
+    virtual void Update(float delta);
+    virtual void OnTriggered(Collider* collider);
     bool canUpdate;
 };
 }

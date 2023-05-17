@@ -15,6 +15,8 @@ public:
     bool Active();
     void SetName(std::string name);
     std::string GetName();
+    Entity* Clone(type::EntityId newEntityId);
+    Entity* Clone();
 
 
     // Tree related methods
@@ -28,6 +30,7 @@ public:
     const int id;
 
 private:
+    void DestroyRecursive();
     void GenerateAndSetName();
     void RemoveFromParent();
 

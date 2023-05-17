@@ -3,7 +3,7 @@
 #include "common.h"
 
 namespace rvr {
-EntityPool::EntityPool() : nextEntityId_(0) {
+EntityPool::EntityPool() : highestEntityId_(-1) {
     entities_.resize(constants::MAX_ENTITIES);
 }
 
@@ -12,19 +12,23 @@ EntityPool::~EntityPool() {
         delete entity;
 }
 
-Entity *EntityPool::CreateNewEntity() {
+Entity *EntityPool::CreateNewEntity(bool setRootAsParent) {
     // First recycle old entities if possible
     if (!inactiveIds_.empty()) {
         auto index = inactiveIds_.back();
         inactiveIds_.pop_back();
         auto entity = entities_.at(index);
         CHECK_MSG(entity, Fmt("Expected inactive entity at index %d, found nullptr instead.", index))
+
+        if (setRootAsParent)
+            GetRoot()->AddChild(entity);
+
         return entity;
     }
-    return CreateNewEntity(nextEntityId_++);
+    return CreateNewEntity(++highestEntityId_, setRootAsParent);
 }
 
-Entity *EntityPool::CreateNewEntity(type::EntityId id) {
+Entity *EntityPool::CreateNewEntity(type::EntityId id, bool setRootAsParent) {
     // Max entity check
     if (id >= constants::MAX_ENTITIES)
         THROW(Fmt("[Entity id %d, MAX_ENTITIES %d] - Adjust max entities in ecs_info.h.",
@@ -36,12 +40,15 @@ Entity *EntityPool::CreateNewEntity(type::EntityId id) {
         THROW(Fmt("[Entity id %d] - Already exists.", id));
 
     // Highest id so far
-    if (id > nextEntityId_)
-        nextEntityId_ = id + 1;
+    if (id > highestEntityId_)
+        highestEntityId_ = id;
 
     // If no available entities create one
     auto entity = new Entity(id);
     entities_.at(id) = entity;
+    if (setRootAsParent)
+        GetRoot()->AddChild(entity);
+
     return entity;
 }
 
@@ -66,7 +73,7 @@ Entity *EntityPool::GetEntity(type::EntityId id) {
 }
 
 void EntityPool::FillHoles() {
-    for (type::EntityId id = 0; id < nextEntityId_; id++) {
+    for (type::EntityId id = 0; id < highestEntityId_; id++) {
         if (entities_.at(id) == nullptr) {
             // create entity without any components
             entities_.at(id) = new Entity(id);

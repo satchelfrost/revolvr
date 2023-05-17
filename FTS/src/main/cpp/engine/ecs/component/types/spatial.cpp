@@ -18,6 +18,9 @@ Spatial::Spatial(type::EntityId pId, const glm::vec3& position,
               local(position, orientation, scale),
               world(math::Transform::Identity()) {}
 
+Spatial::Spatial(type::EntityId pId, math::Transform local, math::Transform world) :
+Component(ComponentType::Spatial, pId), world(world), local(local) {}
+
 math::Transform Spatial::GetLocal() {
     return local;
 }
@@ -81,6 +84,9 @@ void Spatial::UpdateWorld() {
         return;
 
     auto parent = child->GetParent();
+
+    CHECK_MSG(parent, Fmt("Entity %s is an orphan", child->GetName().c_str()));
+
     auto parentSpatial = GetComponent<Spatial>(parent->id);
     parentSpatial->UpdateWorld();
 
@@ -102,5 +108,9 @@ void Spatial::UpdateWorld() {
             }
         }
     }
+}
+
+Component *Spatial::Clone(type::EntityId newEntityId) {
+    return new Spatial(newEntityId, this->local, this->local);
 }
 }

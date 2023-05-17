@@ -63,7 +63,7 @@ Entity* Scene::CreateEntity(const Parser::Heading& heading) {
     Entity* entity;
     try {
         type::EntityId id = heading.strKeyNumVal.at("id");
-        entity = GlobalContext::Inst()->GetECS()->CreateNewEntity(id);
+        entity = GlobalContext::Inst()->GetECS()->CreateNewEntity(id, false);
     }
     catch (std::out_of_range& e) {
         THROW("Entity did not contain id");

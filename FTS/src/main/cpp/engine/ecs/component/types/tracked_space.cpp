@@ -23,4 +23,8 @@ TrackedSpaceType toTrackedSpaceTypeEnum(const std::string& str) {
 
 TrackedSpace::TrackedSpace(type::EntityId pId, TrackedSpaceType trackedSpaceType) :
 Component(ComponentType::TrackedSpace, pId), type(trackedSpaceType) {}
+
+Component *TrackedSpace::Clone(type::EntityId newEntityId) {
+    return new TrackedSpace(newEntityId, this->type);
+}
 }

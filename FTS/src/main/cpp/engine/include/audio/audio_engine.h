@@ -1,7 +1,7 @@
 #pragma once
 
 #include <aaudio/AAudio.h>
-#include <audio/mixer.h>
+#include <ecs/system/audio_system.h>
 #include <audio/audio_spatializer.h>
 #include <ecs/component/types/audio/spatial_audio.h>
 
@@ -17,7 +17,7 @@ public:
 
 private:
     AAudioStream *stream_;
-    Mixer mixer_;
+    system::audio::Mixer mixer_;
     AudioSpatializer audioSpatializer_;
 };
 }

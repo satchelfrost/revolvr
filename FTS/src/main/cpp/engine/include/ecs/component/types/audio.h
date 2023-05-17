@@ -8,6 +8,7 @@ namespace rvr {
 class Audio : public Component {
 public:
     Audio(type::EntityId pId, WavAudioSource* wavAudioSource);
+    virtual Component* Clone(type::EntityId newEntityId) override;
     static void RenderSilence(float* start, int32_t numSamples);
     virtual void Render(float* targetData, int32_t numSamples);
     virtual void Play();

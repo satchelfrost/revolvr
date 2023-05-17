@@ -38,6 +38,8 @@ void SpatialAudio::Render(float *targetData, int32_t numSamples) {
 
 void SpatialAudio::ResetHead() {
     auto headId = GlobalContext::Inst()->headEntityId;
+    if (headId == -1)
+        THROW(Fmt("Usage of spatial audio requires a TrackedSpace.type Head to be in the scene."));
     auto head = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(headId);
     GlobalContext::Inst()->GetAudioEngine()->SetListenerVectors(head->GetWorld());
 }
@@ -71,5 +73,9 @@ void SpatialAudio::Spatialize() {
 void SpatialAudio::Play() {
     Audio::Play();
     circularBuffer_.Clear();
+}
+
+Component *SpatialAudio::Clone(type::EntityId newEntityId) {
+    return new SpatialAudio(newEntityId, this->wavAudioSource_);
 }
 }
