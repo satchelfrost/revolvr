@@ -43,9 +43,7 @@ lines = overridables_content.splitlines()
 for i in range(1, len(lines)):
     line = re.sub(r'\s+virtual void\s+', '', lines[i])
     line = re.sub(r'\s+override;', '', line)
-    overridables_definitions += "\nvoid " + args.ritual_name + "::" + line + " {\n"
-    overridables_definitions += "    // Implement your code here\n"
-    overridables_definitions += "}\n"
+    overridables_definitions += "\nvoid " + args.ritual_name + "::" + line + " {}\n"
 
 # Get the content between the @header_begin and @header_end placeholders
 header_content = template.split(header_begin)[1].split(header_end)[0]

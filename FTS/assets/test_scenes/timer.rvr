@@ -15,10 +15,12 @@ Mesh {}
 
 [entity id=3 name=timer_box_maker]
 Ritual.type {TimerBoxMaker}
-Ritual.can_update {true}
-Timer.wait_time_seconds {5}
+Ritual.can_update {false}
+Timer.wait_time_milliseconds {250}
+Timer.one_shot {false}
+Timer.auto_start {true}
 
 [entity id=4 name=box_to_spawn]
 Spatial.scale {0.5, 0.5, 0.5}
-Spatial.position {1, 0, 0}
+Spatial.position {-10, 0, -10}
 Mesh.visible {false}

@@ -11,6 +11,7 @@ public:
     Timer(const Timer& other, type::EntityId newEntityId);
     virtual Component* Clone(type::EntityId newEntityId) override;
 
+    bool IsAutoStart() const;
     void Tick();
     void Start();
     void Stop();

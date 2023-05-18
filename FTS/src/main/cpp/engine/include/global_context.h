@@ -13,6 +13,7 @@ public:
     void Init(android_app *app);
     static GlobalContext* Inst();
 
+    void BeginSystems();
     void UpdateSystems(float deltaTime);
 
     // TODO: Should these be const?

@@ -2,12 +2,12 @@
     virtual void Begin() override;
     virtual void Update(float delta) override;
     virtual void OnTriggered(rvr::Collider* other) override;
+    virtual void OnTimeout() override;
 @overridables_end
 
 @header_begin
 #pragma once
 
-#include <ecs/ecs_info.h>
 #include <ecs/component/types/ritual.h>
 
 class @class_name : public rvr::Ritual {
@@ -22,8 +22,6 @@ public:
 #include <global_context.h>
 #include <helper_macros.h>
 
-@class_name::@class_name(rvr::type::EntityId id) : Ritual(id) {
-    // e.g. spatial_ = GetComponent<rvr::Spatial>(id);
-}
+@class_name::@class_name(rvr::type::EntityId id) : Ritual(id) {}
 @overridables
 @cpp_end

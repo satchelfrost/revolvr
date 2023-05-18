@@ -39,7 +39,7 @@ bool GetFloat3Field(Entity* entity, const std::map<std::string, Parser::Field>& 
         try {
             outFloat1 = float3Field->second.floatValues.at(0);
             outFloat2 = float3Field->second.floatValues.at(1);
-            outFloat2 = float3Field->second.floatValues.at(2);
+            outFloat3 = float3Field->second.floatValues.at(2);
             return true;
         }
         catch (std::out_of_range& e) {

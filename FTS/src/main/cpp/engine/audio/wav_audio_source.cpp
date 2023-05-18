@@ -9,10 +9,12 @@
 #define DATA 0x61746164
 
 namespace rvr {
-WavAudioSource::WavAudioSource(const char* fileName, bool stereoOutput) : stereo(stereoOutput) {
+WavAudioSource::WavAudioSource(const std::string& fileName, bool stereoOutput) : stereo(stereoOutput), pos_(0) {
     // Load the asset
+    std::string assetName = fileName + ".wav";
     auto assetMgr = GlobalContext::Inst()->GetAndroidContext()->GetAndroidAssetManager();
-    AAsset* asset = AAssetManager_open(assetMgr, fileName, AASSET_MODE_UNKNOWN);
+    AAsset* asset = AAssetManager_open(assetMgr, assetName.c_str(), AASSET_MODE_UNKNOWN);
+    CHECK_MSG(asset, Fmt("Could not find asset named %s", assetName.c_str()));
     off_t size = AAsset_getLength(asset);
     fileContent_ = new char[size];
     AAsset_read(asset, fileContent_, size);
@@ -52,7 +54,7 @@ WavAudioSource::WavAudioSource(const char* fileName, bool stereoOutput) : stereo
 
     delete[] data;
     delete[] fileContent_;
-    Log::Write(Log::Level::Info, Fmt("Successfully loaded audio source %s", fileName));
+    Log::Write(Log::Level::Info, Fmt("Successfully loaded audio source %s", assetName.c_str()));
 }
 
 int32_t WavAudioSource::GetBufferSize() {

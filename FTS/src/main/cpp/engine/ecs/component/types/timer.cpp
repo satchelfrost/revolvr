@@ -5,7 +5,7 @@
 namespace rvr {
 Timer::Timer(type::EntityId pId, bool autostart, bool oneShot, std::chrono::high_resolution_clock::duration waitTime) :
 Component(ComponentType::Timer, pId),
-autoStart_(autostart), oneShot_(autostart), ticking_(false), waitTime_(waitTime) {}
+autoStart_(autostart), oneShot_(oneShot), ticking_(false), waitTime_(waitTime) {}
 
 Timer::Timer(const Timer& other, type::EntityId newEntityId) :
 Component(ComponentType::Timer, newEntityId),
@@ -31,7 +31,7 @@ void Timer::Tick() {
     if (ticking_) {
         auto now = std::chrono::high_resolution_clock::now();
         auto duration = now - start_;
-        if (waitTime_ > duration) {
+        if (waitTime_ < duration) {
             Timeout();
             if (oneShot_)
                 ticking_ = false;
@@ -48,5 +48,9 @@ void Timer::Start() {
 
 void Timer::Stop() {
     ticking_ = false;
+}
+
+bool Timer::IsAutoStart() const {
+    return autoStart_;
 }
 }

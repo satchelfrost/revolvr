@@ -26,14 +26,14 @@ void App::Run(struct android_app *app) {
 
     // Load and Initialize Scene
     // TODO: scene switcher, for now we are hard coding
-    scene_.LoadScene("test_scenes/cloning");
+//    scene_.LoadScene("test_scenes/cloning");
+    scene_.LoadScene("test_scenes/timer");
 //    scene_.LoadScene("test_scenes/hand_collision");
 //    scene_.LoadScene("test_scenes/sound_test");
 //    scene_.LoadScene("test_scenes/spinning_pointer");
 //    scene_.LoadScene("test_scenes/generic");
 
-
-    globalContext_->GetAudioEngine()->start();
+    globalContext_->BeginSystems();
 
     AndroidContext* androidContext = globalContext_->GetAndroidContext();
     XrContext* xrContext = globalContext_->GetXrContext();

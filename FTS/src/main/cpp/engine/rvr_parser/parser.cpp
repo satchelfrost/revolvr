@@ -90,9 +90,10 @@ Parser::Field Parser::ParseField() {
 
   // Create a field
   Field field{};
-  field.fullyQualifiedName = Pop().GetIdentifier();
-  field.cType = toComponentTypeEnum(field.fullyQualifiedName);
-  ParseAccess(field);
+  std::string componentTypeStr = Pop().GetIdentifier();
+  field.cType = toComponentTypeEnum(componentTypeStr);
+  field.fullyQualifiedName = componentTypeStr;
+  ParseAccess(field); // builds the remaining fully qualified name
 
   // Parse left curly brace
   CheckPop("Field Curly Left", Token::CurlLeft);

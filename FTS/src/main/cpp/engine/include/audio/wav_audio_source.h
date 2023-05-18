@@ -35,7 +35,7 @@ struct WavInfo {
 
 class WavAudioSource {
 public:
-    WavAudioSource(const char* fileName, bool stereoOutput);
+    WavAudioSource(const std::string& fileName, bool stereoOutput);
     const float* GetData();
     int32_t GetBufferSize();
     void LogWavInfo();
@@ -49,7 +49,7 @@ private:
     WavInfo wavInfo_;
 
     char* fileContent_;     // raw wav file loaded as bytes
-    unsigned int pos_ = 0;  // marks the position in the raw file
+    unsigned int pos_;  // marks the position in the raw file
 
     // Setup some constants
     static constexpr float kSampleFullScale = (float) 0x8000;

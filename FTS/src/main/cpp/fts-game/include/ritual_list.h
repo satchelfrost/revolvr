@@ -5,3 +5,4 @@
     X(HandBehavior) \
     X(MovingSoundBox) \
     X(SpawnBox) \
+    X(TimerBoxMaker) \

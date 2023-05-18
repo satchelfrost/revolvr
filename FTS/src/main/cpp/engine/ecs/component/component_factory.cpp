@@ -116,11 +116,11 @@ void CreateAudio(Entity *entity, const std::map<std::string, Parser::Field>& fie
 
     Audio* audio;
     if (spatialize)  {
-        auto wav = WavAudioSource(trackName.c_str(), false);
+        auto wav = WavAudioSource(trackName, false);
         audio = new SpatialAudio(entity->id, wav);
     }
     else {
-        auto wav = WavAudioSource(trackName.c_str(), true);
+        auto wav = WavAudioSource(trackName, true);
         audio = new Audio(entity->id, wav);
     }
 
@@ -130,7 +130,7 @@ void CreateAudio(Entity *entity, const std::map<std::string, Parser::Field>& fie
 }
 
 void CreateTimer(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
-    bool autoStart = false; // TODO: value set but not in use yet
+    bool autoStart = false;
     GetBoolField(entity, fields, "Timer.auto_start", autoStart);
 
     bool oneShot = true;
@@ -146,7 +146,10 @@ void CreateTimer(Entity *entity, const std::map<std::string, Parser::Field>& fie
         Assign(entity, new Timer(entity->id, autoStart, oneShot, duration));
     }
     else {
-        auto duration = std::chrono::seconds(5); // hopefully a sensible default
+        int defaultWaitTime = 1;
+        auto duration = std::chrono::seconds(defaultWaitTime);
+        Log::Write(Log::Level::Warning,
+                   Fmt("Timer wait time not set, using default of %d seconds", defaultWaitTime));
         Assign(entity, new Timer(entity->id, autoStart, oneShot, duration));
     }
 }
