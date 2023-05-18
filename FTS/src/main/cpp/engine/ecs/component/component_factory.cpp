@@ -9,76 +9,35 @@
 #include <ecs/component/types/audio/spatial_audio.h>
 #include <global_context.h>
 #include <math/linear_math.h>
+#include <ecs/component/component_factory_util.h>
 
 #define Assign GlobalContext::Inst()->GetECS()->Assign
 
 namespace rvr::componentFactory {
 void CreateSpatial(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
-
-    // Scale
     glm::vec3 scale{1, 1 ,1};
-    auto scaleField = fields.find("Spatial.scale");
-    if (scaleField != fields.end()) {
-        try {
-            float x = scaleField->second.floatValues.at(0);
-            float y = scaleField->second.floatValues.at(1);
-            float z = scaleField->second.floatValues.at(2);
-            scale = {x, y, z};
-        }
-        catch (std::out_of_range& e) {
-            ENTITY_ERR("Out of range, Spatial.scale was expecting 3 floats.",entity->GetName());
-        }
-    }
+    float x, y, z;
+    if (GetFloat3Field(entity, fields, "Spatial.scale", x, y, z))
+        scale = {x, y, z};
 
-    // Position
     glm::vec3 position{0, 0, 0};
-    auto posField = fields.find("Spatial.position");
-    if (posField != fields.end()) {
-        try {
-            float x = posField->second.floatValues.at(0);
-            float y = posField->second.floatValues.at(1);
-            float z = posField->second.floatValues.at(2);
-            position = {x, y, z};
-        }
-        catch (std::out_of_range& e) {
-            ENTITY_ERR("Out of range, Spatial.position was expecting 3 floats.",entity->GetName());
-        }
-    }
+    if (GetFloat3Field(entity, fields, "Spatial.position", x, y, z))
+        position = {x, y, z};
 
-    // Euler based Orientation
     glm::quat orientation{1,0,0,0};
-    auto eulerField = fields.find("Spatial.euler");
-    if (eulerField != fields.end()) {
-        try {
-            float x = eulerField->second.floatValues.at(0);
-            float y = eulerField->second.floatValues.at(1);
-            float z = eulerField->second.floatValues.at(2);
-            orientation = math::quaternion::FromEuler(x, y, z);
-        }
-        catch (std::out_of_range& e) {
-            ENTITY_ERR("Out of range, Spatial.euler was expecting 3 floats.",entity->GetName());
-        }
-    }
+    if (GetFloat3Field(entity, fields, "Spatial.euler", x, y, z))
+        orientation = math::quaternion::FromEuler(x, y, z);
 
-    // Create and assign spatial
-    auto spatial = new Spatial(entity->id, position, orientation, scale);
-    Assign(entity, spatial);
+    Assign(entity, new Spatial(entity->id, position, orientation, scale));
 }
 
 void CreateTrackedSpace(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
-    // TrackedSpaceType - Required
-    auto tsTypeField = fields.find("TrackedSpace.type");
-    if (tsTypeField != fields.end()) {
-        try {
-            std::string trackedSpaceStr = tsTypeField->second.strValues.at(0);
-            TrackedSpaceType trackedSpaceType = toTrackedSpaceTypeEnum(trackedSpaceStr);
-            if (trackedSpaceType == TrackedSpaceType::Head)
-                GlobalContext::Inst()->GetAudioEngine()->SetHeadId(entity->id);
-            Assign(entity, new TrackedSpace(entity->id, trackedSpaceType));
-        }
-        catch (std::out_of_range& e) {
-            ENTITY_ERR("Out of bounds, TrackedSpace.type was expecting 1 string",entity->GetName());
-        }
+    std::string trackedSpaceStr;
+    if (GetStringField(entity, fields, "TrackedSpace.type", trackedSpaceStr)) {
+        TrackedSpaceType trackedSpaceType = toTrackedSpaceTypeEnum(trackedSpaceStr);
+        if (trackedSpaceType == TrackedSpaceType::Head)
+            GlobalContext::Inst()->GetAudioEngine()->SetHeadId(entity->id);
+        Assign(entity, new TrackedSpace(entity->id, trackedSpaceType));
     }
     else {
         ENTITY_ERR("TrackedSpace.type unspecified, cannot construct tracked space",entity->GetName());
@@ -86,53 +45,22 @@ void CreateTrackedSpace(Entity *entity, const std::map<std::string, Parser::Fiel
 }
 
 void CreateMesh(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
-    auto visField = fields.find("Mesh.visible");
     bool visible = true;
-    if (visField != fields.end()) {
-        try {
-            std::string visStr = visField->second.strValues.at(0);
-            visible = (visStr == "true");
-        }
-        catch (std::out_of_range& e) {
-            ENTITY_ERR("Out of bounds, Mesh.visible was expecting 1 string", entity->GetName());
-        }
-    }
-    auto mesh = new Mesh(entity->id);
-    mesh->visible = visible;
-    Assign(entity, mesh);
+    GetBoolField(entity, fields, "Mesh.visible", visible);
+    Assign(entity, new Mesh(entity->id, visible));
 }
 
 void CreateRitual(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
-    // RitualType - Required
     RitualType rType;
-    auto ritualTypeField = fields.find("Ritual.type");
-    if (ritualTypeField != fields.end()) {
-        try {
-            std::string ritualStr = ritualTypeField->second.strValues.at(0);
-            rType = toRitualTypeEnum(ritualStr);
-        }
-        catch (std::out_of_range& e) {
-            ENTITY_ERR("Out of bounds, Ritual.type was expecting 1 string", entity->GetName());
-        }
-    }
-    else {
+    std::string ritualTypeStr;
+    if (GetStringField(entity, fields, "Ritual.type", ritualTypeStr))
+        rType = toRitualTypeEnum(ritualTypeStr);
+    else
         ENTITY_ERR("Ritual.type unspecified, cannot construct ritual",entity->GetName());
-    }
 
-    // Can update
     bool canUpdate = true;
-    auto canUpdateField = fields.find("Ritual.can_update");
-    if (canUpdateField != fields.end()) {
-        try {
-            std::string updateStr = canUpdateField->second.strValues.at(0);
-            canUpdate = (updateStr == "true");
-        }
-        catch (std::out_of_range& e ) {
-            ENTITY_ERR("Out of bounds, Collider.can_update not found",entity->GetName());
-        }
-    }
+    GetBoolField(entity, fields, "Ritual.can_update", canUpdate);
 
-    // Construct and assign ritual
     Ritual* ritual;
     switch (rType) {
         #define RITUAL_CASE(TYPE) case RitualType::TYPE: ritual = new TYPE(entity->id); break;
@@ -141,139 +69,85 @@ void CreateRitual(Entity *entity, const std::map<std::string, Parser::Field>& fi
         default:
             ENTITY_ERR("Ritual.type unspecified, cannot construct ritual",entity->GetName());
     }
-    Assign(entity, ritual);
+
     ritual->canUpdate = canUpdate;
+    Assign(entity, ritual);
 }
 
 void CreateCollider(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
-    // ColliderType - Required
     Collider::ColliderType colliderType;
-    auto colliderTypeField = fields.find("Collider.type");
-    if (colliderTypeField != fields.end()) {
-        try {
-            std::string colliderTypeStr = colliderTypeField->second.strValues.at(0);
-            colliderType = Collider::StrToColliderTypeEnum(colliderTypeStr);
-        }
-        catch (std::out_of_range& e) {
-            ENTITY_ERR("Out of bounds, Collider.type not found",entity->GetName());
-        }
-    }
-    else {
+    std::string colliderTypeStr;
+    if (GetStringField(entity, fields, "Collider.type", colliderTypeStr))
+        colliderType = Collider::StrToColliderTypeEnum(colliderTypeStr);
+    else
         ENTITY_ERR("Collider.type not found", entity->GetName());
-    }
 
-    // Radius - Sphere Collider
-    float radius;
-    auto radiusField = fields.find("Collider.radius");
-    if (radiusField != fields.end()) {
-        try {
-            radius = radiusField->second.floatValues.at(0);
-        }
-        catch (std::out_of_range& e) {
-            ENTITY_ERR("Out of bounds, Collider.radius not found",entity->GetName());
-        }
-    }
-
-    // half_x, half_y, half_z - AABB Collider
-    float halfX, halfY, halfZ;
-    auto halfXField = fields.find("Collider.half_x");
-    auto halfYField = fields.find("Collider.half_y");
-    auto halfZField = fields.find("Collider.half_z");
-    if ((halfXField != fields.end()) || (halfYField != fields.end()) || (halfZField != fields.end())) {
-        try {
-            halfX = halfXField->second.floatValues.at(0);
-            halfY = halfYField->second.floatValues.at(0);
-            halfZ = halfZField->second.floatValues.at(0);
-        }
-        catch (std::out_of_range& e) {
-            ENTITY_ERR("Out of bounds, collider half extent not found",entity->GetName());
-        }
-
-    }
-
-    // Construct and assign collider
-    if (colliderType == Collider::ColliderType::Sphere) {
-        if (radiusField == fields.end())
-            ENTITY_ERR("Sphere collider requires radius",entity->GetName());
+    float radius, halfX, halfY, halfZ = 0.05;
+    switch (colliderType) {
+    case Collider::ColliderType::Sphere:
+        GetFloatField(entity, fields, "Collider.radius", radius);
         Assign(entity, new SphereCollider(entity->id, radius));
-    }
-    else if (colliderType == Collider::ColliderType::AABB) {
-        if ((halfXField == fields.end()) || (halfYField == fields.end()) || (halfZField == fields.end()))
-            ENTITY_ERR("AABB collider requires half extents x, y, & z",entity->GetName());
+        break;
+    case Collider::ColliderType::AABB:
+        GetFloat3Field(entity, fields, "Collider.half_extents", halfX, halfY, halfZ);
         Assign(entity, new AABBCollider(entity->id, halfX, halfY, halfZ));
-    }
-    else {
+        break;
+    case Collider::ColliderType::OBB:
         Log::Write(Log::Level::Warning,
-                Fmt("[entity: %s] - Could not construct collider %s, no implementation",
-                        entity->GetName().c_str(),
-                        Collider::ColliderTypeToString(colliderType).c_str()));
+                   Fmt("[entity: %s] - Could not construct collider %s, no implementation",
+                       entity->GetName().c_str(),
+                       Collider::ColliderTypeToString(colliderType).c_str()));
     }
 }
 
 void CreateAudio(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
-    // Track Name
     std::string trackName;
-    auto nameField = fields.find("Audio.track_name");
-    if (nameField != fields.end()) {
-        try {
-            trackName = nameField->second.strValues.at(0) + ".wav";
-        }
-        catch (std::out_of_range& e) {
-            ENTITY_ERR("Out of range, Audio.track_name was expecting a string",entity->GetName());
-        }
-    }
+    if (!GetStringField(entity, fields, "Audio.track_name", trackName))
+        ENTITY_ERR("Audio.track_name was not specified", entity->GetName());
 
-    // Volume
     float volume = 1.0;
-    auto volumeField = fields.find("Audio.volume");
-    if (volumeField != fields.end()) {
-        try {
-            volume = volumeField->second.floatValues.at(0);
-        }
-        catch (std::out_of_range& e) {
-            ENTITY_ERR("Out of range, Audio.volume was expecting a float",entity->GetName());
-        }
-    }
+    GetFloatField(entity, fields, "Audio.volume", volume);
 
-    // Loop
     bool loop = false;
-    auto loopField = fields.find("Audio.loop");
-    if (loopField != fields.end()) {
-        try {
-            std::string strBool = loopField->second.strValues.at(0);
-            loop = (strBool == "true");
-        }
-        catch (std::out_of_range& e) {
-            ENTITY_ERR("Out of range, Audio.loop was expecting a boolean",entity->GetName());
-        }
-    }
+    GetBoolField(entity, fields, "Audio.loop", loop);
 
-    // spatialize
     bool spatialize = false;
-    auto spatializeField = fields.find("Audio.spatialize");
-    if (spatializeField!= fields.end()) {
-        try {
-            std::string strBool = spatializeField->second.strValues.at(0);
-            spatialize = (strBool == "true");
-        }
-        catch (std::out_of_range& e) {
-            ENTITY_ERR("Out of range, Audio.spatialize was expecting a boolean",entity->GetName());
-        }
-    }
+    GetBoolField(entity, fields, "Audio.spatialize", spatialize);
 
-    // Create and assign audio
     Audio* audio;
-    if (spatialize) {
-        audio = new SpatialAudio(entity->id, WavAudioSource(trackName.c_str(), false));
+    if (spatialize)  {
+        auto wav = WavAudioSource(trackName.c_str(), false);
+        audio = new SpatialAudio(entity->id, wav);
     }
     else {
-        audio = new Audio(entity->id, WavAudioSource(trackName.c_str(), true));
+        auto wav = WavAudioSource(trackName.c_str(), true);
+        audio = new Audio(entity->id, wav);
     }
-    Assign(entity, audio);
+
     audio->Loop(loop);
     audio->volume = volume;
+    Assign(entity, audio);
 }
 
 void CreateTimer(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
+    bool autoStart = false; // TODO: value set but not in use yet
+    GetBoolField(entity, fields, "Timer.auto_start", autoStart);
+
+    bool oneShot = true;
+    GetBoolField(entity, fields, "Timer.one_shot", oneShot);
+
+    float waitTime;
+    if(GetFloatField(entity, fields, "Timer.wait_time_seconds", waitTime)) {
+        auto duration = std::chrono::seconds((int)waitTime);
+        Assign(entity, new Timer(entity->id, autoStart, oneShot, duration));
+    }
+    else if (GetFloatField(entity, fields, "Timer.wait_time_milliseconds", waitTime)) {
+        auto duration = std::chrono::milliseconds((int)waitTime);
+        Assign(entity, new Timer(entity->id, autoStart, oneShot, duration));
+    }
+    else {
+        auto duration = std::chrono::seconds(5); // hopefully a sensible default
+        Assign(entity, new Timer(entity->id, autoStart, oneShot, duration));
+    }
 }
 }

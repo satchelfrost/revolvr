@@ -6,11 +6,11 @@
 namespace rvr {
 class Timer : public Component {
 public:
+    Timer(type::EntityId pId, bool autostart, bool oneShot, std::chrono::high_resolution_clock::duration waitTime);
     Timer(const Timer& other) = delete;
     Timer(const Timer& other, type::EntityId newEntityId);
-
-    Timer(type::EntityId pId, std::chrono::high_resolution_clock::duration waitTime);
     virtual Component* Clone(type::EntityId newEntityId) override;
+
     void Tick();
     void Start();
     void Stop();
@@ -18,6 +18,8 @@ private:
     void Timeout();
     std::chrono::time_point<std::chrono::high_resolution_clock> start_;
     bool ticking_;
+
+    // user variables
     bool autoStart_;
     bool oneShot_;
     std::chrono::high_resolution_clock::duration waitTime_;

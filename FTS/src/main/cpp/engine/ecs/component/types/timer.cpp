@@ -3,9 +3,9 @@
 #include <ecs/component/types/ritual.h>
 
 namespace rvr {
-Timer::Timer(type::EntityId pId, std::chrono::high_resolution_clock::duration waitTime) :
+Timer::Timer(type::EntityId pId, bool autostart, bool oneShot, std::chrono::high_resolution_clock::duration waitTime) :
 Component(ComponentType::Timer, pId),
-autoStart_(false), oneShot_(true), ticking_(false), waitTime_(waitTime) {}
+autoStart_(autostart), oneShot_(autostart), ticking_(false), waitTime_(waitTime) {}
 
 Timer::Timer(const Timer& other, type::EntityId newEntityId) :
 Component(ComponentType::Timer, newEntityId),

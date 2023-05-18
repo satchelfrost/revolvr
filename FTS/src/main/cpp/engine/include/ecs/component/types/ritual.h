@@ -10,11 +10,11 @@ class Collider;
 
 class Ritual : public Component {
 public:
+    Ritual(type::EntityId id);
     Ritual(const Ritual &other) = delete;
     Ritual(const Ritual &other, type::EntityId newEntityId);
     virtual Component* Clone(type::EntityId newEntityId) override;
 
-    Ritual(type::EntityId id);
     virtual ~Ritual() = default;
     virtual void Begin();
     virtual void Update(float delta);
