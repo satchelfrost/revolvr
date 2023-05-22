@@ -27,11 +27,12 @@ void App::Run(struct android_app *app) {
     // Load and Initialize Scene
     // TODO: scene switcher, for now we are hard coding
 //    scene_.LoadScene("test_scenes/cloning");
-    scene_.LoadScene("test_scenes/timer");
+//    scene_.LoadScene("test_scenes/timer");
 //    scene_.LoadScene("test_scenes/hand_collision");
 //    scene_.LoadScene("test_scenes/sound_test");
 //    scene_.LoadScene("test_scenes/spinning_pointer");
 //    scene_.LoadScene("test_scenes/generic");
+    scene_.LoadScene("test_scenes/conway");
 
     globalContext_->BeginSystems();
 
@@ -150,10 +151,10 @@ bool App::RenderLayer(std::vector<XrCompositionLayerProjectionView>& projectionL
 void App::DrawGrid() {
     auto player = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(0);
     // Draw the horizontal lines
-    for (int i = -10; i <= 10; i ++) {
+    for (int i = -5; i <= 5; i ++) {
         Cube cube{};
         auto pose = math::Pose();
-        pose.SetPosition(0, 0, (float)i);
+        pose.SetPosition(0, 0, (float)i * 2.0f);
         // Correct for the player position
         pose.SetPosition(pose.GetPosition() - player->GetLocal().GetPosition());
         cube.Pose = pose.ToXrPosef();
@@ -161,10 +162,10 @@ void App::DrawGrid() {
         renderBuffer_.push_back(cube);
     }
     // Draw the vertical lines
-    for (int i = -10; i <= 10; i ++) {
+    for (int i = -5; i <= 5; i ++) {
         Cube cube{};
         auto pose = math::Pose();
-        pose.SetPosition((float)i, 0, 0);
+        pose.SetPosition((float)i * 2.0f, 0, 0);
         // Correct for the player position
         pose.SetPosition(pose.GetPosition() - player->GetLocal().GetPosition());
         cube.Pose = pose.ToXrPosef();
