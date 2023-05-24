@@ -1,5 +1,5 @@
 apply plugin: 'com.android.application'
-apply from: "${rootProject.projectDir}/VrApp.gradle"
+apply from: "${rootProject.projectDir}/build.gradle"
 
 
 android {
