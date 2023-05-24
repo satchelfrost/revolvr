@@ -6,3 +6,4 @@
     X(MovingSoundBox) \
     X(SpawnBox) \
     X(TimerBoxMaker) \
+    X(ConwayBoxMaker) \
