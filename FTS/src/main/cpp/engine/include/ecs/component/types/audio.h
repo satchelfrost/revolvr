@@ -7,8 +7,11 @@
 namespace rvr {
 class Audio : public Component {
 public:
-    Audio(type::EntityId pId, WavAudioSource* wavAudioSource);
+    Audio(const Audio& other) = delete;
+    Audio(const Audio& other, type::EntityId pId);
     virtual Component* Clone(type::EntityId newEntityId) override;
+
+    Audio(type::EntityId pId, WavAudioSource wavAudioSource);
     static void RenderSilence(float* start, int32_t numSamples);
     virtual void Render(float* targetData, int32_t numSamples);
     virtual void Play();
@@ -18,7 +21,7 @@ public:
     float volume;
 
 protected:
-    WavAudioSource* wavAudioSource_;
+    WavAudioSource wavAudioSource_;
     int32_t readFrameIndex_;
     std::atomic<bool> isPlaying_;
     std::atomic<bool> isLooping_;

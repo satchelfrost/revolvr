@@ -9,7 +9,7 @@ std::vector<Spatial *> GetRenderSpatials() {
     spatials.reserve(components.size());
     for (auto [eid, component] : components) {
         auto mesh = dynamic_cast<Mesh*>(component);
-        if (mesh->visible)
+        if (mesh->IsVisible())
             spatials.push_back(GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(eid));
     }
     return spatials;

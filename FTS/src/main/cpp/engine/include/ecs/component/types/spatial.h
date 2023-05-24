@@ -6,9 +6,13 @@
 namespace rvr {
 class Spatial : public Component {
 public:
+
     Spatial(type::EntityId pId);
     Spatial(type::EntityId pId, const glm::vec3& position, const glm::quat& orientation, const glm::vec3& scale);
     Spatial(type::EntityId pId, math::Transform local, math::Transform world);
+
+    Spatial(const Spatial& other) = delete;
+    Spatial(const Spatial& other, type::EntityId pId);
     virtual Component* Clone(type::EntityId newEntityId) override;
 
     math::Transform GetLocal();

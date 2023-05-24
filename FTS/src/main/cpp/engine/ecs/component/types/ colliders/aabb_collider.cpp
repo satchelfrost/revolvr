@@ -35,6 +35,9 @@ bool AABBCollider::TestCollision(Collider* other) {
 }
 
 Component *AABBCollider::Clone(type::EntityId newEntityId) {
-    return new AABBCollider(newEntityId, this->halfX, this->halfY, this->halfZ);
+    return new AABBCollider(*this, newEntityId);
 }
+
+AABBCollider::AABBCollider(const AABBCollider &other, type::EntityId newEntityId) :
+Collider(ColliderType::Sphere, newEntityId), halfX(other.halfX), halfY(other.halfY), halfZ(other.halfZ) {}
 }

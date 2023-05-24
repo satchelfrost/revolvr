@@ -12,9 +12,7 @@ Ritual.can_update {true}
 Collider.type {Sphere}
 Collider.radius {0.05}
 # Collider.type {AABB}
-# Collider.half_x {0.1}
-# Collider.half_y {0.05}
-# Collider.half_z {0.05}
+# Collider.half_extents {0.1, 0.05, 0.05}
 
 [entity id=2 name=Right_Hand]
 TrackedSpace.type {RightHand}
@@ -25,6 +23,4 @@ Ritual.can_update {true}
 Collider.type {Sphere}
 Collider.radius {0.05}
 # Collider.type {AABB}
-# Collider.half_x {0.1}
-# Collider.half_y {0.05}
-# Collider.half_z {0.05}
+# Collider.half_extents {0.1, 0.05, 0.05}

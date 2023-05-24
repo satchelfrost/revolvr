@@ -32,5 +32,9 @@ void Collider::Collided(Collider *other) {
         auto ritual = GlobalContext::Inst()->GetECS()->GetComponent<Ritual>(id);
         ritual->OnTriggered(other);
     }
+    else {
+        Log::Write(Log::Level::Warning,
+                   Fmt("Collider component %s did not have associated ritual", entity->GetName().c_str()));
+    }
 }
 }

@@ -27,6 +27,8 @@ enum class ActionType {
     ACTION_LIST(BUILD_ENUM)
 };
 
+#undef BUILD_ENUM
+
 std::string toString(ActionType actionType);
 
 enum class Hand {

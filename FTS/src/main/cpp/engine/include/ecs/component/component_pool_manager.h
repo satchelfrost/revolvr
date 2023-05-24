@@ -4,6 +4,7 @@
 #include "component_pool.h"
 #include "common.h"
 #include <any>
+#include <typeindex>
 
 namespace rvr {
 class ComponentPoolManager {

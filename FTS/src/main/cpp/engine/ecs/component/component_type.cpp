@@ -1,15 +1,12 @@
-#include "ecs/component/component_type.h"
-#include "common.h"
-
-#define COMPONENT_TYPE_CASE_STR(ENUM, NUM) case ComponentType::ENUM: return #ENUM;
+#include <ecs/ecs_info.h>
+#include <common.h>
 
 namespace rvr {
-const char *toString(ComponentType cType) {
-    switch (cType) {
-        COMPONENT_LIST(COMPONENT_TYPE_CASE_STR)
-        default:
-            return "ComponentType unrecognized";
-    }
+const char* toString(ComponentType cType) {
+    int index = (int)cType;
+    if (index < 0 || index > constants::IMPLEMENTED_COMPONENTS)
+        return "ComponentType unrecognized";
+    return componentInfo[index].str;
 }
 
 ComponentType toComponentTypeEnum(const std::string& str) {
@@ -18,6 +15,6 @@ ComponentType toComponentTypeEnum(const std::string& str) {
         if (enumStr == str)
             return (ComponentType)i;
     }
-    THROW(Fmt("No tracked space found for %s", str.c_str()));
+    THROW(Fmt("No component type found for %s", str.c_str()));
 }
 }

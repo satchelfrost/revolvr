@@ -2,12 +2,13 @@
 #include <global_context.h>
 
 namespace rvr {
-Mesh::Mesh(type::EntityId pId) : Component(ComponentType::Mesh, pId), visible(true) {}
+Mesh::Mesh(type::EntityId pId, bool visible) : Component(ComponentType::Mesh, pId), visible_(visible) {}
+
+Mesh::Mesh(const Mesh &other, type::EntityId newEntityId) :
+Component(ComponentType::Mesh, newEntityId), visible_(other.visible_) {}
 
 Component *Mesh::Clone(type::EntityId newEntityId) {
-    auto mesh = new Mesh(newEntityId);
-    mesh->visible = this->visible;
-    return mesh;
+    return new Mesh(*this, newEntityId);
 }
 
 void Mesh::SetVisibilityRecursive(bool visibility) {
@@ -17,6 +18,10 @@ void Mesh::SetVisibilityRecursive(bool visibility) {
         CHECK_MSG(mesh, Fmt("Entity with id %d has no mesh", child->id));
         mesh->SetVisibilityRecursive(visibility);
     }
-    visible = visibility;
+    visible_ = visibility;
+}
+
+bool Mesh::IsVisible() const {
+    return visible_;
 }
 }

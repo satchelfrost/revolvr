@@ -13,17 +13,15 @@ public:
     void Init(android_app *app);
     static GlobalContext* Inst();
 
+    void BeginSystems();
     void UpdateSystems(float deltaTime);
 
+    // TODO: Should these be const?
     AudioEngine* GetAudioEngine();
     XrContext* GetXrContext();
     VulkanRenderer* GetVulkanRenderer();
     ECS* GetECS();
     AndroidContext* GetAndroidContext();
-
-    // Variables for the global context
-    type::EntityId headEntityId{-1};
-    type::EntityId playerEntityId{-1};
 
 private:
     static GlobalContext* instance_;

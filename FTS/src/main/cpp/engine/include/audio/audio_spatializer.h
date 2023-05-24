@@ -12,8 +12,11 @@ public:
     void SetBoxRoomParams(float width, float height, float depth, float reflectance);
     void ProcessSpatialAudio(SpatialAudio* spatialAudio, const float* inBuffer, float* outBuffer);
     void SetListenerVectors(const math::Transform& transform);
+    void SetHeadId(type::EntityId id);
+    void ResetHeadForSpatialAudio();
 
 private:
     ovrAudioContext audioContext_;
+    type::EntityId headEntityId_{-1};
 };
 }

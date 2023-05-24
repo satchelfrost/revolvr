@@ -4,7 +4,7 @@
 #include <ecs/system/render_system.h>
 #include <ecs/system/collision_system.h>
 #include <ecs/system/ritual_system.h>
-#include "include/action/io.h"
+#include <ecs/system/timer_system.h>
 
 namespace rvr {
 GlobalContext* GlobalContext::instance_ = nullptr;
@@ -23,7 +23,6 @@ void GlobalContext::Init(android_app *app) {
 
     // Create the audio engine
     audioEngine_ = new AudioEngine();
-//    audioEngine_->start();
 
     // Create android abstraction
     androidContext_ = AndroidContext::Instance();
@@ -42,7 +41,7 @@ void GlobalContext::Init(android_app *app) {
 }
 
 GlobalContext::~GlobalContext() {
-//    delete audioEngine_;
+    delete audioEngine_;
     delete vulkanRenderer_;
     delete androidContext_;
     delete ecs_;
@@ -54,12 +53,19 @@ AudioEngine *GlobalContext::GetAudioEngine() {
     return audioEngine_;
 }
 
+void GlobalContext::BeginSystems() {
+    system::ritual::Begin();
+    system::timer::Start();
+    audioEngine_->start();
+}
+
 void GlobalContext::UpdateSystems(float deltaTime) {
     CHECK_MSG(initialized_, "Global Context was not initialized")
     system::spatial::UpdateTrackedSpaces(xrContext_);
     system::spatial::UpdateSpatials();
     system::collision::RunCollisionChecks();
     system::ritual::Update(deltaTime);
+    system::timer::UpdateTicks();
 }
 
 VulkanRenderer *GlobalContext::GetVulkanRenderer() {
@@ -81,4 +87,5 @@ AndroidContext *GlobalContext::GetAndroidContext() {
     CHECK_MSG(initialized_, "Global Context was not initialized")
     return androidContext_;
 }
+
 }

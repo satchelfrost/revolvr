@@ -6,17 +6,15 @@
 #define OUT_BUFFER_SIZE IN_BUFFER_SIZE * 2
 
 namespace rvr {
-SpatialAudio::SpatialAudio(type::EntityId pId, WavAudioSource *wavAudioSource) :
-Audio(pId, wavAudioSource) {
-    if (wavAudioSource->stereo)
+SpatialAudio::SpatialAudio(type::EntityId pId, const WavAudioSource& wavAudioSource) :
+Audio(pId, wavAudioSource), totalSourceFrames_(wavAudioSource_.GetBufferSize()),
+data_(wavAudioSource_.GetData()){
+    if (wavAudioSource.stereo)
         THROW("Spatial audio must be mono");
-
-    totalSourceFrames_ = wavAudioSource_->GetBufferSize();
-    data_ = wavAudioSource_->GetData();
 }
 
 void SpatialAudio::Render(float *targetData, int32_t numSamples) {
-    ResetHead();
+    GlobalContext::Inst()->GetAudioEngine()->ResetHeadForSpatialAudio();
 
     if (isPlaying_) {
         // Check if we've reached the end of the audio data source
@@ -34,14 +32,6 @@ void SpatialAudio::Render(float *targetData, int32_t numSamples) {
     for (int i = 0; i < numSamples; i++)
         if(!circularBuffer_.Dequeue(targetData[i]))
             targetData[i] = 0; // render silence if nothing on the queue
-}
-
-void SpatialAudio::ResetHead() {
-    auto headId = GlobalContext::Inst()->headEntityId;
-    if (headId == -1)
-        THROW(Fmt("Usage of spatial audio requires a TrackedSpace.type Head to be in the scene."));
-    auto head = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(headId);
-    GlobalContext::Inst()->GetAudioEngine()->SetListenerVectors(head->GetWorld());
 }
 
 void SpatialAudio::Spatialize() {
@@ -76,6 +66,11 @@ void SpatialAudio::Play() {
 }
 
 Component *SpatialAudio::Clone(type::EntityId newEntityId) {
-    return new SpatialAudio(newEntityId, this->wavAudioSource_);
+    return new SpatialAudio(*this, newEntityId);
 }
+
+SpatialAudio::SpatialAudio(const SpatialAudio &other, type::EntityId newEntityId) :
+Audio(newEntityId, other.wavAudioSource_), totalSourceFrames_(wavAudioSource_.GetBufferSize()),
+data_(wavAudioSource_.GetData()) {}
+
 }

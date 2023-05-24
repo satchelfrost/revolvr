@@ -5,7 +5,7 @@
 
 namespace rvr {
 SphereCollider::SphereCollider(type::EntityId pId, float pRadius) :
- Collider(ColliderType::Sphere, pId), radius(pRadius) {}
+Collider(ColliderType::Sphere, pId), radius(pRadius) {}
 
 bool SphereCollider::TestCollision(Collider* other) {
     switch (other->type) {
@@ -32,6 +32,9 @@ bool SphereCollider::TestCollision(Collider* other) {
 }
 
 Component *SphereCollider::Clone(type::EntityId newEntityId) {
-    return new SphereCollider(newEntityId, this->radius);
+    return new SphereCollider(*this, newEntityId);
 }
+
+SphereCollider::SphereCollider(const SphereCollider &other, type::EntityId newEntityId) :
+Collider(ColliderType::Sphere, newEntityId), radius(other.radius) {}
 }

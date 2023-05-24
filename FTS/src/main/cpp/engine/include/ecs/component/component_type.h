@@ -1,14 +1,20 @@
 #pragma once
 
-#include "ecs/ecs_info.h"
-#include <map>
-#include <typeindex>
-
-#define BUILD_ENUM(ENUM, NUM) ENUM = NUM,
+#include <pch.h>
+#include <ecs/component/component_list.h>
 
 namespace rvr {
 enum class ComponentType {
+    #define BUILD_ENUM(ENUM) ENUM,
     COMPONENT_LIST(BUILD_ENUM)
+    #undef BUILD_ENUM
+};
+
+struct componentTypeEnumStrPair { ComponentType componentType; const char* str; };
+const componentTypeEnumStrPair componentInfo[] {
+    #define ITEM_STR(NAME) {ComponentType::NAME, #NAME},
+    COMPONENT_LIST(ITEM_STR)
+    #undef ITEM_STR
 };
 
 const char* toString(ComponentType cType);

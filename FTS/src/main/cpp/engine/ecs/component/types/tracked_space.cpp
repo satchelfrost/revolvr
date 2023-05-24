@@ -25,6 +25,9 @@ TrackedSpace::TrackedSpace(type::EntityId pId, TrackedSpaceType trackedSpaceType
 Component(ComponentType::TrackedSpace, pId), type(trackedSpaceType) {}
 
 Component *TrackedSpace::Clone(type::EntityId newEntityId) {
-    return new TrackedSpace(newEntityId, this->type);
+    return new TrackedSpace(*this, newEntityId);
 }
+
+TrackedSpace::TrackedSpace(const TrackedSpace &other, type::EntityId newEntityId) :
+Component(ComponentType::TrackedSpace, newEntityId), type(other.type) {}
 }

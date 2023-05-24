@@ -13,7 +13,8 @@ public:
     void stop();
     void restart();
     void ProcessSpatialAudio(SpatialAudio* spatialAudio, const float* inBuffer, float* outBuffer);
-    void SetListenerVectors(const math::Transform& transform);
+    void SetHeadId(type::EntityId id);
+    void ResetHeadForSpatialAudio();
 
 private:
     AAudioStream *stream_;

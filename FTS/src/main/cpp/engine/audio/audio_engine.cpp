@@ -67,7 +67,11 @@ void AudioEngine::ProcessSpatialAudio(SpatialAudio* spatialAudio, const float *i
     audioSpatializer_.ProcessSpatialAudio(spatialAudio, inBuffer, outBuffer);
 }
 
-void AudioEngine::SetListenerVectors(const math::Transform &transform) {
-    audioSpatializer_.SetListenerVectors(transform);
+void AudioEngine::SetHeadId(type::EntityId id) {
+    audioSpatializer_.SetHeadId(id);
+}
+
+void AudioEngine::ResetHeadForSpatialAudio() {
+    audioSpatializer_.ResetHeadForSpatialAudio();
 }
 }

@@ -1,12 +1,12 @@
 #include "ecs/component/component_pool_manager.h"
-#include "ecs/component/all_components.h"
-
-#define TYPE_TO_ENUM(ENUM, NUM) typeToEnum.insert({std::type_index(typeid(ENUM)), ComponentType::ENUM});
+#include "ecs/component/component_hdrs.h"
 
 namespace rvr {
 ComponentPoolManager::ComponentPoolManager() {
     componentPools_.resize(constants::IMPLEMENTED_COMPONENTS);
-    COMPONENT_LIST(TYPE_TO_ENUM)
+#define TYPE_IDX_ENUM(ENUM) typeToEnum.insert({std::type_index(typeid(ENUM)), ComponentType::ENUM});
+    COMPONENT_LIST(TYPE_IDX_ENUM)
+#undef TYPE_IDX_ENUM
 }
 
 ComponentPoolManager::~ComponentPoolManager() {
