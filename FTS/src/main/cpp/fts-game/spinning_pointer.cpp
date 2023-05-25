@@ -1,7 +1,7 @@
 #include "spinning_pointer.h"
 #include <ecs/ecs.h>
 #include <action/io.h>
-#include <include/math/linear_math.h>
+#include <math/linear_math.h>
 #include <helper_macros.h>
 #include <global_context.h>
 

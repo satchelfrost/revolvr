@@ -1,5 +1,5 @@
 #include <action/io.h>
-#include "include/action/input/bool_action.h"
+#include "action/input/bool_action.h"
 
 namespace rvr {
 bool ButtonPressed(ActionType type) {
