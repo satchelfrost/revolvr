@@ -1,4 +1,4 @@
-#include <include/ecs/entity/entity.h>
+#include <ecs/entity/entity.h>
 #include <ecs/component/component_pool.h>
 #include <common.h>
 

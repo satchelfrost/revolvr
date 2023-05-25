@@ -3,7 +3,7 @@
 #include "pch.h"
 #include "common.h"
 #include "geometry.h"
-#include "include/math/xr_linear.h"
+#include "math/xr_linear.h"
 #include "vulkan_results.h"
 #include <array>
 
