@@ -2,6 +2,6 @@
 rootProject.projectDir = new File(settingsDir, '.')
 rootProject.name = "RevolVR"
 
-include ':', ':FTS'
+include ':', ':app'
 
 // Top level settings
