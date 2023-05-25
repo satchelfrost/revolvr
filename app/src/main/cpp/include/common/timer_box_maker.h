@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ecs/component/types/ritual.h>
+#include "ecs/component/types/ritual.h"
 
 class TimerBoxMaker : public rvr::Ritual {
 public:

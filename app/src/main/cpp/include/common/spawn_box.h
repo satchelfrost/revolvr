@@ -1,7 +1,7 @@
 #pragma once
 
-#include <ecs/ecs_info.h>
-#include <ecs/component/types/ritual.h>
+#include "ecs/ecs_info.h"
+#include "ecs/component/types/ritual.h"
 
 class SpawnBox : public rvr::Ritual {
 public:

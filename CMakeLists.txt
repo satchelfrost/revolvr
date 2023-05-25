@@ -2,7 +2,7 @@
 # documentation: https://d.android.com/studio/projects/add-native-code.html
 
 cmake_minimum_required(VERSION 3.22.1)
-project("fts" CXX ASM)
+project("app" CXX ASM)
 set(CMAKE_CXX_STANDARD 17)
 
 # Creating compile definintions
@@ -27,7 +27,7 @@ file(
   LOCAL_SOURCE
   CONFIGURE_DEPENDS
   "engine/*.cpp"
-  "FTS/src/main/cpp/*.cpp"
+  "app/src/main/cpp/*.cpp"
 )
 
 file(
@@ -41,16 +41,16 @@ file(
 # or SHARED, and provides the relative paths to its source code.
 # You can define multiple libraries, and CMake builds them for you.
 # Gradle automatically packages shared libraries with your APK.
-add_library(fts SHARED ${LOCAL_ASSEMBLY} ${LOCAL_SOURCE})
+add_library(game SHARED ${LOCAL_ASSEMBLY} ${LOCAL_SOURCE})
 
-# Adding the include directory to fts.
+# Adding the include directory to game.
 target_include_directories(
-  fts
+  game
   PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/engine/include
-  ${CMAKE_CURRENT_SOURCE_DIR}/FTS/src/main/cpp/fts-game/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/app/src/main/cpp/include
   ${ANDROID_NDK}/sources/android/native_app_glue/
 )
 
-# Adding libraries to link to fts.
-target_link_libraries(fts openxr_loader ovraudio glm ${android-log} ${android} ${vulkan} ${aaudio})
+# Adding libraries to link to game.
+target_link_libraries(game openxr_loader ovraudio glm ${android-log} ${android} ${vulkan} ${aaudio})
