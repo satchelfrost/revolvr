@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.22.1)
 project("fts" CXX ASM)
 set(CMAKE_CXX_STANDARD 17)
 
-# Creating compile definintions
+# Creating compile definitions
 add_definitions(
   -DANDROID_NDK
   -DXR_USE_PLATFORM_ANDROID
