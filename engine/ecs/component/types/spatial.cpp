@@ -5,6 +5,7 @@
 
 #define GetComponent GlobalContext::Inst()->GetECS()->GetComponent
 #define GetEntity GlobalContext::Inst()->GetECS()->GetEntity
+#define GetParentSpatial(pId) GetComponent<Spatial>(GetEntity(pId)->GetParent()->id)
 
 namespace rvr {
 Spatial::Spatial(type::EntityId pId)
@@ -67,9 +68,21 @@ void Spatial::SetWorldScale(const glm::vec3& scale) {
 }
 
 void Spatial::SetWorldPosition(const glm::vec3& position) {
-    auto worldPose = world.GetPose();
-    worldPose.SetPosition(position);
-    world.SetPose(worldPose);
+    glm::vec3 localPosition;
+    if (id == constants::ROOT_ID) {
+        localPosition = position;
+    }
+    else {
+        auto pSpatial = GetParentSpatial(id);
+        auto pOrientationInverse = glm::inverse(pSpatial->GetWorld().GetOrientation());
+        auto pPosition = pSpatial->GetWorld().GetPosition();
+
+        localPosition = glm::rotate(pOrientationInverse, (pPosition - position));
+    }
+
+    auto localPose = local.GetPose();
+    localPose.SetPosition(localPosition);
+    local.SetPose(localPose);
 }
 
 void Spatial::SetWorldOrientation(const glm::quat& orientation) {

@@ -2,13 +2,16 @@
 
 #include "pch.h"
 #include "rvr_vulkan_utilities.h"
-#include "platform/android_context.h"
+#include <platform/android_context.h>
+#include <ecs/system/render_system.h>
 
 namespace rvr {
 struct Cube {
     XrPosef Pose;
     XrVector3f Scale;
 };
+
+class XrContext;
 
 // Wraps a Vulkan API.
 class VulkanRenderer {
@@ -40,7 +43,17 @@ public:
     // if supported by the graphics plugin. A supported value otherwise.
     virtual uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView& view);
 
+    void Render();
+
 private:
+    void DrawGrid(); // TODO: Remove once rendering is reworked
+
+    bool RenderLayer(std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
+                     XrCompositionLayerProjection& layer, XrContext* xrContext);
+
+private:
+    std::vector<Cube> renderBuffer_;
+
     XrGraphicsBindingVulkan2KHR m_graphicsBinding{XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR};
     std::list<SwapchainImageContext> m_swapchainImageContexts;
     std::map<const XrSwapchainImageBaseHeader*, SwapchainImageContext*> m_swapchainImageContextMap;
