@@ -1,9 +1,9 @@
-#include "spinning_pointer.h"
-#include <ecs/ecs.h>
-#include <action/io.h>
-#include <math/linear_math.h>
-#include <helper_macros.h>
-#include <global_context.h>
+#include "common/spinning_pointer.h"
+#include "ecs/ecs.h"
+#include "action/io.h"
+#include "math/linear_math.h"
+#include "common/helper_macros.h"
+#include "global_context.h"
 
 SpinningPointer::SpinningPointer(rvr::type::EntityId id) : Ritual(id) {
     spatial_ = GetComponent<rvr::Spatial>(id);

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-		package="com.imminenteminence.fts"
+		package="com.wamwadstudios.app"
 		android:versionCode="1"
 		android:versionName="1.0"
         android:installLocation="auto" >
@@ -13,7 +13,7 @@
 	<uses-feature android:name="oculus.software.handtracking" android:required="false" />
 	<uses-permission android:name="com.oculus.permission.HAND_TRACKING" />
 
-	<application android:allowBackup="false" android:label="fts" >
+	<application android:allowBackup="false" android:label="app" >
 	<meta-data android:name="com.oculus.supportedDevices" android:value="all" />
 
 		<!-- launchMode is set to singleTask because there should never be multiple copies of the app running -->
@@ -28,7 +28,7 @@
 				android:configChanges="screenSize|screenLayout|orientation|keyboardHidden|keyboard|navigation|uiMode">
       <!-- Tell NativeActivity the name of the .so -->
 
-      <meta-data android:name="android.app.lib_name" android:value="fts" />
+      <meta-data android:name="android.app.lib_name" android:value="game" />
 
       <!-- This filter lets the apk show up as a launchable icon -->
 			<intent-filter>

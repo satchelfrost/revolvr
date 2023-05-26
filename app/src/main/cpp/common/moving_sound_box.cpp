@@ -1,10 +1,10 @@
-#include "moving_sound_box.h"
-#include <common.h>
-#include <ecs/ecs.h>
-#include <ecs/component/types/spatial.h>
-#include <global_context.h>
-#include <action/io.h>
-#include <helper_macros.h>
+#include "common/moving_sound_box.h"
+#include "common.h"
+#include "ecs/ecs.h"
+#include "ecs/component/types/spatial.h"
+#include "global_context.h"
+#include "action/io.h"
+#include "common/helper_macros.h"
 
 MovingSoundBox::MovingSoundBox(rvr::type::EntityId id) : Ritual(id) {
     spatial_ = GetComponent<rvr::Spatial>(id);
