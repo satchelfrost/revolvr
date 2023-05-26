@@ -1,9 +1,9 @@
 #pragma once
 
-#include <ecs/ecs_info.h>
-#include <ecs/component/types/ritual.h>
-#include <ecs/component/types/spatial.h>
-#include <math/linear_math.h>
+#include "ecs/ecs_info.h"
+#include "ecs/component/types/ritual.h"
+#include "ecs/component/types/spatial.h"
+#include "math/linear_math.h"
 
 class HandBehavior : public rvr::Ritual {
 public:

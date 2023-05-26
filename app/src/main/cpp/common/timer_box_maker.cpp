@@ -1,8 +1,8 @@
-#include <timer_box_maker.h>
-#include <global_context.h>
-#include <helper_macros.h>
-#include <ecs/component/types/spatial.h>
-#include <ecs/component/types/mesh.h>
+#include "common/timer_box_maker.h"
+#include "global_context.h"
+#include "common/helper_macros.h"
+#include "ecs/component/types/spatial.h"
+#include "ecs/component/types/mesh.h"
 
 TimerBoxMaker::TimerBoxMaker(rvr::type::EntityId id) : Ritual(id), spawnBoxEntityId_(4), offset_(0) {}
 

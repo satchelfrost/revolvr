@@ -1,9 +1,9 @@
 #pragma once
 
-#include <ecs/ecs_info.h>
-#include <ecs/component/types/ritual.h>
-#include <ecs/component/types/spatial.h>
-#include <ecs/component/types/audio.h>
+#include "ecs/ecs_info.h"
+#include "ecs/component/types/ritual.h"
+#include "ecs/component/types/spatial.h"
+#include "ecs/component/types/audio.h"
 
 class MovingSoundBox : public rvr::Ritual {
 public:

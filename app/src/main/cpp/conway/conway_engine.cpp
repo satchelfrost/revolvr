@@ -1,4 +1,4 @@
-#include "conway_engine.h"
+#include "conway/conway_engine.h"
 
 ConwayEngine::ConwayEngine(int pHeight, int pWidth) : height(pHeight), width(pWidth) {
     cur_grid = new int[height * width];

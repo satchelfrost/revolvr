@@ -1,10 +1,10 @@
-#include "hand_behavior.h"
-#include <common.h>
-#include <ecs/ecs.h>
-#include <ecs/component/types/spatial.h>
-#include <action/io.h>
-#include <global_context.h>
-#include <helper_macros.h>
+#include "common/hand_behavior.h"
+#include "common.h"
+#include "ecs/ecs.h"
+#include "ecs/component/types/spatial.h"
+#include "action/io.h"
+#include "global_context.h"
+#include "common/helper_macros.h"
 
 HandBehavior::HandBehavior(rvr::type::EntityId id) : Ritual(id) {
     spatial_ = GetComponent<rvr::Spatial>(id);
