@@ -1,5 +1,7 @@
-#include "renderer/vulkan_renderer.h"
-#include "platform/android_context.h"
+#include <renderer/vulkan_renderer.h>
+#include <platform/android_context.h>
+#include <xr_context.h>
+#include <global_context.h>
 
 extern "C" void fast_matrix_mul(float *, float *, float *);
 
@@ -362,6 +364,114 @@ void VulkanRenderer::RenderView(const XrCompositionLayerProjectionView &layerVie
 
 uint32_t VulkanRenderer::GetSupportedSwapchainSampleCount(const XrViewConfigurationView &) {
     return VK_SAMPLE_COUNT_1_BIT;
+}
+
+void VulkanRenderer::Render() {
+    XrContext* xrContext = GlobalContext::Inst()->GetXrContext();
+    if (xrContext->frameState.shouldRender == XR_TRUE) {
+        if (RenderLayer(xrContext->projectionLayerViews, xrContext->mainLayer, xrContext)) {
+            xrContext->AddMainLayer();
+        }
+    }
+}
+
+bool VulkanRenderer::RenderLayer(std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
+                      XrCompositionLayerProjection& layer, XrContext* xrContext) {
+    XrViewState viewState{XR_TYPE_VIEW_STATE};
+    auto viewCapacityInput = (uint32_t)xrContext->views.size();
+    uint32_t viewCountOutput;
+
+    XrViewLocateInfo viewLocateInfo{XR_TYPE_VIEW_LOCATE_INFO};
+    viewLocateInfo.viewConfigurationType = xrContext->viewConfigType;
+    viewLocateInfo.displayTime = xrContext->frameState.predictedDisplayTime;
+    viewLocateInfo.space = xrContext->appSpace;
+
+    XrResult res = xrLocateViews(xrContext->session, &viewLocateInfo, &viewState, viewCapacityInput,
+                                 &viewCountOutput, xrContext->views.data());
+    CHECK_XRRESULT(res, "xrLocateViews");
+    if ((viewState.viewStateFlags & XR_VIEW_STATE_POSITION_VALID_BIT) == 0 ||
+        (viewState.viewStateFlags & XR_VIEW_STATE_ORIENTATION_VALID_BIT) == 0) {
+        return false;  // There is no valid tracking poses for the views.
+    }
+
+    CHECK(viewCountOutput == viewCapacityInput);
+    CHECK(viewCountOutput == xrContext->configViews.size());
+    CHECK(viewCountOutput == xrContext->swapchains.size());
+
+    projectionLayerViews.resize(viewCountOutput);
+
+    // Convert renderable to a cube for now
+    for (auto spatial : system::render::GetRenderSpatials()) {
+        Cube cube{};
+        cube.Pose = spatial->GetWorld().GetPose().ToXrPosef();
+        cube.Scale = math::vector::ToXrVector3f(spatial->GetWorld().GetScale());
+        renderBuffer_.push_back(cube);
+    }
+
+    // Draw a simple grid
+    DrawGrid();
+
+    // Render view to the appropriate part of the swapchain image.
+    for (uint32_t i = 0; i < viewCountOutput; i++) {
+        // Each view has a separate swapchain which is acquired, rendered to, and released.
+        const Swapchain viewSwapchain = xrContext->swapchains[i];
+
+        XrSwapchainImageAcquireInfo acquireInfo{XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO};
+
+        uint32_t swapchainImageIndex;
+        CHECK_XRCMD(xrAcquireSwapchainImage(viewSwapchain.handle, &acquireInfo, &swapchainImageIndex));
+
+        XrSwapchainImageWaitInfo waitInfo{XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO};
+        waitInfo.timeout = XR_INFINITE_DURATION;
+        CHECK_XRCMD(xrWaitSwapchainImage(viewSwapchain.handle, &waitInfo));
+
+        projectionLayerViews[i] = {XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW};
+        projectionLayerViews[i].pose = xrContext->views[i].pose;
+        projectionLayerViews[i].fov = xrContext->views[i].fov;
+        projectionLayerViews[i].subImage.swapchain = viewSwapchain.handle;
+        projectionLayerViews[i].subImage.imageRect.offset = {0, 0};
+        projectionLayerViews[i].subImage.imageRect.extent = {viewSwapchain.width, viewSwapchain.height};
+
+        const XrSwapchainImageBaseHeader* const swapchainImage = xrContext->swapchainImageMap[viewSwapchain.handle][swapchainImageIndex];
+        RenderView(projectionLayerViews[i], swapchainImage, xrContext->colorSwapchainFormat, renderBuffer_);
+
+        XrSwapchainImageReleaseInfo releaseInfo{XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO};
+        CHECK_XRCMD(xrReleaseSwapchainImage(viewSwapchain.handle, &releaseInfo));
+    }
+
+    // Clear the renderBuffer for the next frame
+    renderBuffer_.clear();
+
+    layer.space = xrContext->appSpace;
+    layer.viewCount = (uint32_t)projectionLayerViews.size();
+    layer.views = projectionLayerViews.data();
+    return true;
+}
+
+void VulkanRenderer::DrawGrid() {
+    auto player = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(0);
+    // Draw the horizontal lines
+    for (int i = -5; i <= 5; i ++) {
+        Cube cube{};
+        auto pose = math::Pose();
+        pose.SetPosition(0, 0, (float)i * 2.0f);
+        // Correct for the player position
+        pose.SetPosition(pose.GetPosition() - player->GetLocal().GetPosition());
+        cube.Pose = pose.ToXrPosef();
+        cube.Scale = {20.0f, 0.1f, 0.1f};
+        renderBuffer_.push_back(cube);
+    }
+    // Draw the vertical lines
+    for (int i = -5; i <= 5; i ++) {
+        Cube cube{};
+        auto pose = math::Pose();
+        pose.SetPosition((float)i * 2.0f, 0, 0);
+        // Correct for the player position
+        pose.SetPosition(pose.GetPosition() - player->GetLocal().GetPosition());
+        cube.Pose = pose.ToXrPosef();
+        cube.Scale = {0.1f, 0.1f, 20.0f};
+        renderBuffer_.push_back(cube);
+    }
 }
 
 VkBool32 VulkanRenderer::debugReport(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType, uint64_t object,
