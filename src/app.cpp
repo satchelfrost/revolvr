@@ -9,7 +9,7 @@
 
 namespace rvr {
 static void app_handle_cmd(struct android_app* app, int32_t cmd) {
-    AndroidContext::Instance()->HandleAndroidCmd(app, cmd);
+    GlobalContext::Inst()->GetAndroidContext()->HandleAndroidCmd(app, cmd);
 }
 
 App::App() : requestRestart_(false), exitRenderLoop_(false), globalContext_(nullptr), deltaTime_(0) {

@@ -1,15 +1,7 @@
 #include "ecs/ecs.h"
 
 namespace rvr {
-ECS* ECS::instance_ = nullptr;
-
-ECS* ECS::Instance() {
-    if (!instance_)
-        instance_ = new ECS();
-    return instance_;
-}
-
-void ECS::Init() {
+ECS::ECS() {
     entityPool_ = new EntityPool();
     componentPoolManager_ = new ComponentPoolManager();
 }

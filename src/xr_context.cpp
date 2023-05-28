@@ -1,14 +1,17 @@
 #include "xr_context.h"
-#include <platform/android_context.h>
+#include <global_context.h>
+#include <instance_extension_manager.h>
 
 namespace rvr {
+XrContext::XrContext() {
+    vulkanRenderer_ = GlobalContext::Inst()->GetVulkanRenderer();
 
-XrContext* XrContext::instance_ = nullptr;
-
-XrContext* XrContext::Instance() {
-    if (!instance_)
-        instance_ = new XrContext();
-    return instance_;
+    InitializePlatformLoader();
+    CreateXrInstance();
+    InitializeSystem();
+    InitializeSession();
+    actionManager.CreateActionSpaces(session);
+    CreateSwapchains();
 }
 
 XrContext::~XrContext() {
@@ -33,17 +36,6 @@ XrContext::~XrContext() {
     }
 }
 
-void XrContext::Initialize(VulkanRenderer* vulkanRenderer) {
-    vulkanRenderer_ = vulkanRenderer;
-
-    InitializePlatformLoader();
-    CreateXrInstance();
-    InitializeSystem();
-    InitializeSession();
-    actionManager.CreateActionSpaces(session);
-    CreateSwapchains();
-}
-
 void XrContext::InitializePlatformLoader() {
     // Initialize the loader for this platform
     PFN_xrInitializeLoaderKHR initializeLoader = nullptr;
@@ -53,8 +45,9 @@ void XrContext::InitializePlatformLoader() {
         memset(&loaderInitInfoAndroid, 0, sizeof(loaderInitInfoAndroid));
         loaderInitInfoAndroid.type = XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR;
         loaderInitInfoAndroid.next = nullptr;
-        loaderInitInfoAndroid.applicationVM = AndroidContext::Instance()->GetAndroidApp()->activity->vm;
-        loaderInitInfoAndroid.applicationContext = AndroidContext::Instance()->GetAndroidApp()->activity->clazz;
+        auto androidContext = GlobalContext::Inst()->GetAndroidContext();
+        loaderInitInfoAndroid.applicationVM = androidContext->GetAndroidApp()->activity->vm;
+        loaderInitInfoAndroid.applicationContext = androidContext->GetAndroidApp()->activity->clazz;
         initializeLoader((const XrLoaderInitInfoBaseHeaderKHR*)&loaderInitInfoAndroid);
     }
 }
@@ -62,19 +55,11 @@ void XrContext::InitializePlatformLoader() {
 void XrContext::CreateXrInstance() {
     CHECK(xrInstance_ == XR_NULL_HANDLE);
 
-    // Create union of extensions required by platform and graphics plugins.
-    std::vector<const char*> extensions;
-
-    // Transform platform and graphics extension std::strings to C strings.
-    const std::vector<std::string> platformExtensions = AndroidContext::GetInstanceExtensions();
-    std::transform(platformExtensions.begin(), platformExtensions.end(), std::back_inserter(extensions),
-                   [](const std::string& ext) { return ext.c_str(); });
-    const std::vector<std::string> graphicsExtensions = vulkanRenderer_->GetInstanceExtensions();
-    std::transform(graphicsExtensions.begin(), graphicsExtensions.end(), std::back_inserter(extensions),
-                   [](const std::string& ext) { return ext.c_str(); });
+    InstanceExtensionManager instanceExtensionManager;
+    auto extensions = instanceExtensionManager.GetExtensions();
 
     XrInstanceCreateInfo createInfo{XR_TYPE_INSTANCE_CREATE_INFO};
-    createInfo.next = AndroidContext::Instance()->GetInstanceCreateExtension();
+    createInfo.next = GlobalContext::Inst()->GetAndroidContext()->GetInstanceCreateExtension();
     createInfo.enabledExtensionCount = (uint32_t)extensions.size();
     createInfo.enabledExtensionNames = extensions.data();
 
