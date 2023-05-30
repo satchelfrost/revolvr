@@ -3,7 +3,7 @@
 #include <pch.h>
 #include <common.h>
 #include <platform/android_context.h>
-#include <renderer/vulkan_renderer.h>
+#include <rendering/vulkan_renderer.h>
 
 #include "rvr_reference_space.h"
 #include "xr_app_helpers.h"

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <audio/audio_engine.h>
-#include <renderer/vulkan_renderer.h>
+#include <rendering/vulkan_renderer.h>
 #include <ecs/ecs.h>
 #include <platform/android_context.h>
 #include <xr_context.h>
