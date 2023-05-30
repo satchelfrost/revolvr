@@ -1,7 +1,17 @@
 #pragma once
 
 #include <pch.h>
-#include <rendering/utilities/rvr_vulkan_utilities.h>
+
+#include "rendering/utilities/memory_allocator.h"
+#include "rendering/utilities/command_buffer.h"
+#include "rendering/utilities/shader_program.h"
+#include "rendering/utilities/vertex_buffer.h"
+#include "rendering/utilities/pipeline.h"
+#include "rendering/utilities/depth_buffer.h"
+#include <rendering/utilities/geometry.h>
+#include <rendering/utilities/swapchain_image_context.h>
+
+#include <math/xr_linear.h>
 #include <platform/android_context.h>
 #include <ecs/system/render_system.h>
 
