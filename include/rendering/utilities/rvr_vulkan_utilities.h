@@ -1,10 +1,10 @@
 #pragma once
 
-#include "pch.h"
-#include "common.h"
-#include "geometry.h"
-#include "math/xr_linear.h"
-#include "vulkan_results.h"
+#include <pch.h>
+#include <common.h>
+#include <rendering/utilities/geometry.h>
+#include <math/xr_linear.h>
+#include <rendering/utilities/vulkan_results.h>
 #include <array>
 
 struct MemoryAllocator {
