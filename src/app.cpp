@@ -36,7 +36,8 @@ void App::Run(struct android_app *app) {
 //    scene_.LoadScene("test_scenes/sound_test");
 //    scene_.LoadScene("test_scenes/spinning_pointer");
 //    scene_.LoadScene("test_scenes/generic");
-    scene_.LoadScene("test_scenes/conway");
+//    scene_.LoadScene("test_scenes/conway");
+    scene_.LoadScene("test_scenes/hand_tracking");
 
     globalContext_->BeginSystems();
 
@@ -60,7 +61,7 @@ void App::Run(struct android_app *app) {
 
         // Begin frame sequence
         xrContext->BeginFrame();
-        xrContext->UpdateActions();
+        xrContext->Update();
         globalContext_->UpdateSystems(deltaTime_);
         vulkanRenderer->Render();
         xrContext->EndFrame();

@@ -8,6 +8,7 @@
 #include "rvr_reference_space.h"
 #include "xr_app_helpers.h"
 #include <action/action_manager.h>
+#include <hand_tracking/hand_tracker.h>
 
 #include <array>
 #include <cmath>
@@ -33,7 +34,7 @@ public:
     // Process any events in the event queue.
     void PollXrEvents(bool* exitRenderLoop, bool* requestRestart);
 
-    void UpdateActions();
+    void Update();
 
     void RefreshTrackedSpaceLocations();
 
@@ -104,6 +105,10 @@ public:
 
     ActionManager actionManager;
     TrackedSpaceLocations trackedSpaceLocations;
+
+    // TODO: Create hand tracker manager so that these can be private
+    HandTracker handTrackerLeft_;
+    HandTracker handTrackerRight_;
 
 private:
     std::vector<XrCompositionLayerBaseHeader*> layers_;

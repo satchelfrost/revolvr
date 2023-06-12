@@ -10,7 +10,11 @@ XrContext::XrContext() {
     CreateXrInstance();
     InitializeSystem();
     InitializeSession();
+    InitializeReferenceSpaces();
+    InitializeActions();
     actionManager.CreateActionSpaces(session);
+    handTrackerLeft_.Init(xrInstance_, session, HandTracker::Hand::Left);
+    handTrackerRight_.Init(xrInstance_, session, HandTracker::Hand::Right);
     CreateSwapchains();
 }
 
@@ -73,12 +77,17 @@ void XrContext::InitializeSystem() {
     CHECK(xrInstance_ != XR_NULL_HANDLE);
     CHECK(xrSystemId_ == XR_NULL_SYSTEM_ID);
 
+    // Make sure the system has a head mounted display
     XrSystemGetInfo systemInfo{XR_TYPE_SYSTEM_GET_INFO};
     systemInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
     CHECK_XRCMD(xrGetSystem(xrInstance_, &systemInfo, &xrSystemId_));
 
-    CHECK(xrInstance_ != XR_NULL_HANDLE);
-    CHECK(xrSystemId_ != XR_NULL_SYSTEM_ID);
+    // Make sure the system has hand tracking
+    XrSystemHandTrackingPropertiesEXT handTrackingSystemProperties{XR_TYPE_SYSTEM_HAND_TRACKING_PROPERTIES_EXT};
+    XrSystemProperties systemProperties{XR_TYPE_SYSTEM_PROPERTIES, &handTrackingSystemProperties};
+    CHECK_XRCMD(xrGetSystemProperties(xrInstance_, xrSystemId_, &systemProperties));
+    if(!handTrackingSystemProperties.supportsHandTracking)
+        THROW("Application requires hand tracking");
 
     // The graphics API can initialize the graphics device
     vulkanRenderer_->InitializeDevice(xrInstance_, xrSystemId_);
@@ -93,11 +102,12 @@ void XrContext::InitializeSession() {
     createInfo.systemId = xrSystemId_;
     CHECK_XRCMD(xrCreateSession(xrInstance_, &createInfo, &session));
 
-    InitializeActions();
-    InitializeReferenceSpaces();
+//    InitializeActions();
+//    InitializeReferenceSpaces();
 
-    XrReferenceSpaceCreateInfo referenceSpaceCreateInfo = GetXrReferenceSpaceCreateInfo(RVRReferenceSpace::TrackedOrigin);
-    CHECK_XRCMD(xrCreateReferenceSpace(session, &referenceSpaceCreateInfo, &appSpace));
+    // TODO: Ensure this can be deleted
+//    XrReferenceSpaceCreateInfo referenceSpaceCreateInfo = GetXrReferenceSpaceCreateInfo(RVRReferenceSpace::TrackedOrigin);
+//    CHECK_XRCMD(xrCreateReferenceSpace(session, &referenceSpaceCreateInfo, &appSpace));
 }
 
 void XrContext::InitializeActions() {
@@ -127,6 +137,9 @@ void XrContext::InitializeReferenceSpaces() {
             THROW(Fmt("Failed to create reference space %d with error %d", referenceSpace, res));
 
     }
+
+    // Save the app space
+    appSpace = initializedRefSpaces_[RVRReferenceSpace::TrackedOrigin];
 }
 
 void XrContext::CreateSwapchains() {
@@ -243,11 +256,13 @@ void XrContext::PollXrEvents(bool* exitRenderLoop, bool* requestRestart) {
     }
 }
 
-void XrContext::UpdateActions() {
+void XrContext::Update() {
     actionManager.Update(session);
+    handTrackerLeft_.Update(frameState.predictedDisplayTime, appSpace);
+    handTrackerRight_.Update(frameState.predictedDisplayTime, appSpace);
 }
 
-    void XrContext::HandleSessionStateChangedEvent(const XrEventDataSessionStateChanged& stateChangedEvent,
+void XrContext::HandleSessionStateChangedEvent(const XrEventDataSessionStateChanged& stateChangedEvent,
                                                bool* exitRenderLoop,
                                                bool* requestRestart) {
     const XrSessionState oldState = xrSessionState_;
