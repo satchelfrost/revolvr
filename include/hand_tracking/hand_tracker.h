@@ -3,6 +3,7 @@
 #include <openxr/openxr.h>
 #include <vector>
 #include <math/transform.h>
+#include <ecs/component/types/spatial.h>
 
 namespace rvr {
 class HandTracker {
@@ -23,7 +24,7 @@ public:
     ~HandTracker();
     void Update(XrTime predictedDisplayTime, XrSpace appSpace);
     bool IsPinching() const;
-    bool GetValidJointLocation(int joint, math::Transform& transform);
+    void SetSpatialWithValidJointPose(int joint, Spatial* spatial);
 
 private:
     void SetupHandTracker(XrSession session);

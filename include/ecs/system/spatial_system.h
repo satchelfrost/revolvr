@@ -8,6 +8,5 @@
 namespace rvr::system::spatial {
 void UpdateTrackedSpaces(XrContext* context);
 void UpdateSpatials();
-void SetSpatialPose(Spatial* spatial, XrPosef pose);
-void HandleJointPose(Spatial* spatial, TrackedSpaceType trackedSpaceType);
+void SetSpatialWithJointPose(Spatial* spatial, TrackedSpaceType trackedSpaceType);
 }

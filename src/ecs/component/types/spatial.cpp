@@ -104,14 +104,14 @@ void Spatial::UpdateWorld() {
     parentSpatial->UpdateWorld();
 
     if (child->HasComponent(ComponentType::TrackedSpace)) {
-        world.SetScale(local.GetScale() * parentSpatial->world.GetScale());
+        world.SetScale(local.GetScale());
     }
     else {
         // Calculate position based on parent
         world.SetOrientation(parentSpatial->world.GetOrientation() * local.GetOrientation());
         glm::vec3 offset = glm::rotate(parentSpatial->world.GetOrientation(), local.GetPosition());
         world.SetPosition(offset + parentSpatial->world.GetPosition());
-        world.SetScale(local.GetScale() * parentSpatial->world.GetScale());
+        world.SetScale(local.GetScale());
 
         // Place objects relative to the player position
         if (parent->HasComponent(ComponentType::TrackedSpace)) {

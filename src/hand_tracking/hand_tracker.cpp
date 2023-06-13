@@ -182,16 +182,13 @@ bool HandTracker::IsPinching() const {
     return isPinching_;
 }
 
-bool HandTracker::GetValidJointLocation(int joint, math::Transform &transform) {
+// Sets the spatial pose with requested joint pose if the location is valid
+void HandTracker::SetSpatialWithValidJointPose(int joint, Spatial* spatial) {
     if (joint < 0 || joint > 25)
-        return false;
+        return;
 
     XrSpaceLocationFlags isValid = XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_POSITION_VALID_BIT;
-    if (jointLocations_[joint].locationFlags & isValid) {
-        transform.SetPose(jointLocations_[joint].pose);
-        return true;
-    }
-
-    return false;
+    if (jointLocations_[joint].locationFlags & isValid)
+        spatial->SetWorldPose(jointLocations_[joint].pose);
 }
 }

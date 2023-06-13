@@ -7,7 +7,7 @@
     X(Head) \
     X(LeftHand) \
     X(RightHand) \
-    X(LeftHandJoint0) \
+    X(LeftCenterJoint) \
     X(LeftHandJoint1) \
     X(LeftHandJoint2) \
     X(LeftHandJoint3) \
@@ -33,7 +33,7 @@
     X(LeftHandJoint23) \
     X(LeftHandJoint24) \
     X(LeftPinkyTip) \
-    X(RightHandJoint0) \
+    X(RightCenterJoint) \
     X(RightHandJoint1) \
     X(RightHandJoint2) \
     X(RightHandJoint3) \
