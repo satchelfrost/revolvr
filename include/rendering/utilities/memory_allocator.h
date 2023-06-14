@@ -2,36 +2,17 @@
 
 #include <pch.h>
 #include <common.h>
-#include "vulkan_results.h"
 
-struct MemoryAllocator {
-    void Init(VkPhysicalDevice physicalDevice, VkDevice device) {
-        m_vkDevice = device;
-        vkGetPhysicalDeviceMemoryProperties(physicalDevice, &m_memProps);
-    }
+class MemoryAllocator {
+public:
+    void Init(VkPhysicalDevice physicalDevice, VkDevice device);
 
     static const VkFlags defaultFlags =
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
     void Allocate(VkMemoryRequirements const &memReqs, VkDeviceMemory *mem,
                   VkFlags flags = defaultFlags,
-                  const void *pNext = nullptr) const {
-        // Search memtypes to find first index with those properties
-        for (uint32_t i = 0; i < m_memProps.memoryTypeCount; ++i) {
-            if ((memReqs.memoryTypeBits & (1 << i)) != 0u) {
-                // Type is available, does it match user properties?
-                if ((m_memProps.memoryTypes[i].propertyFlags & flags) == flags) {
-                    VkMemoryAllocateInfo memAlloc{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-                                                  pNext};
-                    memAlloc.allocationSize = memReqs.size;
-                    memAlloc.memoryTypeIndex = i;
-                    CHECK_VKCMD(vkAllocateMemory(m_vkDevice, &memAlloc, nullptr, mem));
-                    return;
-                }
-            }
-        }
-        THROW("Memory format not supported");
-    }
+                  const void *pNext = nullptr) const;
 
 private:
     VkDevice m_vkDevice{VK_NULL_HANDLE};

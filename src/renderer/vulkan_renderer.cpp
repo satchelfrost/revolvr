@@ -1,4 +1,5 @@
 #include <rendering/vulkan_renderer.h>
+#include <rendering/utilities/vulkan_results.h>
 #include <platform/android_context.h>
 #include <xr_context.h>
 #include <global_context.h>
