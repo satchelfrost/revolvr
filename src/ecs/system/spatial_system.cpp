@@ -20,16 +20,20 @@ void UpdateTrackedSpaces(XrContext *context) {
         auto [spatial, tracked] = GetComponentPair<Spatial, TrackedSpace>(entityId);
         switch (tracked->type) {
             case TrackedSpaceType::Player:
-                spatial->SetWorldPose(trackedSpaceLocations.vrOrigin.pose);
+                spatial->SetWorld(math::Transform(trackedSpaceLocations.vrOrigin.pose,
+                                                  spatial->GetWorld().GetScale()));
                 break;
             case TrackedSpaceType::LeftController:
-                spatial->SetWorldPose(trackedSpaceLocations.leftHand.pose);
+                spatial->SetWorld(math::Transform(trackedSpaceLocations.leftHand.pose,
+                                                  spatial->GetWorld().GetScale()));
                 break;
             case TrackedSpaceType::RightController:
-                spatial->SetWorldPose(trackedSpaceLocations.rightHand.pose);
+                spatial->SetWorld(math::Transform(trackedSpaceLocations.rightHand.pose,
+                                                  spatial->GetWorld().GetScale()));
                 break;
             case TrackedSpaceType::Head:
-                spatial->SetWorldPose(trackedSpaceLocations.head.pose);
+                spatial->SetWorld(math::Transform(trackedSpaceLocations.head.pose,
+                                                  spatial->GetWorld().GetScale()));
                 break;
             default:
                 int tsType = (int)tracked->type;
