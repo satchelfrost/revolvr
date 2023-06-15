@@ -1,8 +1,9 @@
 #include "rvr_parser/scanner.h"
+#include <global_context.h>
 
 namespace rvr {
 Scanner::Scanner(const std::string& fileName) : currentLine_(1) {
-  AAsset *file = AAssetManager_open(AndroidContext::Instance()->GetAndroidAssetManager(),
+  AAsset *file = AAssetManager_open(GlobalContext::Inst()->GetAndroidContext()->GetAndroidAssetManager(),
                                     fileName.c_str(),
                                     AASSET_MODE_BUFFER);
   off_t file_length = AAsset_getLength(file);

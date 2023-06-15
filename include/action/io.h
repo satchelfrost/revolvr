@@ -4,6 +4,9 @@
 #include "../xr_context.h"
 
 namespace rvr {
+// Hand tracking
+bool IsPinched(Hand hand);
+
 // Buttons
 bool ButtonPressed(ActionType type);
 bool ButtonDown(ActionType type);

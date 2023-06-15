@@ -5,8 +5,11 @@
 #include <global_context.h>
 
 #define GetComponentPair GlobalContext::Inst()->GetECS()->GetComponentPair
+#define LeftHandTracker GlobalContext::Inst()->GetXrContext()->handTrackerLeft_
+#define RightHandTracker GlobalContext::Inst()->GetXrContext()->handTrackerRight_
 
 namespace rvr::system::spatial{
+
 void UpdateTrackedSpaces(XrContext *context) {
     // First refresh the tracked spaces
     context->RefreshTrackedSpaceLocations();
@@ -20,11 +23,11 @@ void UpdateTrackedSpaces(XrContext *context) {
                 spatial->SetWorld(math::Transform(trackedSpaceLocations.vrOrigin.pose,
                                                   spatial->GetWorld().GetScale()));
                 break;
-            case TrackedSpaceType::LeftHand:
+            case TrackedSpaceType::LeftController:
                 spatial->SetWorld(math::Transform(trackedSpaceLocations.leftHand.pose,
                                                   spatial->GetWorld().GetScale()));
                 break;
-            case TrackedSpaceType::RightHand:
+            case TrackedSpaceType::RightController:
                 spatial->SetWorld(math::Transform(trackedSpaceLocations.rightHand.pose,
                                                   spatial->GetWorld().GetScale()));
                 break;
@@ -33,6 +36,11 @@ void UpdateTrackedSpaces(XrContext *context) {
                                                   spatial->GetWorld().GetScale()));
                 break;
             default:
+                int tsType = (int)tracked->type;
+                int lowerBound = (int)TrackedSpaceType::LeftCenterJoint;
+                int upperBound = (int)TrackedSpaceType::RightPinkyTip;
+                if (tsType >= lowerBound && tsType <= upperBound)
+                    SetSpatialWithJointPose(spatial, tracked->type);
                 break;
         }
     }
@@ -42,5 +50,20 @@ void UpdateSpatials() {
     auto components = GlobalContext::Inst()->GetECS()->GetComponents(ComponentType::Spatial);
     for (auto [eid, component] : components)
         dynamic_cast<Spatial *>(component)->UpdateWorld();
+}
+
+void SetSpatialWithJointPose(Spatial* spatial, TrackedSpaceType trackedSpaceType) {
+    // Map the TrackedSpaceType to integer from 0 -> 25 i.e. the 26 possible joints
+    int joint = (int)trackedSpaceType;
+    int rightHandOffset = (int)TrackedSpaceType::RightCenterJoint;
+    int leftHandOffset = (int)TrackedSpaceType::LeftCenterJoint;
+    if (joint < rightHandOffset) {
+        joint = joint - leftHandOffset;
+        LeftHandTracker.SetSpatialWithValidJointPose(joint, spatial);
+    }
+    else {
+        joint = joint - rightHandOffset;
+        RightHandTracker.SetSpatialWithValidJointPose(joint, spatial);
+    }
 }
 }

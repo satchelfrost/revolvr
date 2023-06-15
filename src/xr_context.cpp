@@ -1,14 +1,21 @@
 #include "xr_context.h"
-#include <platform/android_context.h>
+#include <global_context.h>
+#include <instance_extension_manager.h>
 
 namespace rvr {
+XrContext::XrContext() {
+    vulkanRenderer_ = GlobalContext::Inst()->GetVulkanRenderer();
 
-XrContext* XrContext::instance_ = nullptr;
-
-XrContext* XrContext::Instance() {
-    if (!instance_)
-        instance_ = new XrContext();
-    return instance_;
+    InitializePlatformLoader();
+    CreateXrInstance();
+    InitializeSystem();
+    InitializeSession();
+    InitializeReferenceSpaces();
+    InitializeActions();
+    actionManager.CreateActionSpaces(session);
+    handTrackerLeft_.Init(xrInstance_, session, HandTracker::Hand::Left);
+    handTrackerRight_.Init(xrInstance_, session, HandTracker::Hand::Right);
+    CreateSwapchains();
 }
 
 XrContext::~XrContext() {
@@ -33,17 +40,6 @@ XrContext::~XrContext() {
     }
 }
 
-void XrContext::Initialize(VulkanRenderer* vulkanRenderer) {
-    vulkanRenderer_ = vulkanRenderer;
-
-    InitializePlatformLoader();
-    CreateXrInstance();
-    InitializeSystem();
-    InitializeSession();
-    actionManager.CreateActionSpaces(session);
-    CreateSwapchains();
-}
-
 void XrContext::InitializePlatformLoader() {
     // Initialize the loader for this platform
     PFN_xrInitializeLoaderKHR initializeLoader = nullptr;
@@ -53,8 +49,9 @@ void XrContext::InitializePlatformLoader() {
         memset(&loaderInitInfoAndroid, 0, sizeof(loaderInitInfoAndroid));
         loaderInitInfoAndroid.type = XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR;
         loaderInitInfoAndroid.next = nullptr;
-        loaderInitInfoAndroid.applicationVM = AndroidContext::Instance()->GetAndroidApp()->activity->vm;
-        loaderInitInfoAndroid.applicationContext = AndroidContext::Instance()->GetAndroidApp()->activity->clazz;
+        auto androidContext = GlobalContext::Inst()->GetAndroidContext();
+        loaderInitInfoAndroid.applicationVM = androidContext->GetAndroidApp()->activity->vm;
+        loaderInitInfoAndroid.applicationContext = androidContext->GetAndroidApp()->activity->clazz;
         initializeLoader((const XrLoaderInitInfoBaseHeaderKHR*)&loaderInitInfoAndroid);
     }
 }
@@ -62,19 +59,11 @@ void XrContext::InitializePlatformLoader() {
 void XrContext::CreateXrInstance() {
     CHECK(xrInstance_ == XR_NULL_HANDLE);
 
-    // Create union of extensions required by platform and graphics plugins.
-    std::vector<const char*> extensions;
-
-    // Transform platform and graphics extension std::strings to C strings.
-    const std::vector<std::string> platformExtensions = AndroidContext::GetInstanceExtensions();
-    std::transform(platformExtensions.begin(), platformExtensions.end(), std::back_inserter(extensions),
-                   [](const std::string& ext) { return ext.c_str(); });
-    const std::vector<std::string> graphicsExtensions = vulkanRenderer_->GetInstanceExtensions();
-    std::transform(graphicsExtensions.begin(), graphicsExtensions.end(), std::back_inserter(extensions),
-                   [](const std::string& ext) { return ext.c_str(); });
+    InstanceExtensionManager instanceExtensionManager;
+    auto extensions = instanceExtensionManager.GetExtensions();
 
     XrInstanceCreateInfo createInfo{XR_TYPE_INSTANCE_CREATE_INFO};
-    createInfo.next = AndroidContext::Instance()->GetInstanceCreateExtension();
+    createInfo.next = GlobalContext::Inst()->GetAndroidContext()->GetInstanceCreateExtension();
     createInfo.enabledExtensionCount = (uint32_t)extensions.size();
     createInfo.enabledExtensionNames = extensions.data();
 
@@ -88,12 +77,17 @@ void XrContext::InitializeSystem() {
     CHECK(xrInstance_ != XR_NULL_HANDLE);
     CHECK(xrSystemId_ == XR_NULL_SYSTEM_ID);
 
+    // Make sure the system has a head mounted display
     XrSystemGetInfo systemInfo{XR_TYPE_SYSTEM_GET_INFO};
     systemInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
     CHECK_XRCMD(xrGetSystem(xrInstance_, &systemInfo, &xrSystemId_));
 
-    CHECK(xrInstance_ != XR_NULL_HANDLE);
-    CHECK(xrSystemId_ != XR_NULL_SYSTEM_ID);
+    // Make sure the system has hand tracking
+    XrSystemHandTrackingPropertiesEXT handTrackingSystemProperties{XR_TYPE_SYSTEM_HAND_TRACKING_PROPERTIES_EXT};
+    XrSystemProperties systemProperties{XR_TYPE_SYSTEM_PROPERTIES, &handTrackingSystemProperties};
+    CHECK_XRCMD(xrGetSystemProperties(xrInstance_, xrSystemId_, &systemProperties));
+    if(!handTrackingSystemProperties.supportsHandTracking)
+        THROW("Application requires hand tracking");
 
     // The graphics API can initialize the graphics device
     vulkanRenderer_->InitializeDevice(xrInstance_, xrSystemId_);
@@ -108,11 +102,12 @@ void XrContext::InitializeSession() {
     createInfo.systemId = xrSystemId_;
     CHECK_XRCMD(xrCreateSession(xrInstance_, &createInfo, &session));
 
-    InitializeActions();
-    InitializeReferenceSpaces();
+//    InitializeActions();
+//    InitializeReferenceSpaces();
 
-    XrReferenceSpaceCreateInfo referenceSpaceCreateInfo = GetXrReferenceSpaceCreateInfo(RVRReferenceSpace::TrackedOrigin);
-    CHECK_XRCMD(xrCreateReferenceSpace(session, &referenceSpaceCreateInfo, &appSpace));
+    // TODO: Ensure this can be deleted
+//    XrReferenceSpaceCreateInfo referenceSpaceCreateInfo = GetXrReferenceSpaceCreateInfo(RVRReferenceSpace::TrackedOrigin);
+//    CHECK_XRCMD(xrCreateReferenceSpace(session, &referenceSpaceCreateInfo, &appSpace));
 }
 
 void XrContext::InitializeActions() {
@@ -142,6 +137,9 @@ void XrContext::InitializeReferenceSpaces() {
             THROW(Fmt("Failed to create reference space %d with error %d", referenceSpace, res));
 
     }
+
+    // Save the app space
+    appSpace = initializedRefSpaces_[RVRReferenceSpace::TrackedOrigin];
 }
 
 void XrContext::CreateSwapchains() {
@@ -258,11 +256,13 @@ void XrContext::PollXrEvents(bool* exitRenderLoop, bool* requestRestart) {
     }
 }
 
-void XrContext::UpdateActions() {
+void XrContext::Update() {
     actionManager.Update(session);
+    handTrackerLeft_.Update(frameState.predictedDisplayTime, appSpace);
+    handTrackerRight_.Update(frameState.predictedDisplayTime, appSpace);
 }
 
-    void XrContext::HandleSessionStateChangedEvent(const XrEventDataSessionStateChanged& stateChangedEvent,
+void XrContext::HandleSessionStateChangedEvent(const XrEventDataSessionStateChanged& stateChangedEvent,
                                                bool* exitRenderLoop,
                                                bool* requestRestart) {
     const XrSessionState oldState = xrSessionState_;
