@@ -147,7 +147,7 @@ void HandTracker::Update(XrTime predictedDisplayTime, XrSpace appSpace) {
 }
 
 HandTracker::~HandTracker() {
-    if (xrDestroyHandTrackerEXT_) {
+    if (xrDestroyHandTrackerEXT_ && handTracker_ != XR_NULL_HANDLE) {
         CHECK_XRCMD(xrDestroyHandTrackerEXT_(handTracker_));
     }
 
