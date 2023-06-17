@@ -29,10 +29,18 @@ public:
     void SetWorldPosition(const glm::vec3& position);
     void SetWorldOrientation(const glm::quat& orientation);
 
+    // Get player relative transform
+    math::Transform GetPlart();
+
     void UpdateWorld();
 
 private:
+
+    static void ConcantenateRTS(math::Transform from, math::Transform to, math::Transform& result);
+    void CalculatePlart();
+
     math::Transform local;
     math::Transform world;
+    math::Transform plart; // player relative transform
 };
 }
