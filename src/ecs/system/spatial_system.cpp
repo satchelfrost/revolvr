@@ -20,8 +20,8 @@ void UpdateTrackedSpaces(XrContext *context) {
         auto [spatial, tracked] = GetComponentPair<Spatial, TrackedSpace>(entityId);
         switch (tracked->type) {
             case TrackedSpaceType::Player:
-                spatial->SetWorld(math::Transform(trackedSpaceLocations.vrOrigin.pose,
-                                                  spatial->GetWorld().GetScale()));
+//                spatial->SetWorld(math::Transform(trackedSpaceLocations.vrOrigin.pose,
+//                                                  spatial->GetWorld().GetScale()));
                 break;
             case TrackedSpaceType::LeftController:
                 spatial->SetWorld(math::Transform(trackedSpaceLocations.leftHand.pose,
