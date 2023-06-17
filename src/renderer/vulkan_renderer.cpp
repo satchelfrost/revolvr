@@ -403,13 +403,13 @@ bool VulkanRenderer::RenderLayer(std::vector<XrCompositionLayerProjectionView>& 
     // Convert renderable to a cube for now
     for (auto spatial : system::render::GetRenderSpatials()) {
         Cube cube{};
-        cube.Pose = spatial->GetWorld().GetPose().ToXrPosef();
-        cube.Scale = math::vector::ToXrVector3f(spatial->GetWorld().GetScale());
+        cube.Pose = spatial->GetPlart().GetPose().ToXrPosef();
+        cube.Scale = math::vector::ToXrVector3f(spatial->GetPlart().GetScale());
         renderBuffer_.push_back(cube);
     }
 
     // Draw a simple grid
-    DrawGrid();
+//    DrawGrid();
 
     // Render view to the appropriate part of the swapchain image.
     for (uint32_t i = 0; i < viewCountOutput; i++) {
