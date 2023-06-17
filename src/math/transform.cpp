@@ -111,4 +111,8 @@ Transform Transform::Scaled(glm::vec3 scale) const {
 Transform Transform::Identity() {
     return {Pose::Identity(), glm::vec3(1, 1, 1)};
 }
+
+bool Transform::operator==(const Transform &other) const {
+    return pose_ == other.pose_ && scale_ == other.scale_;
+}
 }
