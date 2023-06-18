@@ -31,12 +31,13 @@ public:
 
     // Get player relative transform
     math::Transform GetPlart();
+    void SetPlart(const math::Transform& value);
 
     void UpdateWorld();
 
 private:
 
-    static void ConcantenateRTS(math::Transform from, math::Transform to, math::Transform& result);
+    void ApplyParentRTS(math::Transform parent);
     void CalculatePlart();
 
     math::Transform local;

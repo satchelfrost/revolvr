@@ -94,7 +94,6 @@ void Spatial::SetWorldOrientation(const glm::quat& orientation) {
 }
 
 void Spatial::UpdateWorld() {
-    Entity* thisEntity = GetEntity(id);
     if (id == constants::ROOT_ID) {
         // First make sure player global is set with player local
         auto player = GetComponent<Spatial>(1);
@@ -106,9 +105,10 @@ void Spatial::UpdateWorld() {
     if (id == 1)
         return;
 
-    auto parent = thisEntity->GetParent();
-    CHECK_MSG(parent, Fmt("Entity %s is an orphan", thisEntity->GetName().c_str()));
-    auto parentSpatial = GetComponent<Spatial>(parent->id);
+    Entity* thisEntity = GetEntity(id);
+    auto parentEntity = thisEntity->GetParent();
+    CHECK_MSG(parentEntity, Fmt("Entity %s is an orphan", thisEntity->GetName().c_str()));
+    auto parentSpatial = GetComponent<Spatial>(parentEntity->id);
     parentSpatial->UpdateWorld();
 
     if (thisEntity->HasComponent(ComponentType::TrackedSpace)) {
@@ -116,8 +116,8 @@ void Spatial::UpdateWorld() {
         plart = world;
     }
     else {
-        ConcantenateRTS(parentSpatial->world, local, world);
-        if (parent->HasComponent(ComponentType::TrackedSpace))
+        ApplyParentRTS(parentSpatial->world);
+        if (parentEntity->HasComponent(ComponentType::TrackedSpace))
             plart = world;
         else
             CalculatePlart();
@@ -131,29 +131,36 @@ Component *Spatial::Clone(type::EntityId newEntityId) {
 Spatial::Spatial(const Spatial& other, type::EntityId newEntityId) :
 Component(ComponentType::Spatial, newEntityId), local(other.local), world(other.world) {}
 
-void Spatial::ConcantenateRTS(math::Transform from, math::Transform to, math::Transform &result) {
+void Spatial::ApplyParentRTS(math::Transform parent) {
     // Calculate orientation based on parent
-    glm::quat orientation = from.GetOrientation() * to.GetOrientation();
+    glm::quat orientation = parent.GetOrientation() * local.GetOrientation();
 
     // Rotate the position using the combined orientation
-    glm::vec3 rotatedPosition = orientation * to.GetPosition();
+    glm::vec3 rotatedPosition = orientation * local.GetPosition();
 
     // Update the world transformation
-    result.SetOrientation(orientation);
-    result.SetPosition(rotatedPosition + from.GetPosition());
-    result.SetScale(to.GetScale() * from.GetScale());
+    world.SetOrientation(orientation);
+    world.SetPosition(rotatedPosition + parent.GetPosition());
+    world.SetScale(local.GetScale() * parent.GetScale());
 }
 
 void Spatial::CalculatePlart() {
-    // Relative pose
-    auto player = GetComponent<Spatial>(1); // hard code for now
-    auto relativePosition = world.GetPosition() - player->world.GetPosition();
-    plart.SetPosition(player->world.GetOrientation() * relativePosition);
+    // Get the player relative position
+    auto player = GetComponent<Spatial>(1);
+    glm::vec3 playerRelPosition = world.GetPosition() - player->world.GetPosition();
+    glm::vec3 rotatedRelPosition = player->world.GetOrientation() * playerRelPosition;
+
+    // Update player relative transform
     plart.SetOrientation(player->world.GetOrientation() * world.GetOrientation());
+    plart.SetPosition(rotatedRelPosition);
     plart.SetScale(world.GetScale() * player->world.GetScale());
 }
 
 math::Transform Spatial::GetPlart() {
     return plart;
+}
+
+void Spatial::SetPlart(const math::Transform &value) {
+    plart = value;
 }
 }
