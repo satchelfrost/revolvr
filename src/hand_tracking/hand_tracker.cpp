@@ -189,7 +189,7 @@ void HandTracker::SetSpatialWithValidJointPose(int joint, Spatial* spatial) {
 
     XrSpaceLocationFlags isValid = XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_POSITION_VALID_BIT;
     if (jointLocations_[joint].locationFlags & isValid)
-        spatial->SetWorld(math::Transform(jointLocations_[joint].pose,
-                                          spatial->GetWorld().GetScale()));
+        spatial->SetLocal(math::Transform(jointLocations_[joint].pose,
+                                          spatial->GetLocal().GetScale()));
 }
 }

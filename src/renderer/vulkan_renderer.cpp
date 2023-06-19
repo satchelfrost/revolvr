@@ -403,8 +403,8 @@ bool VulkanRenderer::RenderLayer(std::vector<XrCompositionLayerProjectionView>& 
     // Convert renderable to a cube for now
     for (auto spatial : system::render::GetRenderSpatials()) {
         Cube cube{};
-        cube.Pose = spatial->GetPlart().GetPose().ToXrPosef();
-        cube.Scale = math::vector::ToXrVector3f(spatial->GetPlart().GetScale());
+        cube.Pose = spatial->GetPlayerRelativeTransform().GetPose().ToXrPosef();
+        cube.Scale = math::vector::ToXrVector3f(spatial->GetPlayerRelativeTransform().GetScale());
         renderBuffer_.push_back(cube);
     }
 
