@@ -2,6 +2,7 @@
 
 #include <ecs/component/component.h>
 #include <math/transform.h>
+#include "ecs/entity/entity.h"
 
 namespace rvr {
 class Spatial : public Component {
@@ -29,19 +30,13 @@ public:
     void SetWorldPosition(const glm::vec3& position);
     void SetWorldOrientation(const glm::quat& orientation);
 
-    // Get player relative transform
-    math::Transform GetPlart();
-    void SetPlart(const math::Transform& value);
-
+    math::Transform GetPlayerRelativeTransform();
     void UpdateWorld();
 
 private:
-
-    void ApplyParentRTS(math::Transform parent);
-    void CalculatePlart();
+    void ApplyParentRTS(Entity* parentEntity);
 
     math::Transform local;
     math::Transform world;
-    math::Transform plart; // player relative transform
 };
 }

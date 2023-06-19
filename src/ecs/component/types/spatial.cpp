@@ -11,18 +11,16 @@ namespace rvr {
 Spatial::Spatial(type::EntityId pId)
             : Component(ComponentType::Spatial, pId),
               local(math::Transform::Identity()),
-              world(math::Transform::Identity()),
-              plart(math::Transform::Identity()){}
+              world(math::Transform::Identity()) {}
 
 Spatial::Spatial(type::EntityId pId, const glm::vec3& position,
                  const glm::quat& orientation, const glm::vec3& scale)
             : Component(ComponentType::Spatial, pId),
               local(position, orientation, scale),
-              world(math::Transform::Identity()),
-              plart(math::Transform::Identity()){}
+              world(math::Transform::Identity()) {}
 
 Spatial::Spatial(type::EntityId pId, math::Transform local, math::Transform world) :
-Component(ComponentType::Spatial, pId), world(world), local(local), plart(math::Transform::Identity()){}
+Component(ComponentType::Spatial, pId), world(world), local(local) {}
 
 math::Transform Spatial::GetLocal() {
     return local;
@@ -94,33 +92,17 @@ void Spatial::SetWorldOrientation(const glm::quat& orientation) {
 }
 
 void Spatial::UpdateWorld() {
-    if (id == constants::ROOT_ID) {
-        // First make sure player global is set with player local
-        auto player = GetComponent<Spatial>(1);
-        player->SetWorld(player->GetLocal());
-        CalculatePlart();
-        return;
-    }
-
-    if (id == 1)
-        return;
-
     Entity* thisEntity = GetEntity(id);
     auto parentEntity = thisEntity->GetParent();
-    CHECK_MSG(parentEntity, Fmt("Entity %s is an orphan", thisEntity->GetName().c_str()));
-    auto parentSpatial = GetComponent<Spatial>(parentEntity->id);
-    parentSpatial->UpdateWorld();
+    if (parentEntity)
+        ApplyParentRTS(parentEntity);
+    else
+        world = local;
 
-    if (thisEntity->HasComponent(ComponentType::TrackedSpace)) {
-        world.SetScale(local.GetScale() * parentSpatial->world.GetScale());
-        plart = world;
-    }
-    else {
-        ApplyParentRTS(parentSpatial->world);
-        if (parentEntity->HasComponent(ComponentType::TrackedSpace))
-            plart = world;
-        else
-            CalculatePlart();
+    for (auto child : thisEntity->GetChildren()) {
+        auto spatial = GetComponent<Spatial>(child->id);
+        if (spatial)
+            spatial->UpdateWorld();
     }
 }
 
@@ -131,36 +113,32 @@ Component *Spatial::Clone(type::EntityId newEntityId) {
 Spatial::Spatial(const Spatial& other, type::EntityId newEntityId) :
 Component(ComponentType::Spatial, newEntityId), local(other.local), world(other.world) {}
 
-void Spatial::ApplyParentRTS(math::Transform parent) {
-    // Calculate orientation based on parent
-    glm::quat orientation = parent.GetOrientation() * local.GetOrientation();
 
-    // Rotate the position using the combined orientation
-    glm::vec3 rotatedPosition = orientation * local.GetPosition();
+void Spatial::ApplyParentRTS(Entity* parentEntity) {
+    // Obtain the parent's world transform
+    auto parentSpatial = GetComponent<Spatial>(parentEntity->id);
+    CHECK_MSG(parentSpatial, Fmt("Parent entity %s has no spatial to apply", parentEntity->GetName().c_str()));
+    math::Transform parentWorld = parentSpatial->world;
 
-    // Update the world transformation
-    world.SetOrientation(orientation);
-    world.SetPosition(rotatedPosition + parent.GetPosition());
-    world.SetScale(local.GetScale() * parent.GetScale());
+    // Update the world transform
+    world.SetOrientation(parentWorld.GetOrientation() * local.GetOrientation());
+    world.SetPosition(parentWorld.GetPosition() + (parentWorld.GetOrientation() * local.GetPosition()));
+    world.SetScale(local.GetScale() * parentWorld.GetScale());
 }
 
-void Spatial::CalculatePlart() {
-    // Get the player relative position
-    auto player = GetComponent<Spatial>(1);
-    glm::vec3 playerRelPosition = world.GetPosition() - player->world.GetPosition();
-    glm::vec3 rotatedRelPosition = player->world.GetOrientation() * playerRelPosition;
+math::Transform Spatial::GetPlayerRelativeTransform() {
+    // Calculate player relative transform
+    math::Transform playerRelTransform(math::Transform::Identity());
+    auto player = GetComponent<Spatial>(1); // hard code for now
 
-    // Update player relative transform
-    plart.SetOrientation(player->world.GetOrientation() * world.GetOrientation());
-    plart.SetPosition(rotatedRelPosition);
-    plart.SetScale(world.GetScale() * player->world.GetScale());
-}
+    UpdateWorld();
+    player->UpdateWorld();
 
-math::Transform Spatial::GetPlart() {
-    return plart;
-}
-
-void Spatial::SetPlart(const math::Transform &value) {
-    plart = value;
+    auto relativePosition = world.GetPosition() - player->world.GetPosition();
+    auto invOrientation = glm::inverse(player->world.GetOrientation());
+    playerRelTransform.SetPosition(invOrientation * relativePosition);
+    playerRelTransform.SetOrientation(invOrientation * world.GetOrientation());
+    playerRelTransform.SetScale(world.GetScale() * player->world.GetScale());
+    return playerRelTransform;
 }
 }
