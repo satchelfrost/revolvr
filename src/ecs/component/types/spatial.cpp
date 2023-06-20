@@ -129,7 +129,7 @@ void Spatial::ApplyParentRTS(Entity* parentEntity) {
 math::Transform Spatial::GetPlayerRelativeTransform() {
     // Calculate player relative transform
     math::Transform playerRelTransform(math::Transform::Identity());
-    auto player = GetComponent<Spatial>(1); // hard code for now
+    auto player = GetComponent<Spatial>(GlobalContext::Inst()->PLAYER_ID);
 
     UpdateWorld();
     player->UpdateWorld();

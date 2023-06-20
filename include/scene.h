@@ -16,7 +16,8 @@ private:
     void CreateHierarchy();
     static void CreateRituals(const std::vector<Parser::Unit>& units);
     static void CreateComponent(Entity* entity, const std::map<std::string, Parser::Field>& fields,
-                         ComponentType cType);
+                                ComponentType cType);
+    void Checks();
 
     std::map<type::EntityId , type::EntityId> parentIdMap_;
 };

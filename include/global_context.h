@@ -16,13 +16,14 @@ public:
     void BeginSystems();
     void UpdateSystems(float deltaTime);
 
-    // TODO: Should these be const?
     AudioEngine* GetAudioEngine();
     XrContext* GetXrContext();
     VulkanRenderer* GetVulkanRenderer();
     ECS* GetECS();
     AndroidContext* GetAndroidContext();
 
+    // Default value for player id
+    type::EntityId PLAYER_ID = 0;
 private:
     static GlobalContext* instance_;
 
