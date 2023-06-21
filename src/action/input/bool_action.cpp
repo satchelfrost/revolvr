@@ -24,10 +24,9 @@ void BoolAction::UpdateActionStateBool(Hand hand, XrSession& session) {
     CHECK_XRCMD(xrGetActionStateBoolean(session, &getInfo, &handState_[(int)hand]));
 }
 
-XrActionStateBoolean BoolAction::CurrHandState() {
+XrActionStateBoolean BoolAction::CurrHandState(Hand hand) {
     try {
-        auto handInUse = hands.at(0);
-        return handState_.at((int)handInUse);
+        return handState_.at((int)hand);
     }
     catch (std::out_of_range& e) {
         THROW(Fmt("Attempted to get handState in Boolean, No such hand for actionType %s",
@@ -35,10 +34,9 @@ XrActionStateBoolean BoolAction::CurrHandState() {
     }
 }
 
-XrActionStateBoolean BoolAction::PrevHandState() {
+XrActionStateBoolean BoolAction::PrevHandState(Hand hand) {
     try {
-        auto handInUse = hands.at(0);
-        return prevHandState_.at((int)handInUse);
+        return prevHandState_.at((int)hand);
     }
     catch (std::out_of_range& e) {
         THROW(Fmt("Attempted to get prevHandState in Boolean, No such hand for actionType %s",
@@ -46,11 +44,11 @@ XrActionStateBoolean BoolAction::PrevHandState() {
     }
 }
 
-bool BoolAction::StateTurnedOn() {
-    return (!PrevHandState().currentState) && (CurrHandState().currentState);
+bool BoolAction::StateTurnedOn(Hand hand) {
+    return (!PrevHandState(hand).currentState) && (CurrHandState(hand).currentState);
 }
 
-bool BoolAction::StateTurnedOff() {
-    return (PrevHandState().currentState) && (!CurrHandState().currentState);
+bool BoolAction::StateTurnedOff(Hand hand) {
+    return (PrevHandState(hand).currentState) && (!CurrHandState(hand).currentState);
 }
 }

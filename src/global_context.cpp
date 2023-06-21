@@ -18,26 +18,14 @@ GlobalContext* GlobalContext::Inst() {
 void GlobalContext::Init(android_app *app) {
     if (initialized_)
         THROW("Cannot initialize Global Context twice");
-
     initialized_ = true;
 
-    // Create the audio engine
+    // Order matters here
     audioEngine_ = new AudioEngine();
-
-    // Create android abstraction
-    androidContext_ = AndroidContext::Instance();
-    androidContext_->Init(app);
-
-    // Create graphics API implementation.
+    androidContext_ = new AndroidContext(app);
     vulkanRenderer_ = new VulkanRenderer();
-
-    // Create xr abstraction
-    xrContext_ = XrContext::Instance();
-    xrContext_->Initialize(vulkanRenderer_);
-
-    // Initialize ECS
-    ecs_ = ECS::Instance();
-    ecs_->Init();
+    xrContext_ = new XrContext();
+    ecs_ = new ECS();
 }
 
 GlobalContext::~GlobalContext() {

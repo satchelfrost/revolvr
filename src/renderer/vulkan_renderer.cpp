@@ -190,7 +190,7 @@ void VulkanRenderer::InitializeDevice(XrInstance instance, XrSystemId systemId) 
 
 std::vector<char> VulkanRenderer::CreateSPIRVVector(const char *asset_name) {
     // Load in the compiled shader from the apk
-    AAsset *file = AAssetManager_open(rvr::AndroidContext::Instance()->GetAndroidAssetManager(),
+    AAsset *file = AAssetManager_open(GlobalContext::Inst()->GetAndroidContext()->GetAndroidAssetManager(),
                                       asset_name,
                                       AASSET_MODE_BUFFER);
     off_t file_length = AAsset_getLength(file);

@@ -10,8 +10,8 @@ namespace rvr {
 class GlobalContext {
 public:
     ~GlobalContext();
-    void Init(android_app *app);
     static GlobalContext* Inst();
+    void Init(android_app *app);
 
     void BeginSystems();
     void UpdateSystems(float deltaTime);

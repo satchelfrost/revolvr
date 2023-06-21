@@ -8,6 +8,7 @@
 #include "rvr_reference_space.h"
 #include "xr_app_helpers.h"
 #include <action/action_manager.h>
+#include <hand_tracking/hand_tracker.h>
 
 #include <array>
 #include <cmath>
@@ -21,11 +22,8 @@ struct Swapchain {
 
 class XrContext {
 public:
+    XrContext();
     ~XrContext();
-
-    void Initialize(VulkanRenderer* vulkanRenderer);
-
-    static XrContext* Instance();
 
     // Manage session lifecycle to track if Render should be called.
     bool IsSessionRunning() const;
@@ -36,7 +34,7 @@ public:
     // Process any events in the event queue.
     void PollXrEvents(bool* exitRenderLoop, bool* requestRestart);
 
-    void UpdateActions();
+    void Update();
 
     void RefreshTrackedSpaceLocations();
 
@@ -46,8 +44,6 @@ public:
     void EndFrame();
 
 private:
-    static XrContext* instance_;
-
     static void InitializePlatformLoader();
 
     // Create an Instance and other basic instance-level initialization.
@@ -67,6 +63,7 @@ private:
     // Create a Swapchain which requires coordinating with the graphics plugin to select the format, getting the system graphics
     // properties, getting the view configuration and grabbing the resulting swapchain images.
     void CreateSwapchains();
+
 
     // Return event if one is available, otherwise return null.
     const XrEventDataBaseHeader* TryReadNextEvent();
@@ -108,6 +105,10 @@ public:
 
     ActionManager actionManager;
     TrackedSpaceLocations trackedSpaceLocations;
+
+    // TODO: Create hand tracker manager so that these can be private
+    HandTracker handTrackerLeft_;
+    HandTracker handTrackerRight_;
 
 private:
     std::vector<XrCompositionLayerBaseHeader*> layers_;

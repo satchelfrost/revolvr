@@ -6,8 +6,7 @@
 namespace rvr {
 class ECS {
 public:
-    void Init();
-    static ECS* Instance();
+    ECS();
     void Assign(Entity* entity, Component* component);
     void FreeEntity(type::EntityId id);
     std::map<type::EntityId, Component*> GetComponents(ComponentType cType);
@@ -25,7 +24,6 @@ public:
     std::pair<T*, U*> GetComponentPair(type::EntityId id);
 
 private:
-    static ECS* instance_;
     EntityPool* entityPool_;
     ComponentPoolManager* componentPoolManager_;
 };
