@@ -1,7 +1,6 @@
 #pragma once
 
 #define TRACKED_SPACE_LIST(X) \
-    X(Player) \
     X(LeftController) \
     X(RightController) \
     X(Head) \

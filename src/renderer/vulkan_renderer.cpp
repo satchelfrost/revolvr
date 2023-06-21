@@ -2,6 +2,7 @@
 #include <platform/android_context.h>
 #include <xr_context.h>
 #include <global_context.h>
+#include <ecs/system/spatial_system.h>
 
 extern "C" void fast_matrix_mul(float *, float *, float *);
 
@@ -403,13 +404,14 @@ bool VulkanRenderer::RenderLayer(std::vector<XrCompositionLayerProjectionView>& 
     // Convert renderable to a cube for now
     for (auto spatial : system::render::GetRenderSpatials()) {
         Cube cube{};
-        cube.Pose = spatial->GetWorld().GetPose().ToXrPosef();
-        cube.Scale = math::vector::ToXrVector3f(spatial->GetWorld().GetScale());
+        math::Transform plart = system::spatial::GetPlayerRelativeTransform(spatial);
+        cube.Pose = plart.GetPose().ToXrPosef();
+        cube.Scale = math::vector::ToXrVector3f(plart.GetScale());
         renderBuffer_.push_back(cube);
     }
 
     // Draw a simple grid
-    DrawGrid();
+//    DrawGrid();
 
     // Render view to the appropriate part of the swapchain image.
     for (uint32_t i = 0; i < viewCountOutput; i++) {

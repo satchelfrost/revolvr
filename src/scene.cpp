@@ -14,6 +14,7 @@ void Scene::LoadScene(const std::string &sceneName) {
     InitUnits(units);
     CreateHierarchy();
     CreateRituals(units);
+    Checks();
     Log::Write(Log::Level::Info, Fmt("Loaded scene %s", sceneName.c_str()));
 }
 
@@ -69,6 +70,8 @@ Entity* Scene::CreateEntity(const Parser::Heading& heading) {
     // Get and set entity name, if any
     try {
         entity->SetName(heading.strKeyStrVal.at("name"));
+        if (entity->GetName() == "Player" || entity->GetName() == "player")
+            GlobalContext::Inst()->PLAYER_ID = entity->id;
     }
     catch (std::out_of_range& e) {
         Log::Write(Log::Level::Warning, Fmt("[%s] generating default name", entity->GetName().c_str()));
@@ -125,5 +128,10 @@ void Scene::CreateRituals(const std::vector<Parser::Unit>& units) {
             }
         }
     }
+}
+
+void Scene::Checks() {
+    if (GlobalContext::Inst()->PLAYER_ID == 0)
+        Log::Write(Log::Level::Warning, Fmt("Using root as player entity"));
 }
 }

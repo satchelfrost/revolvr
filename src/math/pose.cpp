@@ -26,6 +26,10 @@ Pose::Pose(const glm::mat4& matrix)
 : orientation_(glm::toQuat(matrix)),
   position_(matrix::GetPosition(matrix)) {}
 
+bool Pose::operator==(const Pose &other) const {
+    return orientation_ == other.orientation_ && position_ == other.position_;
+}
+
 glm::mat4 Pose::ToMat4() const {
     glm::mat4 rotation_matrix = glm::toMat4(orientation_);
     glm::mat4 translation_matrix = glm::translate(glm::identity<glm::mat4>(), position_);
