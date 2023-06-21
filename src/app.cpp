@@ -38,8 +38,8 @@ void App::Run(struct android_app *app) {
 //    scene_.LoadScene("test_scenes/generic");
 //    scene_.LoadScene("test_scenes/conway");
 //    scene_.LoadScene("test_scenes/hand_tracking");
-    scene_.LoadScene("test_scenes/movement");
-//    scene_.LoadScene("test_scenes/hand_shooting_stuff");
+//    scene_.LoadScene("test_scenes/movement");
+    scene_.LoadScene("test_scenes/hand_shooting_stuff");
 
     globalContext_->BeginSystems();
 

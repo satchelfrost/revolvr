@@ -9,7 +9,6 @@
 #define RightHandTracker GlobalContext::Inst()->GetXrContext()->handTrackerRight_
 
 namespace rvr::system::spatial{
-
 void UpdateTrackedSpaces(XrContext *context) {
     // First refresh the tracked spaces
     context->RefreshTrackedSpaceLocations();
@@ -43,8 +42,12 @@ void UpdateTrackedSpaces(XrContext *context) {
 }
 
 void UpdateSpatials() {
-    auto root = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(0);
-    root->UpdateWorld();
+    auto components = GlobalContext::Inst()->GetECS()->GetComponents(ComponentType::Spatial);
+    for (auto [eid, component] : components) {
+        auto spatial = dynamic_cast<Spatial *>(component);
+        if (spatial->IsStale())
+            spatial->UpdateWorld();
+    }
 }
 
 void SetSpatialWithJointPose(Spatial* spatial, TrackedSpaceType trackedSpaceType) {
@@ -60,5 +63,22 @@ void SetSpatialWithJointPose(Spatial* spatial, TrackedSpaceType trackedSpaceType
         joint = joint - rightHandOffset;
         RightHandTracker.SetSpatialWithValidJointPose(joint, spatial);
     }
+}
+
+math::Transform GetPlayerRelativeTransform(Spatial* spatial) {
+    // Get the player and spatial world transforms
+    math::Transform playerRelTransform(math::Transform::Identity());
+    auto player = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(GlobalContext::Inst()->PLAYER_ID);
+    CHECK_MSG(player, "Player spatial does not exist inside of GetPlayerRelativeTransform()");
+    math::Transform playerWorld = player->GetWorld();
+    math::Transform spatialWorld = spatial->GetWorld();
+
+    // Calculate player relative transform
+    auto relativePosition = spatialWorld.GetPosition() - playerWorld.GetPosition();
+    auto invOrientation = glm::inverse(playerWorld.GetOrientation());
+    playerRelTransform.SetPosition(invOrientation * relativePosition);
+    playerRelTransform.SetOrientation(invOrientation * spatialWorld.GetOrientation());
+    playerRelTransform.SetScale(spatialWorld.GetScale() * playerWorld.GetScale());
+    return playerRelTransform;
 }
 }

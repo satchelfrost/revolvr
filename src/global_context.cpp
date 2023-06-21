@@ -50,10 +50,10 @@ void GlobalContext::BeginSystems() {
 void GlobalContext::UpdateSystems(float deltaTime) {
     CHECK_MSG(initialized_, "Global Context was not initialized")
     system::spatial::UpdateTrackedSpaces(xrContext_);
-    system::spatial::UpdateSpatials();
     system::collision::RunCollisionChecks();
     system::ritual::Update(deltaTime);
     system::timer::UpdateTicks();
+    system::spatial::UpdateSpatials();
 }
 
 VulkanRenderer *GlobalContext::GetVulkanRenderer() {

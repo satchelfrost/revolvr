@@ -30,13 +30,15 @@ public:
     void SetWorldPosition(const glm::vec3& position);
     void SetWorldOrientation(const glm::quat& orientation);
 
-    math::Transform GetPlayerRelativeTransform();
     void UpdateWorld();
+    void MakeStaleRecursive();
+    bool IsStale() const;
 
 private:
     void ApplyParentRTS(Entity* parentEntity);
+    math::Transform local_;
+    math::Transform world_;
+    bool stale_;
 
-    math::Transform local;
-    math::Transform world;
 };
 }
