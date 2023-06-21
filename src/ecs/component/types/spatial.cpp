@@ -58,8 +58,7 @@ void Spatial::SetLocalOrientation(const glm::quat& orientation) {
 }
 
 math::Transform Spatial::GetWorld() {
-    if (stale_)
-        UpdateWorld();
+    UpdateWorld();
     return world_;
 }
 
@@ -100,21 +99,23 @@ void Spatial::SetWorldOrientation(const glm::quat& orientation) {
 }
 
 void Spatial::UpdateWorld() {
-    Entity* thisEntity = GetEntity(id);
-    auto parentEntity = thisEntity->GetParent();
-    if (parentEntity)
-        ApplyParentRTS(parentEntity);
-    else
-        world_ = local_;
-
     if (!stale_)
         return;
 
+    Entity* thisEntity = GetEntity(id);
+    auto parentEntity = thisEntity->GetParent();
     if (parentEntity) {
         auto parentSpatial = GetComponent<Spatial>(parentEntity->id);
-        if (parentSpatial)
+        if (parentSpatial) {
             parentSpatial->UpdateWorld();
+            ApplyParentRTS(parentSpatial);
+        }
     }
+    else {
+        world_ = local_;
+    }
+
+    stale_ = false;
 }
 
 Component *Spatial::Clone(type::EntityId newEntityId) {
@@ -125,13 +126,9 @@ Spatial::Spatial(const Spatial& other, type::EntityId newEntityId) :
 Component(ComponentType::Spatial, newEntityId), local_(other.local_), world_(other.world_) {}
 
 
-void Spatial::ApplyParentRTS(Entity* parentEntity) {
-    // Obtain the parent's world transform
-    auto parentSpatial = GetComponent<Spatial>(parentEntity->id);
-    CHECK_MSG(parentSpatial, Fmt("Parent entity %s has no spatial to apply", parentEntity->GetName().c_str()));
-    math::Transform parentWorld = parentSpatial->world_;
-
+void Spatial::ApplyParentRTS(Spatial* parentSpatial) {
     // Update the world transform
+    math::Transform parentWorld = parentSpatial->world_;
     world_.SetOrientation(parentWorld.GetOrientation() * local_.GetOrientation());
     world_.SetPosition(parentWorld.GetPosition() + (parentWorld.GetOrientation() * local_.GetPosition()));
     world_.SetScale(local_.GetScale() * parentWorld.GetScale());
@@ -145,9 +142,5 @@ void Spatial::MakeStaleRecursive() {
         if (spatial)
             spatial->MakeStaleRecursive();
     }
-}
-
-bool Spatial::IsStale() const {
-    return stale_;
 }
 }

@@ -8,7 +8,6 @@
 namespace rvr::system::spatial {
 void UpdateTrackedSpaces(XrContext* context);
 void UpdateSpatials();
-void _UpdateSpatials(Spatial* spatial);
 void SetSpatialWithJointPose(Spatial* spatial, TrackedSpaceType trackedSpaceType);
 math::Transform GetPlayerRelativeTransform(Spatial* pSpatial);
 }

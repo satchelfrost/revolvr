@@ -43,11 +43,8 @@ void UpdateTrackedSpaces(XrContext *context) {
 
 void UpdateSpatials() {
     auto components = GlobalContext::Inst()->GetECS()->GetComponents(ComponentType::Spatial);
-    for (auto [eid, component] : components) {
-        auto spatial = dynamic_cast<Spatial *>(component);
-        if (spatial->IsStale())
-            spatial->UpdateWorld();
-    }
+    for (auto [eid, component] : components)
+        reinterpret_cast<Spatial*>(component)->UpdateWorld();
 }
 
 void SetSpatialWithJointPose(Spatial* spatial, TrackedSpaceType trackedSpaceType) {

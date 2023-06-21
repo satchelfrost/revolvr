@@ -32,10 +32,9 @@ public:
 
     void UpdateWorld();
     void MakeStaleRecursive();
-    bool IsStale() const;
 
 private:
-    void ApplyParentRTS(Entity* parentEntity);
+    void ApplyParentRTS(Spatial* parentSpatial);
     math::Transform local_;
     math::Transform world_;
     bool stale_;
