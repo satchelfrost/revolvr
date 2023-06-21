@@ -618,7 +618,6 @@ inline static void XrMatrix4x4f_CreateProjectionFov(XrMatrix4x4f* result, Graphi
                                                     const float nearZ, const float farZ) {
     const float tanLeft = tanf(fov.angleLeft);
     const float tanRight = tanf(fov.angleRight);
-
     const float tanDown = tanf(fov.angleDown);
     const float tanUp = tanf(fov.angleUp);
 

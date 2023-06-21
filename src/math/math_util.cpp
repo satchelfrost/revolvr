@@ -51,6 +51,69 @@ namespace matrix {
     glm::vec3 GetPosition(const glm::mat4& matrix) {
         return glm::column(matrix, 3);
     }
+
+//    glm::mat4 _CreateProjectionFromXrFOV(const float tanAngleLeft, const float tanAngleRight,
+//                                const float tanAngleUp, float const tanAngleDown,
+//                                const float nearZ, const float farZ) {
+//        glm::mat4 result;
+//        const float tanAngleWidth = tanAngleRight - tanAngleLeft;
+//        const float tanAngleHeight = tanAngleDown - tanAngleUp;
+//        // Set to zero for a [0,1] Z clip space (Vulkan / D3D / Metal).
+//        const float offsetZ = 0;
+//
+//        if (farZ <= nearZ) {
+//            // place the far plane at infinity
+//            result->m[0] = 2.0f / tanAngleWidth;
+//            result->m[4] = 0.0f;
+//            result->m[8] = (tanAngleRight + tanAngleLeft) / tanAngleWidth;
+//            result->m[12] = 0.0f;
+//
+//            result->m[1] = 0.0f;
+//            result->m[5] = 2.0f / tanAngleHeight;
+//            result->m[9] = (tanAngleUp + tanAngleDown) / tanAngleHeight;
+//            result->m[13] = 0.0f;
+//
+//            result->m[2] = 0.0f;
+//            result->m[6] = 0.0f;
+//            result->m[10] = -1.0f;
+//            result->m[14] = -(nearZ + offsetZ);
+//
+//            result->m[3] = 0.0f;
+//            result->m[7] = 0.0f;
+//            result->m[11] = -1.0f;
+//            result->m[15] = 0.0f;
+//        } else {
+//            // normal projection
+//            result->m[0] = 2.0f / tanAngleWidth;
+//            result->m[4] = 0.0f;
+//            result->m[8] = (tanAngleRight + tanAngleLeft) / tanAngleWidth;
+//            result->m[12] = 0.0f;
+//
+//            result->m[1] = 0.0f;
+//            result->m[5] = 2.0f / tanAngleHeight;
+//            result->m[9] = (tanAngleUp + tanAngleDown) / tanAngleHeight;
+//            result->m[13] = 0.0f;
+//
+//            result->m[2] = 0.0f;
+//            result->m[6] = 0.0f;
+//            result->m[10] = -(farZ + offsetZ) / (farZ - nearZ);
+//            result->m[14] = -(farZ * (nearZ + offsetZ)) / (farZ - nearZ);
+//
+//            result->m[3] = 0.0f;
+//            result->m[7] = 0.0f;
+//            result->m[11] = -1.0f;
+//            result->m[15] = 0.0f;
+//        }
+//    }
+
+    glm::mat4 CreateProjectionFromXrFOV(const XrFovf fov, const float nearZ, const float farZ) {
+        const float left = tanf(fov.angleLeft) * nearZ;
+        const float right = tanf(fov.angleRight) * nearZ;
+        const float bottom = tanf(fov.angleDown) * nearZ;
+        const float top = tanf(fov.angleUp) * nearZ;
+
+        return glm::frustumRH_ZO(left, right, bottom, top, nearZ, farZ);
+    }
 }
 
 namespace pose {

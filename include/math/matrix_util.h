@@ -29,4 +29,6 @@ namespace rvr::math::matrix {
 
     // Gets the vector corresponding to the position from a 4x4 Matrix
     glm::vec3 GetPosition(const glm::mat4& matrix);
+
+    glm::mat4 CreateProjectionFromXrFOV(const XrFovf fov, const float nearZ, const float farZ);
 }

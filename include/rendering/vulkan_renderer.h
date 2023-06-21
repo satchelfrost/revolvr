@@ -47,7 +47,7 @@ public:
 
     // Render to a swapchain image for a projection view.
     virtual void RenderView(const XrCompositionLayerProjectionView& layerView, const XrSwapchainImageBaseHeader* swapchainImage,
-                            int64_t swapchainFormat, const std::vector<Cube>& cubes);
+                            int64_t swapchainFormat, const std::vector<math::Transform>& cubes);
 
     // Get recommended number of sub-data element samples in view (recommendedSwapchainSampleCount)
     // if supported by the graphics plugin. A supported value otherwise.
@@ -56,13 +56,13 @@ public:
     void Render();
 
 private:
-    void DrawGrid(); // TODO: Remove once rendering is reworked
+//    void DrawGrid(); // TODO: Remove once rendering is reworked
 
     bool RenderLayer(std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
                      XrCompositionLayerProjection& layer, XrContext* xrContext);
 
 private:
-    std::vector<Cube> renderBuffer_;
+    std::vector<math::Transform> renderBuffer_;
 
     XrGraphicsBindingVulkan2KHR m_graphicsBinding{XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR};
     std::list<SwapchainImageContext> m_swapchainImageContexts;
