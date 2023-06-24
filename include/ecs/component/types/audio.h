@@ -15,6 +15,7 @@ public:
     static void RenderSilence(float* start, int32_t numSamples);
     virtual void Render(float* targetData, int32_t numSamples);
     virtual void Play();
+    bool IsPlaying();
     void Stop();
     void Loop(bool isLooping);
 
