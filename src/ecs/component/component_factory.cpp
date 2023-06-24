@@ -117,7 +117,7 @@ void CreateAudio(Entity *entity, const std::map<std::string, Parser::Field>& fie
     Audio* audio;
     if (spatialize)  {
         float spatialId = -1.0;
-        GetFloatField(entity, fields, "Audio.spatial_id", volume);
+        GetFloatField(entity, fields, "Audio.spatial_id", spatialId);
         if (spatialId == -1.0)
             ENTITY_ERR("Using spatial audio, must specify Audio.spatial_id",entity->GetName());
 
