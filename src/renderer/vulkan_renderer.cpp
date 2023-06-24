@@ -411,7 +411,7 @@ bool VulkanRenderer::RenderLayer(std::vector<XrCompositionLayerProjectionView>& 
     }
 
     // Draw a simple grid
-//    DrawGrid();
+    DrawGrid();
 
     // Render view to the appropriate part of the swapchain image.
     for (uint32_t i = 0; i < viewCountOutput; i++) {
@@ -451,15 +451,21 @@ bool VulkanRenderer::RenderLayer(std::vector<XrCompositionLayerProjectionView>& 
 }
 
 void VulkanRenderer::DrawGrid() {
-    auto player = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(0);
+    // Get the player and spatial world transforms
+    auto player = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(GlobalContext::Inst()->PLAYER_ID);
+    CHECK_MSG(player, "Player spatial does not exist inside of GetPlayerRelativeTransform()");
+    math::Transform playerWorld = player->GetWorld();
+    auto invOrientation = glm::inverse(playerWorld.GetOrientation());
+
     // Draw the horizontal lines
     for (int i = -5; i <= 5; i ++) {
         Cube cube{};
-        auto pose = math::Pose();
-        pose.SetPosition(0, 0, (float)i * 2.0f);
-        // Correct for the player position
-        pose.SetPosition(pose.GetPosition() - player->GetLocal().GetPosition());
-        cube.Pose = pose.ToXrPosef();
+        glm::vec3 position(0, 0, (float)i * 2.0f);
+        auto relativePosition = position - playerWorld.GetPosition();
+        math::Transform playerRelTransform(math::Transform::Identity());
+        playerRelTransform.SetPosition(invOrientation * relativePosition);
+        playerRelTransform.SetOrientation(invOrientation);
+        cube.Pose = playerRelTransform.GetPose().ToXrPosef();
         cube.Scale = {20.0f, 0.1f, 0.1f};
         renderBuffer_.push_back(cube);
     }
@@ -467,10 +473,12 @@ void VulkanRenderer::DrawGrid() {
     for (int i = -5; i <= 5; i ++) {
         Cube cube{};
         auto pose = math::Pose();
-        pose.SetPosition((float)i * 2.0f, 0, 0);
-        // Correct for the player position
-        pose.SetPosition(pose.GetPosition() - player->GetLocal().GetPosition());
-        cube.Pose = pose.ToXrPosef();
+        glm::vec3 position((float)i * 2.0f, 0, 0);
+        auto relativePosition = position - playerWorld.GetPosition();
+        math::Transform playerRelTransform(math::Transform::Identity());
+        playerRelTransform.SetPosition(invOrientation * relativePosition);
+        playerRelTransform.SetOrientation(invOrientation);
+        cube.Pose = playerRelTransform.GetPose().ToXrPosef();
         cube.Scale = {0.1f, 0.1f, 20.0f};
         renderBuffer_.push_back(cube);
     }
