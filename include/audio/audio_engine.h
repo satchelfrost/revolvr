@@ -8,6 +8,7 @@
 namespace rvr {
 class AudioEngine {
 public:
+    AudioEngine();
     ~AudioEngine();
     bool start();
     void stop();

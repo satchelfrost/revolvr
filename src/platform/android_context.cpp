@@ -3,8 +3,23 @@
 #include <platform/android_context.h>
 
 namespace rvr {
+static void AppHandleCmd(struct android_app* app, int32_t cmd) {
+    auto state = reinterpret_cast<AndroidContext*>(app->userData);
+    state->HandleAndroidCmd(app, cmd);
+}
+
+static int32_t AppHandleInput(struct android_app* app, AInputEvent* event) {
+    auto state = reinterpret_cast<AndroidContext*>(app->userData);
+    return state->HandleAndroidInput(app, event);
+}
+
 AndroidContext::AndroidContext(android_app *app) {
     app_ = app;
+    JNIEnv* Env;
+    app->activity->vm->AttachCurrentThread(&Env, nullptr);
+    app->onAppCmd = AppHandleCmd;
+    app->onInputEvent = AppHandleInput;
+    app->userData = this;
     instanceCreateInfoAndroid_ = {XR_TYPE_INSTANCE_CREATE_INFO_ANDROID_KHR};
     instanceCreateInfoAndroid_.applicationVM = app->activity->vm;
     instanceCreateInfoAndroid_.applicationActivity = app->activity->clazz;
@@ -73,5 +88,27 @@ void AndroidContext::HandleEvents(bool isSessionRunning) {
             source->process(app_, source);
         }
     }
+}
+
+int32_t AndroidContext::HandleAndroidInput(android_app *app, AInputEvent *event) {
+    int32_t eventType = AInputEvent_getType(event);
+    switch (eventType) {
+        case AINPUT_EVENT_TYPE_MOTION:
+            break;
+        case AINPUT_EVENT_TYPE_KEY:
+            keyboardHandler_.HandleKeyEvent(event);
+            break;
+        default:
+            break;
+    }
+    return 0;
+}
+
+AndroidContext::~AndroidContext() {
+    app_->activity->vm->DetachCurrentThread();
+}
+
+std::vector<char> AndroidContext::GetProcessedKeyBuffer() {
+    return keyboardHandler_.GetProcessedKeyBuffer();
 }
 }

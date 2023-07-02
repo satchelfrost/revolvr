@@ -1,12 +1,19 @@
 #pragma once
 
 #include "pch.h"
+#include <platform/keyboard_handler.h>
 
 namespace rvr {
+// Callbacks for Android commands and input events
+static void AppHandleCmd(struct android_app* app, int32_t cmd);
+static int32_t AppHandleInput(struct android_app* app, AInputEvent* event);
+
 class AndroidContext {
 public:
     AndroidContext(android_app* app);
+    ~AndroidContext();
     void HandleEvents(bool isSessionRunning);
+    std::vector<char> GetProcessedKeyBuffer();
 
     // Provide extension to XrInstanceCreateInfo for xrCreateInstance.
     XrBaseInStructure* GetInstanceCreateExtension() const;
@@ -15,6 +22,7 @@ public:
     std::vector<std::string> GetInstanceExtensions();
 
     void HandleAndroidCmd(android_app *app, int32_t cmd);
+    int32_t HandleAndroidInput(android_app *app, AInputEvent* event);
 
     AAssetManager* GetAndroidAssetManager();
 
@@ -26,5 +34,6 @@ public:
 private:
     android_app* app_ = nullptr;
     XrInstanceCreateInfoAndroidKHR instanceCreateInfoAndroid_{};
+    KeyboardHandler keyboardHandler_;
 };
 }

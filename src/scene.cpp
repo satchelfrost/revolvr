@@ -5,6 +5,7 @@
 #include <global_context.h>
 #include <ecs/component/component_factory.h>
 #include <ecs/system/ritual_system.h>
+#include <ecs/system/timer_system.h>
 
 namespace rvr {
 void Scene::LoadScene(const std::string &sceneName) {
@@ -16,6 +17,10 @@ void Scene::LoadScene(const std::string &sceneName) {
     CreateRituals(units);
     Checks();
     Log::Write(Log::Level::Info, Fmt("Loaded scene %s", sceneName.c_str()));
+
+    // TODO: put this in scene manager once that exists
+    system::ritual::Begin();
+    system::timer::Start();
 }
 
 void Scene::InitUnits(const std::vector<Parser::Unit> &units) {

@@ -31,6 +31,10 @@ XrContext::~XrContext() {
         xrDestroySpace(appSpace);
     }
 
+    handTrackerLeft_.EndSession();
+    handTrackerRight_.EndSession();
+    actionManager.EndSession();
+
     if (session != XR_NULL_HANDLE) {
         xrDestroySession(session);
     }
