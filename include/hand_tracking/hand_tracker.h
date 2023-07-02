@@ -25,6 +25,7 @@ public:
     void Update(XrTime predictedDisplayTime, XrSpace appSpace);
     bool IsPinching() const;
     void SetSpatialWithValidJointPose(int joint, Spatial* spatial);
+    void EndSession();
 
 private:
     void SetupHandTracker(XrSession session);

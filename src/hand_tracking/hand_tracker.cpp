@@ -147,10 +147,6 @@ void HandTracker::Update(XrTime predictedDisplayTime, XrSpace appSpace) {
 }
 
 HandTracker::~HandTracker() {
-    if (xrDestroyHandTrackerEXT_ && handTracker_ != XR_NULL_HANDLE) {
-        CHECK_XRCMD(xrDestroyHandTrackerEXT_(handTracker_));
-    }
-
     // unhook extensions
     xrCreateHandTrackerEXT_ = nullptr;
     xrDestroyHandTrackerEXT_ = nullptr;
@@ -191,5 +187,11 @@ void HandTracker::SetSpatialWithValidJointPose(int joint, Spatial* spatial) {
     if (jointLocations_[joint].locationFlags & isValid)
         spatial->SetLocal(math::Transform(jointLocations_[joint].pose,
                                           spatial->GetLocal().GetScale()));
+}
+
+void HandTracker::EndSession() {
+    if (xrDestroyHandTrackerEXT_ && handTracker_ != XR_NULL_HANDLE) {
+        CHECK_XRCMD(xrDestroyHandTrackerEXT_(handTracker_));
+    }
 }
 }

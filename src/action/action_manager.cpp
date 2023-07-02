@@ -1,7 +1,6 @@
 #include <action/action_manager.h>
 #include <common.h>
 
-
 #define POPULATE_ACTIONS(ENUM, NUM) actions_[(int)ActionType::ENUM] = new ENUM(actionSet, handSubactionPath);
 
 namespace rvr {
@@ -10,9 +9,6 @@ ActionManager::ActionManager() {
 }
 
 ActionManager::~ActionManager() {
-    if (actionSet != XR_NULL_HANDLE) {
-        xrDestroyActionSet(actionSet);
-    }
     for (auto action : actions_)
         delete action;
 }
@@ -92,6 +88,12 @@ Action* ActionManager::GetAction(ActionType type) {
     }
     catch (std::out_of_range& e) {
         THROW(Fmt("Failed to get action with type ActionType %d", type))
+    }
+}
+
+void ActionManager::EndSession() {
+    if (actionSet != XR_NULL_HANDLE) {
+        xrDestroyActionSet(actionSet);
     }
 }
 }

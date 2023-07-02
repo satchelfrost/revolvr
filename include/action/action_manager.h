@@ -17,6 +17,7 @@ public:
     Action* GetAction(ActionType type);
     void CreateActionSpaces(XrSession& session);
     std::vector<Action*> GetActions() { return actions_; }
+    void EndSession();
 
     XrActionSet actionSet{XR_NULL_HANDLE};
 
