@@ -1,3 +1,15 @@
+/********************************************************************/
+/*                                                                  */
+/*                            MIT License                           */
+/*                                                                  */
+/*  Copyright (c) 2022-present Reese Gallagher, Cristhian De La Paz */
+/*                                                                  */
+/*  This code is licensed under the MIT license (MIT)               */
+/*                                                                  */
+/*  (http://opensource.org/licenses/MIT)                            */
+/*                                                                  */
+/********************************************************************/
+
 #include <math/pose.h>
 #include <math/matrix_util.h>
 #include <math/pose_util.h>

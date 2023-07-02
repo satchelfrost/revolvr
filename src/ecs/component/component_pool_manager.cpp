@@ -1,3 +1,15 @@
+/********************************************************************/
+/*                                                                  */
+/*                            MIT License                           */
+/*                                                                  */
+/*  Copyright (c) 2022-present Reese Gallagher, Cristhian De La Paz */
+/*                                                                  */
+/*  This code is licensed under the MIT license (MIT)               */
+/*                                                                  */
+/*  (http://opensource.org/licenses/MIT)                            */
+/*                                                                  */
+/********************************************************************/
+
 #include "ecs/component/component_pool_manager.h"
 #include "ecs/component/component_hdrs.h"
 
