@@ -103,11 +103,11 @@ void AndroidContext::HandleEvents(bool isSessionRunning) {
 }
 
 int32_t AndroidContext::HandleAndroidInput(android_app *app, AInputEvent *event) {
-    int32_t eventType = AInputEvent_getType(event);
-    switch (eventType) {
-        case AINPUT_EVENT_TYPE_MOTION:
+    int32_t eventSource = AInputEvent_getSource(event);
+    switch (eventSource) {
+        case AINPUT_SOURCE_MOUSE:
             break;
-        case AINPUT_EVENT_TYPE_KEY:
+        case AINPUT_SOURCE_KEYBOARD:
             keyboardHandler_.HandleKeyEvent(event);
             break;
         default:
