@@ -34,6 +34,7 @@ public:
     bool IsPinching() const;
     void SetSpatialWithValidJointPose(int joint, Spatial* spatial);
     void EndSession();
+    bool FullyHandTracked();
 
 private:
     void SetupHandTracker(XrSession session);

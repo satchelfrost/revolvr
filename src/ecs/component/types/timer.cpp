@@ -30,8 +30,7 @@ void Timer::Timeout() {
         ritual->OnTimeout();
     }
     else {
-        Log::Write(Log::Level::Warning,
-                   Fmt("Timer component %s did not have associated ritual", entity->GetName().c_str()));
+        PrintWarning("Timer component %s did not have associated ritual" + entity->GetName());
     }
 }
 
@@ -41,7 +40,9 @@ void Timer::Tick() {
         auto duration = now - start_;
         if (waitTime_ < duration) {
             Timeout();
-            if (oneShot_)
+            if (!ticking_)
+                return;
+            else if (oneShot_)
                 ticking_ = false;
             else
                 Start();

@@ -18,3 +18,10 @@ enum class Level { Verbose, Info, Warning, Error };
 void SetLevel(Level minSeverity);
 void Write(Level severity, const std::string& msg);
 }
+
+namespace rvr {
+void PrintInfo(const std::string &msg);
+void PrintWarning(const std::string &msg);
+void PrintError(const std::string &msg);
+void PrintVerbose(const std::string &msg);
+}

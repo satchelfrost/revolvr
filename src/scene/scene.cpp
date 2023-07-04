@@ -87,7 +87,7 @@ Entity* Scene::CreateEntity(const Parser::Heading& heading) {
             GlobalContext::Inst()->PLAYER_ID = entity->id;
     }
     catch (std::out_of_range& e) {
-        Log::Write(Log::Level::Warning, Fmt("[%s] generating default name", entity->GetName().c_str()));
+        Log::Write(Log::Level::Info, Fmt("[%s] generating default name", entity->GetName().c_str()));
     }
 
     return entity;
@@ -113,7 +113,7 @@ void Scene::SaveHierarchyInfo(Entity* entity, const Parser::Heading& heading) {
         parentIdMap_[entity->id] = heading.strKeyNumVal.at("parent");
     }
     catch (std::out_of_range& e) {
-        Log::Write(Log::Level::Warning, Fmt("[%s] using root as default parent",
+        Log::Write(Log::Level::Info, Fmt("[%s] using root as default parent",
                           entity->GetName().c_str()));
         parentIdMap_[entity->id] = 0;
     }

@@ -11,6 +11,7 @@
 
 namespace rvr {
 void HandTracker::Init(XrInstance instance, XrSession session, Hand which) {
+    valid = false;
     which_ = which;
     InitializeFunctionExtensions(instance);
     SetupHandTracker(session);
@@ -191,15 +192,25 @@ void HandTracker::SetSpatialWithValidJointPose(int joint, Spatial* spatial) {
     if (joint < 0 || joint > 25)
         return;
 
-    XrSpaceLocationFlags isValid = XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_POSITION_VALID_BIT;
-    if (jointLocations_[joint].locationFlags & isValid)
-        spatial->SetLocal(math::Transform(jointLocations_[joint].pose,
-                                          spatial->GetLocal().GetScale()));
+    XrSpaceLocationFlags flags = XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_POSITION_VALID_BIT;
+    bool isValid = jointLocations_[joint].locationFlags & flags;
+    if (isValid)
+        spatial->SetLocal(math::Transform(jointLocations_[joint].pose, spatial->GetLocal().GetScale()));
 }
 
 void HandTracker::EndSession() {
     if (xrDestroyHandTrackerEXT_ && handTracker_ != XR_NULL_HANDLE) {
         CHECK_XRCMD(xrDestroyHandTrackerEXT_(handTracker_));
     }
+}
+
+bool HandTracker::FullyHandTracked() {
+    XrSpaceLocationFlags flags = XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_POSITION_VALID_BIT;
+    for (auto joint : jointLocations_) {
+        bool isValid = joint.locationFlags & flags;
+        if (!isValid)
+            return false;
+    }
+    return true;
 }
 }
