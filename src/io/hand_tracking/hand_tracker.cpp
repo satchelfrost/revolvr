@@ -10,7 +10,7 @@
 /*                                                                  */
 /********************************************************************/
 
-#include <hand_tracking/hand_tracker.h>
+#include <io/hand_tracking/hand_tracker.h>
 #include <common.h>
 
 namespace rvr {

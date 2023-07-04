@@ -10,7 +10,7 @@
 /*                                                                  */
 /********************************************************************/
 
-#include <action/output/haptic_action.h>
+#include <io/action/output/haptic_action.h>
 #include <common.h>
 
 #include <utility>

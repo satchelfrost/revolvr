@@ -10,14 +10,14 @@
 /*                                                                  */
 /********************************************************************/
 
-#include "scene.h"
+#include "scene/scene.h"
 #include "ecs/component/component_hdrs.h"
 #include "ecs/ecs.h"
-#include "rvr_parser/parser.h"
-#include <global_context.h>
-#include <ecs/component/component_factory.h>
-#include <ecs/system/ritual_system.h>
-#include <ecs/system/timer_system.h>
+#include "scene/parser.h"
+#include "global_context.h"
+#include "ecs/component/component_factory.h"
+#include "ecs/system/ritual_system.h"
+#include "ecs/system/timer_system.h"
 
 namespace rvr {
 void Scene::LoadScene(const std::string &sceneName) {

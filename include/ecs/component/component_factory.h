@@ -11,7 +11,7 @@
 /********************************************************************/
 
 #include <ecs/entity/entity.h>
-#include <rvr_parser/parser.h>
+#include <scene/parser.h>
 
 namespace rvr::componentFactory {
 #define CREATE_COMPONENT_FUNC(TYPE) void Create ## TYPE(Entity* entity, const std::map<std::string, rvr::Parser::Field>& fields);

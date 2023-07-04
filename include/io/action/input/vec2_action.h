@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include <action/action.h>
+#include <io/action/action.h>
 
 namespace rvr {
 typedef std::array<XrActionStateVector2f, (size_t)Hand::Count> HandVec2Array;

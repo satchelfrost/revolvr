@@ -10,7 +10,7 @@
 /*                                                                  */
 /********************************************************************/
 
-#include <action/input/float_action.h>
+#include <io/action/input/float_action.h>
 #include <common.h>
 
 #include <utility>

@@ -10,7 +10,7 @@
 /*                                                                  */
 /********************************************************************/
 
-#include <action/output/oculus_output_actions.h>
+#include <io/action/output/oculus_output_actions.h>
 
 namespace rvr {
 rvr::Vibrate::Vibrate(XrActionSet actionSet, HandPathArray handSubactionPath) :

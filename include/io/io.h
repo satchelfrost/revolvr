@@ -12,8 +12,8 @@
 
 #pragma once
 
-#include "action.h"
-#include "../xr_context.h"
+#include <io/action/action.h>
+#include <xr_context.h>
 
 namespace rvr {
 // Hand tracking

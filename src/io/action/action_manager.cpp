@@ -10,7 +10,7 @@
 /*                                                                  */
 /********************************************************************/
 
-#include <action/action_manager.h>
+#include <io/action/action_manager.h>
 #include <common.h>
 
 #define POPULATE_ACTIONS(ENUM, NUM) actions_[(int)ActionType::ENUM] = new ENUM(actionSet, handSubactionPath);

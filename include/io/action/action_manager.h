@@ -14,9 +14,9 @@
 
 #include <pch.h>
 #include <array>
-#include <action/action.h>
-#include <action/input/oculus_input_actions.h>
-#include <action/output/oculus_output_actions.h>
+#include <io/action/action.h>
+#include <io/action/input/oculus_input_actions.h>
+#include <io/action/output/oculus_output_actions.h>
 
 namespace rvr {
 class ActionManager {

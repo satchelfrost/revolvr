@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include <action/output/haptic_action.h>
+#include <io/action/output/haptic_action.h>
 
 namespace rvr {
 class Vibrate : public HapticAction {

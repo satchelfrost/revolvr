@@ -10,7 +10,7 @@
 /*                                                                  */
 /********************************************************************/
 
-#include <action/input/vec2_action.h>
+#include <io/action/input/vec2_action.h>
 #include <common.h>
 
 #include <utility>

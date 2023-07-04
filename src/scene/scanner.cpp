@@ -10,7 +10,7 @@
 /*                                                                  */
 /********************************************************************/
 
-#include "rvr_parser/scanner.h"
+#include <scene/scanner.h>
 #include <global_context.h>
 
 namespace rvr {

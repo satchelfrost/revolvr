@@ -19,8 +19,8 @@
 
 #include "rvr_reference_space.h"
 #include "xr_app_helpers.h"
-#include <action/action_manager.h>
-#include <hand_tracking/hand_tracker.h>
+#include <io/action/action_manager.h>
+#include <io/hand_tracking/hand_tracker.h>
 
 #include <array>
 #include <cmath>

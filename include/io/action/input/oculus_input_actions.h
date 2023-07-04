@@ -12,10 +12,10 @@
 
 #pragma once
 
-#include <action/input/float_action.h>
-#include <action/input/pose_action.h>
-#include <action/input/bool_action.h>
-#include <action/input/vec2_action.h>
+#include <io/action/input/float_action.h>
+#include <io/action/input/pose_action.h>
+#include <io/action/input/bool_action.h>
+#include <io/action/input/vec2_action.h>
 
 namespace rvr {
 class GripTrigger : public FloatAction {

@@ -10,8 +10,8 @@
 /*                                                                  */
 /********************************************************************/
 
-#include <action/io.h>
-#include "action/input/bool_action.h"
+#include <io/io.h>
+#include <io/action/input/bool_action.h>
 #include <global_context.h>
 
 namespace rvr {

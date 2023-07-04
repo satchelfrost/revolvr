@@ -10,7 +10,7 @@
 /*                                                                  */
 /********************************************************************/
 
-#include "rvr_parser/parser.h"
+#include <scene/parser.h>
 
 namespace rvr {
 Parser::Parser(const std::string& fileName) : scanner_(fileName) {

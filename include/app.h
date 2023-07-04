@@ -14,7 +14,7 @@
 
 #include <pch.h>
 #include <common.h>
-#include <scene.h>
+#include "scene/scene.h"
 
 #include <global_context.h>
 

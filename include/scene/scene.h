@@ -12,8 +12,8 @@
 
 #pragma once
 
-#include <ecs/entity/entity.h>
-#include <rvr_parser/parser.h>
+#include "ecs/entity/entity.h"
+#include "parser.h"
 
 namespace rvr {
 class Scene {

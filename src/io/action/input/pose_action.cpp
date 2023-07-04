@@ -10,7 +10,7 @@
 /*                                                                  */
 /********************************************************************/
 
-#include <action/input/pose_action.h>
+#include <io/action/input/pose_action.h>
 #include <common.h>
 
 namespace rvr {

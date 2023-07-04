@@ -10,7 +10,7 @@
 /*                                                                  */
 /********************************************************************/
 
-#include "rvr_parser/token.h"
+#include <scene/token.h>
 #include <utility>
 
 Token::Token() : tok(Blank) {}

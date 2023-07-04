@@ -13,7 +13,7 @@
 #pragma once
 
 #include <ecs/entity/entity.h>
-#include <rvr_parser/parser.h>
+#include <scene/parser.h>
 
 namespace rvr::componentFactory {
 // Returns true if string with nameQualifier was found and sets the out string with found value
