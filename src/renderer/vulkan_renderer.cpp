@@ -318,37 +318,17 @@ void VulkanRenderer::RenderView(const XrCompositionLayerProjectionView &layerVie
     // Compute the view-projection transform.
     // Note all matrixes (including OpenXR's) are column-major, right-handed.
     const auto &pose = layerView.pose;
-//    XrMatrix4x4f proj;
-//    XrMatrix4x4f_CreateProjectionFov(&proj, GRAPHICS_VULKAN, layerView.fov, 0.05f, 100.0f);
-//    XrMatrix4x4f toView;
-//    XrVector3f scale{1.f, 1.f, 1.f};
-//    XrMatrix4x4f_CreateTranslationRotationScale(&toView, &pose.position, &pose.orientation, &scale);
-//    XrMatrix4x4f view;
-//    XrMatrix4x4f_InvertRigidBody(&view, &toView);
-//    XrMatrix4x4f vp;
 
     glm::mat4 projectionMatrix = math::matrix::CreateProjectionFromXrFOV(layerView.fov, 0.05f, 100.0f);
     glm::mat4 poseMatrix = math::Pose(pose).ToMat4();
-    glm::mat4 viewMatrix = glm::inverse(poseMatrix);
-
-    // Leave this in here so that we can do benchmarks later. For now just use fast_matrix_mul
-//    XrMatrix4x4f_Multiply(&vp, &proj, &view);
-//    fast_matrix_mul(vp.m, proj.m, view.m);
+    glm::mat4 viewMatrix = glm::affineInverse(poseMatrix);
 
     glm::mat4 viewProjection = projectionMatrix * viewMatrix;
 
     // Render each cube
     for (const math::Transform &cube : cubes) {
         // Compute the model-view-projection transform and push it.
-//        XrMatrix4x4f model;
-//        XrMatrix4x4f_CreateTranslationRotationScale(&model, &cube.Pose.position, &cube.Pose.orientation, &cube.Scale);
-//        XrMatrix4x4f mvp;
-
         glm::mat4 modelMatrix = cube.ToMat4();
-
-        // Leave this in here so that we can do benchmarks later. For now just use fast_matrix_mul
-        //XrMatrix4x4f_Multiply(&mvp, &vp, &model);
-//        fast_matrix_mul(mvp.m, vp.m, model.m);
         glm::mat4 mvp = viewProjection * modelMatrix;
 
         vkCmdPushConstants(m_cmdBuffer.buf, m_pipelineLayout.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(mvp), glm::value_ptr(mvp));
@@ -420,7 +400,7 @@ bool VulkanRenderer::RenderLayer(std::vector<XrCompositionLayerProjectionView>& 
     }
 
     // Draw a simple grid
-//    DrawGrid();
+    DrawGrid();
 
     // Render view to the appropriate part of the swapchain image.
     for (uint32_t i = 0; i < viewCountOutput; i++) {
@@ -459,31 +439,27 @@ bool VulkanRenderer::RenderLayer(std::vector<XrCompositionLayerProjectionView>& 
     return true;
 }
 
-//void VulkanRenderer::DrawGrid() {
-//    auto player = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(0);
-//    // Draw the horizontal lines
-//    for (int i = -5; i <= 5; i ++) {
-//        Cube cube{};
-//        auto pose = math::Pose();
-//        pose.SetPosition(0, 0, (float)i * 2.0f);
-//        // Correct for the player position
-//        pose.SetPosition(pose.GetPosition() - player->GetLocal().GetPosition());
-//        cube.Pose = pose.ToXrPosef();
-//        cube.Scale = {20.0f, 0.1f, 0.1f};
-//        renderBuffer_.push_back(cube);
-//    }
-//    // Draw the vertical lines
-//    for (int i = -5; i <= 5; i ++) {
-//        Cube cube{};
-//        auto pose = math::Pose();
-//        pose.SetPosition((float)i * 2.0f, 0, 0);
-//        // Correct for the player position
-//        pose.SetPosition(pose.GetPosition() - player->GetLocal().GetPosition());
-//        cube.Pose = pose.ToXrPosef();
-//        cube.Scale = {0.1f, 0.1f, 20.0f};
-//        renderBuffer_.push_back(cube);
-//    }
-//}
+void VulkanRenderer::DrawGrid() {
+    auto player = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(0);
+    // Draw the horizontal lines
+    for (int i = -5; i <= 5; i ++) {
+        math::Transform cube;
+        cube.SetPosition(0, 0, (float)i * 2.0f);
+        // Correct for the player position
+        cube.SetPosition(cube.GetPosition() - player->GetLocal().GetPosition());
+        cube.SetScale(20.0f, 0.1f, 0.1f);
+        renderBuffer_.push_back(cube);
+    }
+    // Draw the vertical lines
+    for (int i = -5; i <= 5; i ++) {
+        math::Transform cube{};
+        cube.SetPosition((float)i * 2.0f, 0, 0);
+        // Correct for the player position
+        cube.SetPosition(cube.GetPosition() - player->GetLocal().GetPosition());
+        cube.SetScale(0.1f, 0.1f, 20.0f);
+        renderBuffer_.push_back(cube);
+    }
+}
 
 VkBool32 VulkanRenderer::debugReport(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType, uint64_t object,
             size_t /*location*/,

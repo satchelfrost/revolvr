@@ -20,8 +20,8 @@ Transform::Transform(const glm::mat4& matrix)
 
 glm::mat4 Transform::ToMat4() const {
     glm::mat4 pose_matrix = pose_.ToMat4();
-    glm::mat4 scale_matix = glm::scale(glm::identity<glm::mat4>(), scale_);
-    return pose_matrix * scale_matix;
+    glm::mat4 scale_matrix = glm::scale(glm::identity<glm::mat4>(), scale_);
+    return pose_matrix * scale_matrix;
 }
 
 glm::vec3 Transform::GetXAxis() const {

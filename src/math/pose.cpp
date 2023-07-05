@@ -30,7 +30,7 @@ glm::mat4 Pose::ToMat4() const {
     glm::mat4 rotation_matrix = glm::toMat4(orientation_);
     glm::mat4 translation_matrix = glm::translate(glm::identity<glm::mat4>(), position_);
 
-    return rotation_matrix * translation_matrix;
+    return translation_matrix * rotation_matrix;
 }
 
 glm::mat3 Pose::ToMat3() const {

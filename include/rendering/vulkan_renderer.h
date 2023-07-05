@@ -11,7 +11,6 @@
 #include <rendering/utilities/geometry.h>
 #include <rendering/utilities/swapchain_image_context.h>
 
-#include <math/xr_linear.h>
 #include <platform/android_context.h>
 #include <ecs/system/render_system.h>
 
@@ -56,7 +55,7 @@ public:
     void Render();
 
 private:
-//    void DrawGrid(); // TODO: Remove once rendering is reworked
+    void DrawGrid(); // TODO: Remove once rendering is reworked
 
     bool RenderLayer(std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
                      XrCompositionLayerProjection& layer, XrContext* xrContext);
