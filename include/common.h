@@ -25,6 +25,8 @@
 #define ALOGE(...) __android_log_print(ANDROID_LOG_ERROR, OVR_LOG_TAG, __VA_ARGS__)
 #define strcpy_s(dest, source) strncpy((dest), (source), sizeof(dest))
 
+// Macro to generate stringify functions for OpenXR enumerations based data provided in openxr_reflection.h
+// clang-format off
 #define ENUM_CASE_STR(name, val) case name: return #name;
 #define MAKE_TO_STRING_FUNC(enumType)                  \
     inline const char* to_string(enumType e) {         \
@@ -33,6 +35,7 @@
             default: return "Unknown " #enumType;      \
         }                                              \
     }
+// clang-format on
 
 MAKE_TO_STRING_FUNC(XrReferenceSpaceType);
 MAKE_TO_STRING_FUNC(XrViewConfigurationType);

@@ -59,6 +59,42 @@ namespace matrix {
     glm::vec3 GetPosition(const glm::mat4& matrix) {
         return glm::column(matrix, 3);
     }
+
+    glm::mat4 CreateProjectionFromXrFOV(const XrFovf fov, const float nearZ, const float farZ) {
+        glm::mat4 result {};
+
+        const float left = tanf(fov.angleLeft);
+        const float right = tanf(fov.angleRight);
+        const float bottom = tanf(fov.angleDown);
+        const float top = tanf(fov.angleUp);
+        const float width = right - left;
+        const float height = bottom - top;
+
+        // Set to zero for a [0,1] Z clip space (Vulkan / D3D / Metal).
+        const float offsetZ = 0;
+
+        if (farZ <= nearZ) {
+            // place the far plane at infinity
+            result[0][0] = 2.0f / width;
+            result[2][0] = (right + left) / width;
+            result[1][1] = 2.0f / height;
+            result[2][1] = (top + bottom) / height;
+            result[2][2] = -1.0f;
+            result[3][2] = -(nearZ + offsetZ);
+            result[2][3] = -1.0f;
+        } else {
+            // normal projection
+            result[0][0] = 2.0f / width;
+            result[2][0] = (right + left) / width;
+            result[1][1] = 2.0f / height;
+            result[2][1] = (top + bottom) / height;
+            result[2][2] = -(farZ + offsetZ) / (farZ - nearZ);
+            result[3][2] = -(farZ * (nearZ + offsetZ)) / (farZ - nearZ);
+            result[2][3] = -1.0f;
+        }
+
+        return result;
+    }
 }
 
 namespace pose {

@@ -8,8 +8,17 @@
 
 #pragma once
 
-#include "pch.h"
-#include "rvr_vulkan_utilities.h"
+#include <pch.h>
+
+#include "rendering/utilities/memory_allocator.h"
+#include "rendering/utilities/command_buffer.h"
+#include "rendering/utilities/shader_program.h"
+#include "rendering/utilities/vertex_buffer.h"
+#include "rendering/utilities/pipeline.h"
+#include "rendering/utilities/depth_buffer.h"
+#include <rendering/utilities/geometry.h>
+#include <rendering/utilities/swapchain_image_context.h>
+
 #include <platform/android_context.h>
 #include <ecs/system/render_system.h>
 
@@ -22,9 +31,9 @@ struct Cube {
 class XrContext;
 
 // Wraps a Vulkan API.
-class VulkanRenderer {
+class VulkanContext {
 public:
-    VulkanRenderer();
+    VulkanContext();
 
     // OpenXR extensions required by this graphics API.
     virtual std::vector<std::string> GetInstanceExtensions() const;
@@ -45,7 +54,7 @@ public:
 
     // Render to a swapchain image for a projection view.
     virtual void RenderView(const XrCompositionLayerProjectionView& layerView, const XrSwapchainImageBaseHeader* swapchainImage,
-                            int64_t swapchainFormat, const std::vector<Cube>& cubes);
+                            int64_t swapchainFormat, const std::vector<math::Transform>& cubes);
 
     // Get recommended number of sub-data element samples in view (recommendedSwapchainSampleCount)
     // if supported by the graphics plugin. A supported value otherwise.
@@ -60,7 +69,7 @@ private:
                      XrCompositionLayerProjection& layer, XrContext* xrContext);
 
 private:
-    std::vector<Cube> renderBuffer_;
+    std::vector<math::Transform> renderBuffer_;
 
     XrGraphicsBindingVulkan2KHR m_graphicsBinding{XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR};
     std::list<SwapchainImageContext> m_swapchainImageContexts;

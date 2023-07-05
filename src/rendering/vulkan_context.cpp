@@ -6,26 +6,28 @@
 /*  (http://opensource.org/licenses/MIT)                            */
 /********************************************************************/
 
-#include <renderer/vulkan_renderer.h>
+#include <rendering/vulkan_context.h>
+#include <rendering/utilities/vulkan_results.h>
 #include <platform/android_context.h>
 #include <xr_context.h>
 #include <global_context.h>
 #include <ecs/system/spatial_system.h>
+#include <math/linear_math.h>
 
 extern "C" void fast_matrix_mul(float *, float *, float *);
 
 namespace rvr {
-VulkanRenderer::VulkanRenderer() {
+VulkanContext::VulkanContext() {
     m_graphicsBinding.type = GetGraphicsBindingType();
 };
 
-std::vector<std::string> VulkanRenderer::GetInstanceExtensions() const {
+std::vector<std::string> VulkanContext::GetInstanceExtensions() const {
     return {XR_KHR_VULKAN_ENABLE2_EXTENSION_NAME};
 }
 
 // Note: The output must not outlive the input - this modifies the input and returns a collection of views into that modified
 // input!
-std::vector<const char *> VulkanRenderer::ParseExtensionString(char *names) {
+std::vector<const char *> VulkanContext::ParseExtensionString(char *names) {
     std::vector<const char *> list;
     while (*names != 0) {
         list.push_back(names);
@@ -39,7 +41,7 @@ std::vector<const char *> VulkanRenderer::ParseExtensionString(char *names) {
     return list;
 }
 
-const char *VulkanRenderer::GetValidationLayerName() {
+const char *VulkanContext::GetValidationLayerName() {
     uint32_t layerCount;
     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
     std::vector<VkLayerProperties> availableLayers(layerCount);
@@ -61,7 +63,7 @@ const char *VulkanRenderer::GetValidationLayerName() {
     return nullptr;
 }
 
-void VulkanRenderer::InitializeDevice(XrInstance instance, XrSystemId systemId) {
+void VulkanContext::InitializeDevice(XrInstance instance, XrSystemId systemId) {
 // Create the Vulkan device for the adapter associated with the system.
 // Extension function must be loaded by name
     XrGraphicsRequirementsVulkan2KHR graphicsRequirements{
@@ -196,7 +198,7 @@ void VulkanRenderer::InitializeDevice(XrInstance instance, XrSystemId systemId) 
     m_graphicsBinding.queueIndex = 0;
 }
 
-std::vector<char> VulkanRenderer::CreateSPIRVVector(const char *asset_name) {
+std::vector<char> VulkanContext::CreateSPIRVVector(const char *asset_name) {
     // Load in the compiled shader from the apk
     AAsset *file = AAssetManager_open(GlobalContext::Inst()->GetAndroidContext()->GetAndroidAssetManager(),
                                       asset_name,
@@ -209,7 +211,7 @@ std::vector<char> VulkanRenderer::CreateSPIRVVector(const char *asset_name) {
     return shader_vector;
 }
 
-void VulkanRenderer::InitializeResources() {
+void VulkanContext::InitializeResources() {
     auto fragmentSPIRV = CreateSPIRVVector("shaders/basic.frag.spv");
     auto vertexSPIRV = CreateSPIRVVector("shaders/basic.vert.spv");
 
@@ -241,7 +243,7 @@ void VulkanRenderer::InitializeResources() {
     m_drawBuffer.UpdateVertices(Geometry::c_cubeVertices, numCubeVertices, 0);
 }
 
-int64_t VulkanRenderer::SelectColorSwapchainFormat(const std::vector<int64_t> &runtimeFormats) const {
+int64_t VulkanContext::SelectColorSwapchainFormat(const std::vector<int64_t> &runtimeFormats) const {
     // List of supported color swapchain formats.
     constexpr int64_t SupportedColorSwapchainFormats[] = {VK_FORMAT_B8G8R8A8_SRGB,
                                                           VK_FORMAT_R8G8B8A8_SRGB,
@@ -258,11 +260,11 @@ int64_t VulkanRenderer::SelectColorSwapchainFormat(const std::vector<int64_t> &r
     return *swapchainFormatIt;
 }
 
-const XrBaseInStructure * VulkanRenderer::GetGraphicsBinding() const {
+const XrBaseInStructure * VulkanContext::GetGraphicsBinding() const {
     return reinterpret_cast<const XrBaseInStructure *>(&m_graphicsBinding);
 }
 
-std::vector<XrSwapchainImageBaseHeader *> VulkanRenderer::AllocateSwapchainImageStructs(
+std::vector<XrSwapchainImageBaseHeader *> VulkanContext::AllocateSwapchainImageStructs(
         uint32_t capacity, const XrSwapchainCreateInfo &swapchainCreateInfo) {
     // Allocate and initialize the buffer of image structs (must be sequential in memory for xrEnumerateSwapchainImages).
     // Return back an array of pointers to each swapchain image struct so the consumer doesn't need to know the type/size.
@@ -283,9 +285,9 @@ std::vector<XrSwapchainImageBaseHeader *> VulkanRenderer::AllocateSwapchainImage
     return bases;
 }
 
-void VulkanRenderer::RenderView(const XrCompositionLayerProjectionView &layerView,
-                const XrSwapchainImageBaseHeader *swapchainImage,
-                int64_t /*swapchainFormat*/, const std::vector<Cube> &cubes) {
+void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView,
+                               const XrSwapchainImageBaseHeader *swapchainImage,
+                               int64_t /*swapchainFormat*/, const std::vector<math::Transform> &cubes) {
     CHECK(layerView.subImage.imageArrayIndex == 0);  // Texture arrays not supported.
 
     auto swapchainContext = m_swapchainImageContextMap[swapchainImage];
@@ -325,30 +327,20 @@ void VulkanRenderer::RenderView(const XrCompositionLayerProjectionView &layerVie
     // Compute the view-projection transform.
     // Note all matrixes (including OpenXR's) are column-major, right-handed.
     const auto &pose = layerView.pose;
-    XrMatrix4x4f proj;
-    XrMatrix4x4f_CreateProjectionFov(&proj, GRAPHICS_VULKAN, layerView.fov, 0.05f, 100.0f);
-    XrMatrix4x4f toView;
-    XrVector3f scale{1.f, 1.f, 1.f};
-    XrMatrix4x4f_CreateTranslationRotationScale(&toView, &pose.position, &pose.orientation, &scale);
-    XrMatrix4x4f view;
-    XrMatrix4x4f_InvertRigidBody(&view, &toView);
-    XrMatrix4x4f vp;
 
-    // Leave this in here so that we can do benchmarks later. For now just use fast_matrix_mul
-    //XrMatrix4x4f_Multiply(&vp, &proj, &view);
-    fast_matrix_mul(vp.m, proj.m, view.m);
+    glm::mat4 projectionMatrix = math::matrix::CreateProjectionFromXrFOV(layerView.fov, 0.05f, 100.0f);
+    glm::mat4 poseMatrix = math::Pose(pose).ToMat4();
+    glm::mat4 viewMatrix = glm::affineInverse(poseMatrix);
+
+    glm::mat4 viewProjection = projectionMatrix * viewMatrix;
 
     // Render each cube
-    for (const Cube &cube : cubes) {
+    for (const math::Transform &cube : cubes) {
         // Compute the model-view-projection transform and push it.
-        XrMatrix4x4f model;
-        XrMatrix4x4f_CreateTranslationRotationScale(&model, &cube.Pose.position, &cube.Pose.orientation, &cube.Scale);
-        XrMatrix4x4f mvp;
+        glm::mat4 modelMatrix = cube.ToMat4();
+        glm::mat4 mvp = viewProjection * modelMatrix;
 
-        // Leave this in here so that we can do benchmarks later. For now just use fast_matrix_mul
-        //XrMatrix4x4f_Multiply(&mvp, &vp, &model);
-        fast_matrix_mul(mvp.m, vp.m, model.m);
-        vkCmdPushConstants(m_cmdBuffer.buf, m_pipelineLayout.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(mvp.m), &mvp.m[0]);
+        vkCmdPushConstants(m_cmdBuffer.buf, m_pipelineLayout.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(mvp), glm::value_ptr(mvp));
 
         // Draw the cube.
         vkCmdDrawIndexed(m_cmdBuffer.buf, m_drawBuffer.count.idx, 1, 0, 0, 0);
@@ -371,11 +363,11 @@ void VulkanRenderer::RenderView(const XrCompositionLayerProjectionView &layerVie
 #endif
 }
 
-uint32_t VulkanRenderer::GetSupportedSwapchainSampleCount(const XrViewConfigurationView &) {
+uint32_t VulkanContext::GetSupportedSwapchainSampleCount(const XrViewConfigurationView &) {
     return VK_SAMPLE_COUNT_1_BIT;
 }
 
-void VulkanRenderer::Render() {
+void VulkanContext::Render() {
     XrContext* xrContext = GlobalContext::Inst()->GetXrContext();
     if (xrContext->frameState.shouldRender == XR_TRUE) {
         if (RenderLayer(xrContext->projectionLayerViews, xrContext->mainLayer, xrContext)) {
@@ -384,8 +376,8 @@ void VulkanRenderer::Render() {
     }
 }
 
-bool VulkanRenderer::RenderLayer(std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
-                      XrCompositionLayerProjection& layer, XrContext* xrContext) {
+bool VulkanContext::RenderLayer(std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
+                                XrCompositionLayerProjection& layer, XrContext* xrContext) {
     XrViewState viewState{XR_TYPE_VIEW_STATE};
     auto viewCapacityInput = (uint32_t)xrContext->views.size();
     uint32_t viewCountOutput;
@@ -411,10 +403,8 @@ bool VulkanRenderer::RenderLayer(std::vector<XrCompositionLayerProjectionView>& 
 
     // Convert renderable to a cube for now
     for (auto spatial : system::render::GetRenderSpatials()) {
-        Cube cube{};
-        math::Transform plart = system::spatial::GetPlayerRelativeTransform(spatial);
-        cube.Pose = plart.GetPose().ToXrPosef();
-        cube.Scale = math::vector::ToXrVector3f(plart.GetScale());
+        math::Transform cube{};
+        cube = system::spatial::GetPlayerRelativeTransform(spatial);
         renderBuffer_.push_back(cube);
     }
 
@@ -458,7 +448,7 @@ bool VulkanRenderer::RenderLayer(std::vector<XrCompositionLayerProjectionView>& 
     return true;
 }
 
-void VulkanRenderer::DrawGrid() {
+void VulkanContext::DrawGrid() {
     // Get the player and spatial world transforms
     auto player = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(GlobalContext::Inst()->PLAYER_ID);
     CHECK_MSG(player, "Player spatial does not exist inside of GetPlayerRelativeTransform()");
@@ -467,34 +457,29 @@ void VulkanRenderer::DrawGrid() {
 
     // Draw the horizontal lines
     for (int i = -5; i <= 5; i ++) {
-        Cube cube{};
+        math::Transform cube;
         glm::vec3 position(0, 0, (float)i * 2.0f);
         auto relativePosition = position - playerWorld.GetPosition();
-        math::Transform playerRelTransform(math::Transform::Identity());
-        playerRelTransform.SetPosition(invOrientation * relativePosition);
-        playerRelTransform.SetOrientation(invOrientation);
-        cube.Pose = playerRelTransform.GetPose().ToXrPosef();
-        cube.Scale = {20.0f, 0.1f, 0.1f};
+        cube.SetPosition(invOrientation * relativePosition);
+        cube.SetOrientation(invOrientation);
+        cube.SetScale(20.0f, 0.1f, 0.1f);
         renderBuffer_.push_back(cube);
     }
     // Draw the vertical lines
     for (int i = -5; i <= 5; i ++) {
-        Cube cube{};
-        auto pose = math::Pose();
+        math::Transform cube;
         glm::vec3 position((float)i * 2.0f, 0, 0);
         auto relativePosition = position - playerWorld.GetPosition();
-        math::Transform playerRelTransform(math::Transform::Identity());
-        playerRelTransform.SetPosition(invOrientation * relativePosition);
-        playerRelTransform.SetOrientation(invOrientation);
-        cube.Pose = playerRelTransform.GetPose().ToXrPosef();
-        cube.Scale = {0.1f, 0.1f, 20.0f};
+        cube.SetPosition(invOrientation * relativePosition);
+        cube.SetOrientation(invOrientation);
+        cube.SetScale(0.1f, 0.1f, 20.0f);
         renderBuffer_.push_back(cube);
     }
 }
 
-VkBool32 VulkanRenderer::debugReport(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType, uint64_t object,
-            size_t /*location*/,
-            int32_t /*messageCode*/, const char *pLayerPrefix, const char *pMessage) {
+VkBool32 VulkanContext::debugReport(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType, uint64_t object,
+                                    size_t /*location*/,
+                                    int32_t /*messageCode*/, const char *pLayerPrefix, const char *pMessage) {
     std::string flagNames;
     std::string objName;
     Log::Level level = Log::Level::Error;
@@ -586,26 +571,26 @@ VkBool32 VulkanRenderer::debugReport(VkDebugReportFlagsEXT flags, VkDebugReportO
 }
 
 VKAPI_ATTR VkBool32 VKAPI_CALL
-VulkanRenderer::debugReportThunk(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType,
-                 uint64_t object, size_t location, int32_t messageCode,
-                 const char *pLayerPrefix, const char *pMessage, void *pUserData) {
-    return static_cast<VulkanRenderer *>(pUserData)->debugReport(flags, objectType, object,
-                                                                       location, messageCode,
-                                                                       pLayerPrefix, pMessage);
+VulkanContext::debugReportThunk(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType,
+                                uint64_t object, size_t location, int32_t messageCode,
+                                const char *pLayerPrefix, const char *pMessage, void *pUserData) {
+    return static_cast<VulkanContext *>(pUserData)->debugReport(flags, objectType, object,
+                                                                location, messageCode,
+                                                                pLayerPrefix, pMessage);
 }
 
-XrStructureType VulkanRenderer::GetGraphicsBindingType() const {
+XrStructureType VulkanContext::GetGraphicsBindingType() const {
     return XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR;
 }
 
 XrStructureType
-VulkanRenderer::GetSwapchainImageType() const {
+VulkanContext::GetSwapchainImageType() const {
     return XR_TYPE_SWAPCHAIN_IMAGE_VULKAN2_KHR;
 }
 
 XrResult
-VulkanRenderer::CreateVulkanInstanceKHR(XrInstance instance, const XrVulkanInstanceCreateInfoKHR *createInfo,
-                        VkInstance *vulkanInstance, VkResult *vulkanResult) {
+VulkanContext::CreateVulkanInstanceKHR(XrInstance instance, const XrVulkanInstanceCreateInfoKHR *createInfo,
+                                       VkInstance *vulkanInstance, VkResult *vulkanResult) {
     PFN_xrCreateVulkanInstanceKHR pfnCreateVulkanInstanceKHR = nullptr;
     CHECK_XRCMD(xrGetInstanceProcAddr(instance, "xrCreateVulkanInstanceKHR",
                                       reinterpret_cast<PFN_xrVoidFunction *>(&pfnCreateVulkanInstanceKHR)));
@@ -614,8 +599,8 @@ VulkanRenderer::CreateVulkanInstanceKHR(XrInstance instance, const XrVulkanInsta
 }
 
 XrResult
-VulkanRenderer::CreateVulkanDeviceKHR(XrInstance instance, const XrVulkanDeviceCreateInfoKHR *createInfo,
-                      VkDevice *vulkanDevice, VkResult *vulkanResult) {
+VulkanContext::CreateVulkanDeviceKHR(XrInstance instance, const XrVulkanDeviceCreateInfoKHR *createInfo,
+                                     VkDevice *vulkanDevice, VkResult *vulkanResult) {
     PFN_xrCreateVulkanDeviceKHR pfnCreateVulkanDeviceKHR = nullptr;
     CHECK_XRCMD(xrGetInstanceProcAddr(instance, "xrCreateVulkanDeviceKHR",
                                       reinterpret_cast<PFN_xrVoidFunction *>(&pfnCreateVulkanDeviceKHR)));
@@ -624,8 +609,8 @@ VulkanRenderer::CreateVulkanDeviceKHR(XrInstance instance, const XrVulkanDeviceC
 }
 
 XrResult
-VulkanRenderer::GetVulkanGraphicsDevice2KHR(XrInstance instance, const XrVulkanGraphicsDeviceGetInfoKHR *getInfo,
-                            VkPhysicalDevice *vulkanPhysicalDevice) {
+VulkanContext::GetVulkanGraphicsDevice2KHR(XrInstance instance, const XrVulkanGraphicsDeviceGetInfoKHR *getInfo,
+                                           VkPhysicalDevice *vulkanPhysicalDevice) {
     PFN_xrGetVulkanGraphicsDevice2KHR pfnGetVulkanGraphicsDevice2KHR = nullptr;
     CHECK_XRCMD(xrGetInstanceProcAddr(instance, "xrGetVulkanGraphicsDevice2KHR",
                                       reinterpret_cast<PFN_xrVoidFunction *>(&pfnGetVulkanGraphicsDevice2KHR)));
@@ -633,8 +618,8 @@ VulkanRenderer::GetVulkanGraphicsDevice2KHR(XrInstance instance, const XrVulkanG
     return pfnGetVulkanGraphicsDevice2KHR(instance, getInfo, vulkanPhysicalDevice);
 }
 
-XrResult VulkanRenderer::GetVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystemId systemId,
-                                                   XrGraphicsRequirementsVulkan2KHR *graphicsRequirements) {
+XrResult VulkanContext::GetVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystemId systemId,
+                                                          XrGraphicsRequirementsVulkan2KHR *graphicsRequirements) {
     PFN_xrGetVulkanGraphicsRequirements2KHR pfnGetVulkanGraphicsRequirements2KHR = nullptr;
     CHECK_XRCMD(xrGetInstanceProcAddr(instance, "xrGetVulkanGraphicsRequirements2KHR",
                                       reinterpret_cast<PFN_xrVoidFunction *>(&pfnGetVulkanGraphicsRequirements2KHR)));
