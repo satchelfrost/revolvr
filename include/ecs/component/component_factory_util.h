@@ -1,7 +1,15 @@
+/********************************************************************/
+/*                            MIT License                           */
+/*                                                                  */
+/*  Copyright (c) 2022-present Reese Gallagher, Cristhian De La Paz */
+/*  This code is licensed under the MIT license (MIT)               */
+/*  (http://opensource.org/licenses/MIT)                            */
+/********************************************************************/
+
 #pragma once
 
 #include <ecs/entity/entity.h>
-#include <rvr_parser/parser.h>
+#include <scene/parser.h>
 
 namespace rvr::componentFactory {
 // Returns true if string with nameQualifier was found and sets the out string with found value

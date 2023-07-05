@@ -1,3 +1,11 @@
+/********************************************************************/
+/*                            MIT License                           */
+/*                                                                  */
+/*  Copyright (c) 2022-present Reese Gallagher, Cristhian De La Paz */
+/*  This code is licensed under the MIT license (MIT)               */
+/*  (http://opensource.org/licenses/MIT)                            */
+/********************************************************************/
+
 #include <renderer/vulkan_renderer.h>
 #include <platform/android_context.h>
 #include <xr_context.h>

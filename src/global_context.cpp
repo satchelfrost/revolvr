@@ -1,3 +1,11 @@
+/********************************************************************/
+/*                            MIT License                           */
+/*                                                                  */
+/*  Copyright (c) 2022-present Reese Gallagher, Cristhian De La Paz */
+/*  This code is licensed under the MIT license (MIT)               */
+/*  (http://opensource.org/licenses/MIT)                            */
+/********************************************************************/
+
 #include <global_context.h>
 #include <common.h>
 #include <ecs/system/spatial_system.h>
@@ -21,30 +29,24 @@ void GlobalContext::Init(android_app *app) {
     initialized_ = true;
 
     // Order matters here
+    ecs_ = new ECS();
     audioEngine_ = new AudioEngine();
     androidContext_ = new AndroidContext(app);
     vulkanRenderer_ = new VulkanRenderer();
     xrContext_ = new XrContext();
-    ecs_ = new ECS();
 }
 
 GlobalContext::~GlobalContext() {
     delete audioEngine_;
     delete vulkanRenderer_;
-    delete androidContext_;
     delete ecs_;
     delete xrContext_;
+    delete androidContext_;
 }
 
 AudioEngine *GlobalContext::GetAudioEngine() {
     CHECK_MSG(initialized_, "Global Context was not initialized")
     return audioEngine_;
-}
-
-void GlobalContext::BeginSystems() {
-    system::ritual::Begin();
-    system::timer::Start();
-    audioEngine_->start();
 }
 
 void GlobalContext::UpdateSystems(float deltaTime) {

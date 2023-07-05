@@ -1,3 +1,11 @@
+/********************************************************************/
+/*                            MIT License                           */
+/*                                                                  */
+/*  Copyright (c) 2022-present Reese Gallagher, Cristhian De La Paz */
+/*  This code is licensed under the MIT license (MIT)               */
+/*  (http://opensource.org/licenses/MIT)                            */
+/********************************************************************/
+
 #include <ecs/component/types/audio/spatial_audio.h>
 #include <global_context.h>
 #include "ecs/component/types/spatial.h"

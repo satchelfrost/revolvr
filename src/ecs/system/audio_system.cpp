@@ -1,3 +1,11 @@
+/********************************************************************/
+/*                            MIT License                           */
+/*                                                                  */
+/*  Copyright (c) 2022-present Reese Gallagher, Cristhian De La Paz */
+/*  This code is licensed under the MIT license (MIT)               */
+/*  (http://opensource.org/licenses/MIT)                            */
+/********************************************************************/
+
 #include <audio/audio_engine.h>
 #include <global_context.h>
 
@@ -8,14 +16,12 @@ void Mixer::Render(float* audioData, int32_t numFrames) {
     auto components = GlobalContext::Inst()->GetECS()->GetComponents(ComponentType::Audio);
     for (auto [eid, component] : components) {
         auto track = dynamic_cast<Audio*>(component);
-        if(!track) {
-            Log::Write(Log::Level::Warning, Fmt("Audio component cast failed on eid %d", eid));
-            continue;
-        }
-        track->Render(mixingBuffer_, numSamples);
+        if(track) {
+            track->Render(mixingBuffer_, numSamples);
 
-        for (int i = 0; i < numSamples; i++)
-            audioData[i] += mixingBuffer_[i] * track->volume;
+            for (int i = 0; i < numSamples; i++)
+                audioData[i] += mixingBuffer_[i] * track->volume;
+        }
     }
 }
 
