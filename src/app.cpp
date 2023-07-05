@@ -1,3 +1,11 @@
+/********************************************************************/
+/*                            MIT License                           */
+/*                                                                  */
+/*  Copyright (c) 2022-present Reese Gallagher, Cristhian De La Paz */
+/*  This code is licensed under the MIT license (MIT)               */
+/*  (http://opensource.org/licenses/MIT)                            */
+/********************************************************************/
+
 #include <app.h>
 #include <ecs/component/types/spatial.h>
 #include <ecs/ecs.h>
@@ -8,9 +16,6 @@
 #include <xr_context.h>
 
 namespace rvr {
-static void app_handle_cmd(struct android_app* app, int32_t cmd) {
-    GlobalContext::Inst()->GetAndroidContext()->HandleAndroidCmd(app, cmd);
-}
 
 App::App() : requestRestart_(false), exitRenderLoop_(false), globalContext_(nullptr), deltaTime_(0) {
 }
@@ -20,11 +25,6 @@ App::~App() {
 }
 
 void App::Run(struct android_app *app) {
-    JNIEnv* Env;
-    app->activity->vm->AttachCurrentThread(&Env, nullptr);
-    app->userData = this;
-    app->onAppCmd = app_handle_cmd;
-
     globalContext_ = GlobalContext::Inst();
     globalContext_->Init(app);
 
@@ -37,9 +37,9 @@ void App::Run(struct android_app *app) {
 //    scene_.LoadScene("test_scenes/spinning_pointer");
 //    scene_.LoadScene("test_scenes/generic");
 //    scene_.LoadScene("test_scenes/conway");
-    scene_.LoadScene("test_scenes/hand_tracking");
-
-    globalContext_->BeginSystems();
+//    scene_.LoadScene("test_scenes/hand_tracking");
+//    scene_.LoadScene("test_scenes/movement");
+    scene_.LoadScene("test_scenes/hand_shooting_stuff");
 
     AndroidContext* androidContext = globalContext_->GetAndroidContext();
     XrContext* xrContext = globalContext_->GetXrContext();
@@ -66,7 +66,5 @@ void App::Run(struct android_app *app) {
         vulkanRenderer->Render();
         xrContext->EndFrame();
     }
-
-    app->activity->vm->DetachCurrentThread();
 }
 }

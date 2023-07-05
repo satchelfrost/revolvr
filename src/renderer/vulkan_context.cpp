@@ -1,8 +1,17 @@
+/********************************************************************/
+/*                            MIT License                           */
+/*                                                                  */
+/*  Copyright (c) 2022-present Reese Gallagher, Cristhian De La Paz */
+/*  This code is licensed under the MIT license (MIT)               */
+/*  (http://opensource.org/licenses/MIT)                            */
+/********************************************************************/
+
 #include <rendering/vulkan_context.h>
 #include <rendering/utilities/vulkan_results.h>
 #include <platform/android_context.h>
 #include <xr_context.h>
 #include <global_context.h>
+#include <ecs/system/spatial_system.h>
 #include <math/linear_math.h>
 
 extern "C" void fast_matrix_mul(float *, float *, float *);
@@ -395,7 +404,7 @@ bool VulkanContext::RenderLayer(std::vector<XrCompositionLayerProjectionView>& p
     // Convert renderable to a cube for now
     for (auto spatial : system::render::GetRenderSpatials()) {
         math::Transform cube{};
-        cube = spatial->GetWorld();
+        cube = system::spatial::GetPlayerRelativeTransform(spatial);
         renderBuffer_.push_back(cube);
     }
 
@@ -440,22 +449,29 @@ bool VulkanContext::RenderLayer(std::vector<XrCompositionLayerProjectionView>& p
 }
 
 void VulkanContext::DrawGrid() {
-    auto player = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(0);
+    // Get the player and spatial world transforms
+    auto player = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(GlobalContext::Inst()->PLAYER_ID);
+    CHECK_MSG(player, "Player spatial does not exist inside of GetPlayerRelativeTransform()");
+    math::Transform playerWorld = player->GetWorld();
+    auto invOrientation = glm::inverse(playerWorld.GetOrientation());
+
     // Draw the horizontal lines
     for (int i = -5; i <= 5; i ++) {
         math::Transform cube;
-        cube.SetPosition(0, 0, (float)i * 2.0f);
-        // Correct for the player position
-        cube.SetPosition(cube.GetPosition() - player->GetLocal().GetPosition());
+        glm::vec3 position(0, 0, (float)i * 2.0f);
+        auto relativePosition = position - playerWorld.GetPosition();
+        cube.SetPosition(invOrientation * relativePosition);
+        cube.SetOrientation(invOrientation);
         cube.SetScale(20.0f, 0.1f, 0.1f);
         renderBuffer_.push_back(cube);
     }
     // Draw the vertical lines
     for (int i = -5; i <= 5; i ++) {
-        math::Transform cube{};
-        cube.SetPosition((float)i * 2.0f, 0, 0);
-        // Correct for the player position
-        cube.SetPosition(cube.GetPosition() - player->GetLocal().GetPosition());
+        math::Transform cube;
+        glm::vec3 position((float)i * 2.0f, 0, 0);
+        auto relativePosition = position - playerWorld.GetPosition();
+        cube.SetPosition(invOrientation * relativePosition);
+        cube.SetOrientation(invOrientation);
         cube.SetScale(0.1f, 0.1f, 20.0f);
         renderBuffer_.push_back(cube);
     }

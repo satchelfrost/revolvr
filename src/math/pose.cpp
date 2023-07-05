@@ -1,3 +1,11 @@
+/********************************************************************/
+/*                            MIT License                           */
+/*                                                                  */
+/*  Copyright (c) 2022-present Reese Gallagher, Cristhian De La Paz */
+/*  This code is licensed under the MIT license (MIT)               */
+/*  (http://opensource.org/licenses/MIT)                            */
+/********************************************************************/
+
 #include <math/pose.h>
 #include <math/matrix_util.h>
 #include <math/pose_util.h>
@@ -25,6 +33,10 @@ Pose::Pose(const glm::mat3& matrix)
 Pose::Pose(const glm::mat4& matrix)
 : orientation_(glm::toQuat(matrix)),
   position_(matrix::GetPosition(matrix)) {}
+
+bool Pose::operator==(const Pose &other) const {
+    return orientation_ == other.orientation_ && position_ == other.position_;
+}
 
 glm::mat4 Pose::ToMat4() const {
     glm::mat4 rotation_matrix = glm::toMat4(orientation_);

@@ -1,3 +1,11 @@
+/********************************************************************/
+/*                            MIT License                           */
+/*                                                                  */
+/*  Copyright (c) 2022-present Reese Gallagher, Cristhian De La Paz */
+/*  This code is licensed under the MIT license (MIT)               */
+/*  (http://opensource.org/licenses/MIT)                            */
+/********************************************************************/
+
 #pragma once
 
 #include "pch.h"
@@ -21,7 +29,6 @@ public:
 
     // Tree related methods
     void AddChild(Entity* child);
-    void SetParent(Entity* parent);
     Entity* GetParent();
     std::list<Entity*>& GetChildren();
     void Destroy();
@@ -30,6 +37,7 @@ public:
     const int id;
 
 private:
+    void SetParent(Entity* parent);
     void DestroyRecursive();
     void GenerateAndSetName();
     void RemoveFromParent();

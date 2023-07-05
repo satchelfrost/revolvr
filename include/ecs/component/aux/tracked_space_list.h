@@ -1,7 +1,14 @@
+/********************************************************************/
+/*                            MIT License                           */
+/*                                                                  */
+/*  Copyright (c) 2022-present Reese Gallagher, Cristhian De La Paz */
+/*  This code is licensed under the MIT license (MIT)               */
+/*  (http://opensource.org/licenses/MIT)                            */
+/********************************************************************/
+
 #pragma once
 
 #define TRACKED_SPACE_LIST(X) \
-    X(Player) \
     X(LeftController) \
     X(RightController) \
     X(Head) \

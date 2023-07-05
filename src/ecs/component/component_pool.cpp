@@ -1,3 +1,11 @@
+/********************************************************************/
+/*                            MIT License                           */
+/*                                                                  */
+/*  Copyright (c) 2022-present Reese Gallagher, Cristhian De La Paz */
+/*  This code is licensed under the MIT license (MIT)               */
+/*  (http://opensource.org/licenses/MIT)                            */
+/********************************************************************/
+
 #include <ecs/entity/entity.h>
 #include <ecs/component/component_pool.h>
 #include <common.h>
@@ -24,7 +32,7 @@ Component *ComponentPool::GetComponent(type::EntityId id) {
         return components_.at(id);
     }
     catch (std::out_of_range& e) {
-        Log::Write(Log::Level::Warning, Fmt("Component does not exist for id %d", id));
+        Log::Write(Log::Level::Verbose, Fmt("Component does not exist for id %d", id));
         return nullptr;
     }
 }

@@ -1,3 +1,11 @@
+/********************************************************************/
+/*                            MIT License                           */
+/*                                                                  */
+/*  Copyright (c) 2022-present Reese Gallagher, Cristhian De La Paz */
+/*  This code is licensed under the MIT license (MIT)               */
+/*  (http://opensource.org/licenses/MIT)                            */
+/********************************************************************/
+
 #include "math/transform.h"
 #include "glm/ext.hpp"
 #include "glm/gtx/quaternion.hpp"
@@ -110,5 +118,9 @@ Transform Transform::Scaled(glm::vec3 scale) const {
 
 Transform Transform::Identity() {
     return {Pose::Identity(), glm::vec3(1, 1, 1)};
+}
+
+bool Transform::operator==(const Transform &other) const {
+    return pose_ == other.pose_ && scale_ == other.scale_;
 }
 }

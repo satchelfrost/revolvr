@@ -1,3 +1,11 @@
+/********************************************************************/
+/*                            MIT License                           */
+/*                                                                  */
+/*  Copyright (c) 2022-present Reese Gallagher, Cristhian De La Paz */
+/*  This code is licensed under the MIT license (MIT)               */
+/*  (http://opensource.org/licenses/MIT)                            */
+/********************************************************************/
+
 #include <ecs/component/types/audio.h>
 
 #include <utility>
@@ -62,4 +70,8 @@ Audio::Audio(const Audio &other, type::EntityId pId) :
 Component(ComponentType::Audio, pId), volume(other.volume), isLooping_(other.isLooping_.load()),
 isPlaying_(other.isPlaying_.load()), readFrameIndex_(other.readFrameIndex_),
 wavAudioSource_(other.wavAudioSource_) {}
+
+bool Audio::IsPlaying() {
+    return isPlaying_.load();
+}
 }

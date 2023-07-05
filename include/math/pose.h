@@ -1,3 +1,11 @@
+/********************************************************************/
+/*                            MIT License                           */
+/*                                                                  */
+/*  Copyright (c) 2022-present Reese Gallagher, Cristhian De La Paz */
+/*  This code is licensed under the MIT license (MIT)               */
+/*  (http://opensource.org/licenses/MIT)                            */
+/********************************************************************/
+
 #pragma once
 #include "pch.h"
 #include <glm/glm.hpp>
@@ -15,6 +23,7 @@ public:
     Pose(const glm::vec3& position, const glm::quat& orientation);
     Pose(const glm::mat3& matrix);
     Pose(const glm::mat4& matrix);
+    bool operator==(const Pose& other) const;
 
     // Converts the pose into a 4x4 Matrix with a scale of {1,1,1}
     glm::mat4 ToMat4() const;

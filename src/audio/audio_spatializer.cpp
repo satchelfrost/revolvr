@@ -1,3 +1,11 @@
+/********************************************************************/
+/*                            MIT License                           */
+/*                                                                  */
+/*  Copyright (c) 2022-present Reese Gallagher, Cristhian De La Paz */
+/*  This code is licensed under the MIT license (MIT)               */
+/*  (http://opensource.org/licenses/MIT)                            */
+/********************************************************************/
+
 #include <audio/audio_spatializer.h>
 #include <common.h>
 #include <global_context.h>
@@ -9,7 +17,7 @@ AudioSpatializer::AudioSpatializer() {
     config.acc_Size = sizeof(config);
     config.acc_SampleRate = 48000;
     config.acc_BufferLength = 192;
-    config.acc_MaxNumSources = 1;
+    config.acc_MaxNumSources = 8;
 
     if (ovrAudio_CreateContext(&audioContext_, &config) != ovrSuccess)
         THROW("Could not create ovr audio context");
@@ -18,13 +26,13 @@ AudioSpatializer::AudioSpatializer() {
     ovrAudio_Enable(audioContext_, ovrAudioEnable_SimpleRoomModeling, 1);
     ovrAudio_Enable(audioContext_, ovrAudioEnable_LateReverberation, 1);
     ovrAudio_Enable(audioContext_, ovrAudioEnable_RandomizeReverb, 1);
-
     SetBoxRoomParams(10.0f, 10.0f, 10.0f, 1.0f);
-//    SetBoxRoomParams(5.0f, 5.0f, 5.0f, 1.0f);
-    ovrAudio_SetAudioSourceAttenuationMode(audioContext_, 0,
-                                           ovrAudioSourceAttenuationMode_InverseSquare, 1.0f);
 
-    ovrAudio_SetAudioSourceRange(audioContext_, 0, 1.0f, 1000.0f);
+    for (int i = 0; i < config.acc_MaxNumSources; i++) {
+        ovrAudio_SetAudioSourceAttenuationMode(audioContext_, i,
+                                               ovrAudioSourceAttenuationMode_InverseSquare, 1.0f);
+        ovrAudio_SetAudioSourceRange(audioContext_, i, 1.0f, 1000.0f);
+    }
 }
 
 void AudioSpatializer::SetBoxRoomParams(float width, float height, float depth, float reflectance) {
@@ -47,9 +55,9 @@ void AudioSpatializer::ProcessSpatialAudio(SpatialAudio* spatialAudio, const flo
     auto spatial = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(spatialAudio->id);
     auto pos = spatial->GetWorld().GetPosition();
 
-    ovrAudio_SetAudioSourcePos(audioContext_, 0, pos.x, pos.y, pos.z);
-    ovrAudio_SpatializeMonoSourceInterleaved(audioContext_, 0, &status, outBuffer,
-                                             inBuffer);
+    ovrAudio_SetAudioSourcePos(audioContext_, spatialAudio->spatialAudioId, pos.x, pos.y, pos.z);
+    ovrAudio_SpatializeMonoSourceInterleaved(audioContext_, spatialAudio->spatialAudioId,
+                                             &status, outBuffer,inBuffer);
 }
 
 AudioSpatializer::~AudioSpatializer() {

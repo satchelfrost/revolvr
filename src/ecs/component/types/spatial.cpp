@@ -1,3 +1,11 @@
+/********************************************************************/
+/*                            MIT License                           */
+/*                                                                  */
+/*  Copyright (c) 2022-present Reese Gallagher, Cristhian De La Paz */
+/*  This code is licensed under the MIT license (MIT)               */
+/*  (http://opensource.org/licenses/MIT)                            */
+/********************************************************************/
+
 #include <ecs/component/types/spatial.h>
 #include <ecs/component/types/tracked_space.h>
 #include <math/linear_math.h>
@@ -10,61 +18,68 @@
 namespace rvr {
 Spatial::Spatial(type::EntityId pId)
             : Component(ComponentType::Spatial, pId),
-              local(math::Transform::Identity()),
-              world(math::Transform::Identity()) {}
+              local_(math::Transform::Identity()),
+              world_(math::Transform::Identity()),
+              stale_(true){}
 
 Spatial::Spatial(type::EntityId pId, const glm::vec3& position,
                  const glm::quat& orientation, const glm::vec3& scale)
             : Component(ComponentType::Spatial, pId),
-              local(position, orientation, scale),
-              world(math::Transform::Identity()) {}
+              local_(position, orientation, scale),
+              world_(math::Transform::Identity()),
+              stale_(true){}
 
 Spatial::Spatial(type::EntityId pId, math::Transform local, math::Transform world) :
-Component(ComponentType::Spatial, pId), world(world), local(local) {}
+Component(ComponentType::Spatial, pId), world_(world), local_(local), stale_(true){}
 
 math::Transform Spatial::GetLocal() {
-    return local;
+    return local_;
 }
 
 void Spatial::SetLocal(const math::Transform& value) {
-    local = value;
+    local_ = value;
+    MakeStaleRecursive();
 }
 
 void Spatial::SetLocalPose(const math::Pose& pose) {
-    local.SetPose(pose);
+    local_.SetPose(pose);
+    MakeStaleRecursive();
 }
 
 void Spatial::SetLocalScale(const glm::vec3& scale) {
-    local.SetScale(scale);
+    local_.SetScale(scale);
+    MakeStaleRecursive();
 }
 
 void Spatial::SetLocalPosition(const glm::vec3& position) {
-    auto localPose = local.GetPose();
+    auto localPose = local_.GetPose();
     localPose.SetPosition(position);
-    local.SetPose(localPose);
+    local_.SetPose(localPose);
+    MakeStaleRecursive();
 }
 
 void Spatial::SetLocalOrientation(const glm::quat& orientation) {
-    auto localPose = local.GetPose();
+    auto localPose = local_.GetPose();
     localPose.SetOrientation(orientation);
-    local.SetPose(localPose);
+    local_.SetPose(localPose);
+    MakeStaleRecursive();
 }
 
 math::Transform Spatial::GetWorld() {
     UpdateWorld();
-    return world;
+    return world_;
 }
 
 void Spatial::SetWorld(const math::Transform& value) {
-    world = value;
+    world_ = value;
 }
 
 void Spatial::SetWorldPose(const math::Pose &pose) {
-    world.SetPose(pose);
+    world_.SetPose(pose);
 }
 
 void Spatial::SetWorldScale(const glm::vec3& scale) {
-    world.SetScale(scale);
+    world_.SetScale(scale);
 }
 
 void Spatial::SetWorldPosition(const glm::vec3& position) {
@@ -80,47 +95,35 @@ void Spatial::SetWorldPosition(const glm::vec3& position) {
         localPosition = glm::rotate(pOrientationInverse, (pPosition - position));
     }
 
-    auto localPose = local.GetPose();
+    auto localPose = local_.GetPose();
     localPose.SetPosition(localPosition);
-    local.SetPose(localPose);
+    local_.SetPose(localPose);
 }
 
 void Spatial::SetWorldOrientation(const glm::quat& orientation) {
-    auto worldPose = world.GetPose();
+    auto worldPose = world_.GetPose();
     worldPose.SetOrientation(orientation);
-    world.SetPose(worldPose);
+    world_.SetPose(worldPose);
 }
 
 void Spatial::UpdateWorld() {
-    Entity* child = GetEntity(id);
-    if (id == constants::ROOT_ID)
+    if (!stale_)
         return;
 
-    auto parent = child->GetParent();
-
-    CHECK_MSG(parent, Fmt("Entity %s is an orphan", child->GetName().c_str()));
-
-    auto parentSpatial = GetComponent<Spatial>(parent->id);
-    parentSpatial->UpdateWorld();
-
-    if (child->HasComponent(ComponentType::TrackedSpace)) {
-        world.SetScale(local.GetScale() * parentSpatial->world.GetScale());
-    }
-    else {
-        // Calculate position based on parent
-        world.SetOrientation(parentSpatial->world.GetOrientation() * local.GetOrientation());
-        glm::vec3 offset = glm::rotate(parentSpatial->world.GetOrientation(), local.GetPosition());
-        world.SetPosition(offset + parentSpatial->world.GetPosition());
-        world.SetScale(local.GetScale() * parentSpatial->world.GetScale());
-
-        // Place objects relative to the player position
-        if (parent->HasComponent(ComponentType::TrackedSpace)) {
-            auto ts = GetComponent<TrackedSpace>(parent->id);
-            if (ts->type == TrackedSpaceType::Player) {
-                world.SetPosition(world.GetPosition() - parentSpatial->local.GetPosition());
-            }
+    Entity* thisEntity = GetEntity(id);
+    auto parentEntity = thisEntity->GetParent();
+    if (parentEntity) {
+        auto parentSpatial = GetComponent<Spatial>(parentEntity->id);
+        if (parentSpatial) {
+            parentSpatial->UpdateWorld();
+            ApplyParentRTS(parentSpatial);
         }
     }
+    else {
+        world_ = local_;
+    }
+
+    stale_ = false;
 }
 
 Component *Spatial::Clone(type::EntityId newEntityId) {
@@ -128,5 +131,24 @@ Component *Spatial::Clone(type::EntityId newEntityId) {
 }
 
 Spatial::Spatial(const Spatial& other, type::EntityId newEntityId) :
-Component(ComponentType::Spatial, newEntityId), local(other.local), world(other.world) {}
+Component(ComponentType::Spatial, newEntityId), local_(other.local_), world_(other.world_) {}
+
+
+void Spatial::ApplyParentRTS(Spatial* parentSpatial) {
+    // Update the world transform
+    math::Transform parentWorld = parentSpatial->world_;
+    world_.SetOrientation(parentWorld.GetOrientation() * local_.GetOrientation());
+    world_.SetPosition(parentWorld.GetPosition() + (parentWorld.GetOrientation() * local_.GetPosition()));
+    world_.SetScale(local_.GetScale() * parentWorld.GetScale());
+}
+
+void Spatial::MakeStaleRecursive() {
+    stale_ = true;
+    Entity* thisEntity = GetEntity(id);
+    for (auto child : thisEntity->GetChildren()) {
+        auto spatial = GetComponent<Spatial>(child->id);
+        if (spatial)
+            spatial->MakeStaleRecursive();
+    }
+}
 }

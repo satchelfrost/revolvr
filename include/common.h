@@ -1,3 +1,11 @@
+/********************************************************************/
+/*                            MIT License                           */
+/*                                                                  */
+/*  Copyright (c) 2022-present Reese Gallagher, Cristhian De La Paz */
+/*  This code is licensed under the MIT license (MIT)               */
+/*  (http://opensource.org/licenses/MIT)                            */
+/********************************************************************/
+
 // Copyright (c) 2017-2022, The Khronos Group Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
@@ -95,11 +103,5 @@ inline std::string Fmt(const char* fmt, ...) {
     exit(1);
 }
 
-// The equivalent of C++17 std::size. A helper to get the dimension for an array.
-template <typename T, size_t Size>
-constexpr size_t ArraySize(const T (&/*unused*/)[Size]) noexcept {
-    return Size;
-}
-
-#include <logger.h>
-#include <check.h>
+#include "logger.h"
+#include "check.h"

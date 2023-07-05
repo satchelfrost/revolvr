@@ -1,3 +1,11 @@
+/********************************************************************/
+/*                            MIT License                           */
+/*                                                                  */
+/*  Copyright (c) 2022-present Reese Gallagher, Cristhian De La Paz */
+/*  This code is licensed under the MIT license (MIT)               */
+/*  (http://opensource.org/licenses/MIT)                            */
+/********************************************************************/
+
 #include <audio/audio_engine.h>
 #include <mutex>
 #include <common.h>
@@ -6,6 +14,11 @@
 namespace rvr {
 // Double-buffering offers a good tradeoff between latency and protection against glitches.
 constexpr int32_t kBufferSizeInBursts = 2;
+
+AudioEngine::AudioEngine() {
+    if (!start())
+        THROW("Failed to start Audio engine");
+}
 
 bool AudioEngine::start() {
     AAudioStreamBuilder *streamBuilder;

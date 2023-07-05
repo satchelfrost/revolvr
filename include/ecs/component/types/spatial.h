@@ -1,7 +1,16 @@
+/********************************************************************/
+/*                            MIT License                           */
+/*                                                                  */
+/*  Copyright (c) 2022-present Reese Gallagher, Cristhian De La Paz */
+/*  This code is licensed under the MIT license (MIT)               */
+/*  (http://opensource.org/licenses/MIT)                            */
+/********************************************************************/
+
 #pragma once
 
 #include <ecs/component/component.h>
 #include <math/transform.h>
+#include "ecs/entity/entity.h"
 
 namespace rvr {
 class Spatial : public Component {
@@ -30,9 +39,13 @@ public:
     void SetWorldOrientation(const glm::quat& orientation);
 
     void UpdateWorld();
+    void MakeStaleRecursive();
 
 private:
-    math::Transform local;
-    math::Transform world;
+    void ApplyParentRTS(Spatial* parentSpatial);
+    math::Transform local_;
+    math::Transform world_;
+    bool stale_;
+
 };
 }

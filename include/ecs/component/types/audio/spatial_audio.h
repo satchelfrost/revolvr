@@ -1,3 +1,11 @@
+/********************************************************************/
+/*                            MIT License                           */
+/*                                                                  */
+/*  Copyright (c) 2022-present Reese Gallagher, Cristhian De La Paz */
+/*  This code is licensed under the MIT license (MIT)               */
+/*  (http://opensource.org/licenses/MIT)                            */
+/********************************************************************/
+
 #pragma once
 
 #include <ecs/component/types/audio.h>
@@ -11,10 +19,11 @@ public:
     virtual Component* Clone(type::EntityId newEntityId) override;
 
 
-    SpatialAudio(type::EntityId pId, const WavAudioSource& wavAudioSource);
+    SpatialAudio(type::EntityId pId, const WavAudioSource& wavAudioSource, int pSpatialAudioId);
     virtual void Render(float* targetData, int32_t numSamples) override;
     virtual void Play() override;
 
+    const int spatialAudioId;
 private:
     void Spatialize();
 

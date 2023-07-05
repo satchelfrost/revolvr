@@ -1,3 +1,11 @@
+/********************************************************************/
+/*                            MIT License                           */
+/*                                                                  */
+/*  Copyright (c) 2022-present Reese Gallagher, Cristhian De La Paz */
+/*  This code is licensed under the MIT license (MIT)               */
+/*  (http://opensource.org/licenses/MIT)                            */
+/********************************************************************/
+
 #pragma once
 
 #include <audio/audio_engine.h>
@@ -16,13 +24,14 @@ public:
     void BeginSystems();
     void UpdateSystems(float deltaTime);
 
-    // TODO: Should these be const?
     AudioEngine* GetAudioEngine();
     XrContext* GetXrContext();
     VulkanContext* GetVulkanContext();
     ECS* GetECS();
     AndroidContext* GetAndroidContext();
 
+    // Default value for player id
+    type::EntityId PLAYER_ID = 0;
 private:
     static GlobalContext* instance_;
 

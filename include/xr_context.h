@@ -1,3 +1,11 @@
+/********************************************************************/
+/*                            MIT License                           */
+/*                                                                  */
+/*  Copyright (c) 2022-present Reese Gallagher, Cristhian De La Paz */
+/*  This code is licensed under the MIT license (MIT)               */
+/*  (http://opensource.org/licenses/MIT)                            */
+/********************************************************************/
+
 #pragma once
 
 #include <pch.h>
@@ -7,8 +15,8 @@
 
 #include "rvr_reference_space.h"
 #include "xr_app_helpers.h"
-#include <action/action_manager.h>
-#include <hand_tracking/hand_tracker.h>
+#include <io/action/action_manager.h>
+#include <io/hand_tracking/hand_tracker.h>
 
 #include <array>
 #include <cmath>

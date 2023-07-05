@@ -1,3 +1,11 @@
+/********************************************************************/
+/*                            MIT License                           */
+/*                                                                  */
+/*  Copyright (c) 2022-present Reese Gallagher, Cristhian De La Paz */
+/*  This code is licensed under the MIT license (MIT)               */
+/*  (http://opensource.org/licenses/MIT)                            */
+/********************************************************************/
+
 #pragma once
 
 #include "linear_math.h"
@@ -14,6 +22,7 @@ public:
     Transform(const Pose& pose, const glm::vec3& scale);
     Transform(const glm::vec3& position, const glm::quat& orientation, const glm::vec3& scale);
     Transform(const glm::mat4& matrix);
+    bool operator==(const Transform& other) const;
 
     // Converts the transform into a 4x4 Matrix
     glm::mat4 ToMat4() const;
