@@ -23,9 +23,9 @@ struct Cube {
 class XrContext;
 
 // Wraps a Vulkan API.
-class VulkanRenderer {
+class VulkanContext {
 public:
-    VulkanRenderer();
+    VulkanContext();
 
     // OpenXR extensions required by this graphics API.
     virtual std::vector<std::string> GetInstanceExtensions() const;

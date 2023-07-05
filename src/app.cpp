@@ -43,7 +43,7 @@ void App::Run(struct android_app *app) {
 
     AndroidContext* androidContext = globalContext_->GetAndroidContext();
     XrContext* xrContext = globalContext_->GetXrContext();
-    VulkanRenderer* vulkanRenderer = globalContext_->GetVulkanRenderer();
+    VulkanContext* vulkanRenderer = globalContext_->GetVulkanContext();
 
     GameLoopTimer timer;
     while (app->destroyRequested == 0) {

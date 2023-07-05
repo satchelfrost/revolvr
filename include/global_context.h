@@ -1,7 +1,7 @@
 #pragma once
 
 #include <audio/audio_engine.h>
-#include <rendering/vulkan_renderer.h>
+#include <rendering/vulkan_context.h>
 #include <ecs/ecs.h>
 #include <platform/android_context.h>
 #include <xr_context.h>
@@ -19,7 +19,7 @@ public:
     // TODO: Should these be const?
     AudioEngine* GetAudioEngine();
     XrContext* GetXrContext();
-    VulkanRenderer* GetVulkanRenderer();
+    VulkanContext* GetVulkanContext();
     ECS* GetECS();
     AndroidContext* GetAndroidContext();
 
@@ -28,7 +28,7 @@ private:
 
     // Contextual data
     AudioEngine* audioEngine_;
-    VulkanRenderer* vulkanRenderer_;
+    VulkanContext* vulkanRenderer_;
     AndroidContext* androidContext_;
     ECS* ecs_;
     XrContext* xrContext_;

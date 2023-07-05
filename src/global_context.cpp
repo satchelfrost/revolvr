@@ -23,7 +23,7 @@ void GlobalContext::Init(android_app *app) {
     // Order matters here
     audioEngine_ = new AudioEngine();
     androidContext_ = new AndroidContext(app);
-    vulkanRenderer_ = new VulkanRenderer();
+    vulkanRenderer_ = new VulkanContext();
     xrContext_ = new XrContext();
     ecs_ = new ECS();
 }
@@ -56,7 +56,7 @@ void GlobalContext::UpdateSystems(float deltaTime) {
     system::timer::UpdateTicks();
 }
 
-VulkanRenderer *GlobalContext::GetVulkanRenderer() {
+VulkanContext *GlobalContext::GetVulkanContext() {
     CHECK_MSG(initialized_, "Global Context was not initialized")
     return vulkanRenderer_;
 }
