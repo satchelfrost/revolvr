@@ -151,4 +151,17 @@ void Spatial::MakeStaleRecursive() {
             spatial->MakeStaleRecursive();
     }
 }
+
+void Spatial::SetLocalRelative(Spatial *other) {
+    math::Transform relTransform(math::Transform::Identity());
+    math::Transform otherWorld = other->GetWorld();
+    math::Transform thisWorld = GetWorld();
+
+    auto relativePosition = thisWorld.GetPosition() - otherWorld.GetPosition();
+    auto invOrientation = glm::inverse(otherWorld.GetOrientation());
+    relTransform.SetPosition(invOrientation * relativePosition);
+    relTransform.SetOrientation(invOrientation * thisWorld.GetOrientation());
+    relTransform.SetScale(thisWorld.GetScale() / otherWorld.GetScale());
+    local_ = relTransform;
+}
 }

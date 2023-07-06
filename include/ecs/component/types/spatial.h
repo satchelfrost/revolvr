@@ -41,6 +41,9 @@ public:
     void UpdateWorld();
     void MakeStaleRecursive();
 
+    // Sets the local transform relative to another spatial
+    void SetLocalRelative(Spatial* other);
+
 private:
     void ApplyParentRTS(Spatial* parentSpatial);
     math::Transform local_;

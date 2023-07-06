@@ -21,7 +21,6 @@ public:
     static GlobalContext* Inst();
     void Init(android_app *app);
 
-    void BeginSystems();
     void UpdateSystems(float deltaTime);
 
     AudioEngine* GetAudioEngine();

@@ -72,7 +72,7 @@ void SetSpatialWithJointPose(Spatial* spatial, TrackedSpaceType trackedSpaceType
 
 math::Transform GetPlayerRelativeTransform(Spatial* spatial) {
     // Get the player and spatial world transforms
-    math::Transform playerRelTransform(math::Transform::Identity());
+    math::Transform playerRelTransform;
     auto player = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(GlobalContext::Inst()->PLAYER_ID);
     CHECK_MSG(player, "Player spatial does not exist inside of GetPlayerRelativeTransform()");
     math::Transform playerWorld = player->GetWorld();

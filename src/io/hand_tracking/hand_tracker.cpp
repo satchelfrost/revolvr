@@ -11,7 +11,6 @@
 
 namespace rvr {
 void HandTracker::Init(XrInstance instance, XrSession session, Hand which) {
-    valid = false;
     which_ = which;
     InitializeFunctionExtensions(instance);
     SetupHandTracker(session);
