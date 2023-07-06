@@ -12,7 +12,7 @@
 
 namespace rvr {
 XrContext::XrContext() {
-    vulkanRenderer_ = GlobalContext::Inst()->GetVulkanRenderer();
+    vulkanRenderer_ = GlobalContext::Inst()->GetVulkanContext();
 
     InitializePlatformLoader();
     CreateXrInstance();

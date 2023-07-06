@@ -41,9 +41,12 @@ void App::Run(struct android_app *app) {
 //    scene_.LoadScene("test_scenes/movement");
 //    scene_.LoadScene("test_scenes/hand_shooting_stuff");
 
+    if(!globalContext_->GetAudioEngine()->start())
+        THROW("Failed to start Audio engine");
+
     AndroidContext* androidContext = globalContext_->GetAndroidContext();
     XrContext* xrContext = globalContext_->GetXrContext();
-    VulkanRenderer* vulkanRenderer = globalContext_->GetVulkanRenderer();
+    VulkanContext* vulkanRenderer = globalContext_->GetVulkanContext();
 
     GameLoopTimer timer;
     while (app->destroyRequested == 0) {

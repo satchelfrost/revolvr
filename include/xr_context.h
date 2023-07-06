@@ -11,7 +11,7 @@
 #include <pch.h>
 #include <common.h>
 #include <platform/android_context.h>
-#include <renderer/vulkan_renderer.h>
+#include <rendering/vulkan_context.h>
 
 #include "rvr_reference_space.h"
 #include "xr_app_helpers.h"
@@ -82,7 +82,7 @@ private:
 
     void LogActionSourceName(Action* action) const;
 
-    VulkanRenderer* vulkanRenderer_;
+    VulkanContext* vulkanRenderer_;
 
     XrInstance xrInstance_{XR_NULL_HANDLE};
     XrSystemId xrSystemId_{XR_NULL_SYSTEM_ID};

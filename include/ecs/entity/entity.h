@@ -29,7 +29,6 @@ public:
 
     // Tree related methods
     void AddChild(Entity* child);
-    void SetParent(Entity* parent);
     Entity* GetParent();
     std::list<Entity*>& GetChildren();
     void Destroy();
@@ -38,6 +37,7 @@ public:
     const int id;
 
 private:
+    void SetParent(Entity* parent);
     void DestroyRecursive();
     void GenerateAndSetName();
     void RemoveFromParent();

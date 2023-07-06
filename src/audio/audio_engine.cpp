@@ -15,10 +15,7 @@ namespace rvr {
 // Double-buffering offers a good tradeoff between latency and protection against glitches.
 constexpr int32_t kBufferSizeInBursts = 2;
 
-AudioEngine::AudioEngine() {
-    if (!start())
-        THROW("Failed to start Audio engine");
-}
+AudioEngine::AudioEngine() {}
 
 bool AudioEngine::start() {
     AAudioStreamBuilder *streamBuilder;
