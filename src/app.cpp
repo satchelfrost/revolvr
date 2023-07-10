@@ -58,9 +58,18 @@ void App::Run(struct android_app *app) {
 
         // Handle OpenXR Events
         xrContext->PollXrEvents(&exitRenderLoop_, &requestRestart_);
+        if (exitRenderLoop_) {
+            PrintInfo(("Exit render loop requested"));
+            ANativeActivity_finish(app->activity);
+            continue;
+        }
 
         // Do not begin frame unless session is running
-        if (!xrContext->IsSessionRunning()) continue;
+        if (!xrContext->IsSessionRunning()) {
+            PrintVerbose("Session not running yet, throttle 250 ms");
+            std::this_thread::sleep_for(std::chrono::milliseconds(250));
+            continue;
+        }
 
         // Begin frame sequence
         xrContext->BeginFrame();

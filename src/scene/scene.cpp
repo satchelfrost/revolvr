@@ -17,14 +17,14 @@
 
 namespace rvr {
 void Scene::LoadScene(const std::string &sceneName) {
-    Log::Write(Log::Level::Info, Fmt("Loading scene %s", sceneName.c_str()));
+    PrintInfo("Loading scene " + sceneName);
     Parser parser(sceneName + ".rvr");
     auto units = parser.Parse();
     InitUnits(units);
     CreateHierarchy();
     CreateRituals(units);
     Checks();
-    Log::Write(Log::Level::Info, Fmt("Loaded scene %s", sceneName.c_str()));
+    PrintInfo("Successfully loaded scene " + sceneName);
 
     // TODO: put this in scene manager once that exists
     system::ritual::Begin();
@@ -87,7 +87,7 @@ Entity* Scene::CreateEntity(const Parser::Heading& heading) {
             GlobalContext::Inst()->PLAYER_ID = entity->id;
     }
     catch (std::out_of_range& e) {
-        Log::Write(Log::Level::Info, Fmt("[%s] generating default name", entity->GetName().c_str()));
+        PrintVerbose("[" + entity->GetName() + "] generating default name");
     }
 
     return entity;
@@ -113,8 +113,7 @@ void Scene::SaveHierarchyInfo(Entity* entity, const Parser::Heading& heading) {
         parentIdMap_[entity->id] = heading.strKeyNumVal.at("parent");
     }
     catch (std::out_of_range& e) {
-        Log::Write(Log::Level::Info, Fmt("[%s] using root as default parent",
-                          entity->GetName().c_str()));
+        PrintVerbose("[" + entity->GetName() + "] using root as default parent");
         parentIdMap_[entity->id] = 0;
     }
 }

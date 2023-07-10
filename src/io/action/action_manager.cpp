@@ -17,8 +17,8 @@ ActionManager::ActionManager() {
 }
 
 ActionManager::~ActionManager() {
-    for (auto action : actions_)
-        delete action;
+//    for (auto action : actions_)
+//        delete action;
 }
 
 void ActionManager::Init(XrInstance& instance) {
@@ -100,6 +100,9 @@ Action* ActionManager::GetAction(ActionType type) {
 }
 
 void ActionManager::EndSession() {
+    for (auto action : actions_)
+        delete action;
+
     if (actionSet != XR_NULL_HANDLE) {
         xrDestroyActionSet(actionSet);
     }

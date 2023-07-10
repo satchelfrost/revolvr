@@ -113,13 +113,6 @@ void XrContext::InitializeSession() {
     createInfo.next = vulkanRenderer_->GetGraphicsBinding();
     createInfo.systemId = xrSystemId_;
     CHECK_XRCMD(xrCreateSession(xrInstance_, &createInfo, &session));
-
-//    InitializeActions();
-//    InitializeReferenceSpaces();
-
-    // TODO: Ensure this can be deleted
-//    XrReferenceSpaceCreateInfo referenceSpaceCreateInfo = GetXrReferenceSpaceCreateInfo(RVRReferenceSpace::TrackedOrigin);
-//    CHECK_XRCMD(xrCreateReferenceSpace(session, &referenceSpaceCreateInfo, &appSpace));
 }
 
 void XrContext::InitializeActions() {
@@ -245,7 +238,7 @@ void XrContext::PollXrEvents(bool* exitRenderLoop, bool* requestRestart) {
         switch (event->type) {
             case XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING: {
                 const auto& instanceLossPending = *reinterpret_cast<const XrEventDataInstanceLossPending*>(event);
-                Log::Write(Log::Level::Info, Fmt("XrEventDataInstanceLossPending by %lld", instanceLossPending.lossTime));
+                PrintInfo(Fmt("XrEventDataInstanceLossPending by %lld", instanceLossPending.lossTime));
                 *exitRenderLoop = true;
                 *requestRestart = true;
                 return;
@@ -256,12 +249,14 @@ void XrContext::PollXrEvents(bool* exitRenderLoop, bool* requestRestart) {
                 break;
             }
             case XR_TYPE_EVENT_DATA_INTERACTION_PROFILE_CHANGED:
-//                for (auto action : actionManager.GetActions())
-//                    LogActionSourceName(action);
+                for (auto action : actionManager.GetActions())
+                    LogActionSourceName(action);
                 break;
             case XR_TYPE_EVENT_DATA_REFERENCE_SPACE_CHANGE_PENDING:
+                PrintInfo("XR_TYPE_EVENT_DATA_REFERENCE_SPACE_CHANGE_PENDING");
+                break;
             default: {
-                Log::Write(Log::Level::Info, Fmt("Ignoring event type %d", event->type));
+                PrintInfo("Ignoring event type %d" + std::to_string(event->type));
                 break;
             }
         }
@@ -279,16 +274,10 @@ void XrContext::HandleSessionStateChangedEvent(const XrEventDataSessionStateChan
                                                bool* requestRestart) {
     const XrSessionState oldState = xrSessionState_;
     xrSessionState_ = stateChangedEvent.state;
-
-//    Log::Write(Log::Level::Info,
-//               Fmt("XrEventDataSessionStateChanged: state %s->%s session=%lld time=%lld",
-//                   to_string(oldState),
-//                   to_string(xrSessionState_),
-//                   stateChangedEvent.session,
-//                   stateChangedEvent.time));
+    PrintInfo(Fmt("%s -> %s", to_string(oldState), to_string(xrSessionState_)));
 
     if ((stateChangedEvent.session != XR_NULL_HANDLE) && (stateChangedEvent.session != session)) {
-        Log::Write(Log::Level::Info, "XrEventDataSessionStateChanged for unknown session");
+        PrintInfo("XrEventDataSessionStateChanged for unknown session");
         return;
     }
 
@@ -365,8 +354,7 @@ void XrContext::LogActionSourceName(Action* action) const {
         sourceName += "'";
     }
 
-    Log::Write(Log::Level::Info,
-               Fmt("%s action is bound to %s", toString(action->type).c_str(),
+    PrintVerbose(Fmt("%s action is bound to %s", toString(action->type).c_str(),
                        ((!sourceName.empty()) ? sourceName.c_str() : "nothing")));
 }
 

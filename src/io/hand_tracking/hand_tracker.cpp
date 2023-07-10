@@ -201,6 +201,9 @@ void HandTracker::EndSession() {
     if (xrDestroyHandTrackerEXT_ && handTracker_ != XR_NULL_HANDLE) {
         CHECK_XRCMD(xrDestroyHandTrackerEXT_(handTracker_));
     }
+    else {
+        PrintError("Failed to destroy hand tracker");
+    }
 }
 
 bool HandTracker::FullyHandTracked() {
