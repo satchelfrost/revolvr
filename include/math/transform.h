@@ -64,7 +64,7 @@ public:
     // Creates a new Transform based on the current one translated by the given offset
     Transform Translated(glm::vec3 offset) const;
 
-    // Creates a new Transform based on the current one rotated by using the given axis and angle
+    // Creates a new Transform based on the current one rotated by using the given axis and angle (radians)
     Transform Rotated(glm::vec3 axis, float theta) const;
 
     // Creates a new Transform based on the current one scaled by using the given scale

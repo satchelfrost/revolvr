@@ -120,8 +120,17 @@ Entity *Entity::Clone(type::EntityId newEntityId) {
 }
 
 Entity *Entity::Clone() {
+    // Check if entity has parent
+    Entity* newEntity;
+    if (parent_) {
+        newEntity = GlobalContext::Inst()->GetECS()->CreateNewEntity(false);
+        parent_->AddChild(newEntity);
+    }
+    else {
+        newEntity = GlobalContext::Inst()->GetECS()->CreateNewEntity();
+    }
+
     // First clone any children
-    auto newEntity = GlobalContext::Inst()->GetECS()->CreateNewEntity();
     for (auto child : children_)
         newEntity->AddChild(child->Clone());
     for (auto componentType : GetComponentTypes()) {

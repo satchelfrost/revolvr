@@ -36,9 +36,9 @@ void App::Run(struct android_app *app) {
 //    scene_.LoadScene("test_scenes/sound_test");
 //    scene_.LoadScene("test_scenes/spinning_pointer");
 //    scene_.LoadScene("test_scenes/generic");
-//    scene_.LoadScene("test_scenes/conway");
+    scene_.LoadScene("test_scenes/conway");
 //    scene_.LoadScene("test_scenes/hand_tracking");
-    scene_.LoadScene("test_scenes/movement");
+//    scene_.LoadScene("test_scenes/movement");
 //    scene_.LoadScene("test_scenes/hand_shooting_stuff");
 
     if(!globalContext_->GetAudioEngine()->start())
@@ -58,9 +58,18 @@ void App::Run(struct android_app *app) {
 
         // Handle OpenXR Events
         xrContext->PollXrEvents(&exitRenderLoop_, &requestRestart_);
+        if (exitRenderLoop_) {
+            PrintInfo(("Exit render loop requested"));
+            ANativeActivity_finish(app->activity);
+            continue;
+        }
 
         // Do not begin frame unless session is running
-        if (!xrContext->IsSessionRunning()) continue;
+        if (!xrContext->IsSessionRunning()) {
+            PrintVerbose("XrSession not running yet, sleep 250 ms");
+            std::this_thread::sleep_for(std::chrono::milliseconds(250));
+            continue;
+        }
 
         // Begin frame sequence
         xrContext->BeginFrame();

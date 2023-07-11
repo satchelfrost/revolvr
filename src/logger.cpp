@@ -20,8 +20,8 @@
 #endif
 
 namespace {
-Log::Level g_minSeverity{Log::Level::Info};
-std::mutex g_logLock;
+    Log::Level g_minSeverity{Log::Level::Info};
+    std::mutex g_logLock;
 }  // namespace
 
 namespace Log {
@@ -59,4 +59,22 @@ void Write(Level severity, const std::string& msg) {
     else
         ALOGV("%s", out.str().c_str());
 }
-}  // namespace Log
+}
+
+namespace rvr {
+void PrintInfo(const std::string &msg) {
+    Log::Write(Log::Level::Info, msg);
+}
+
+void PrintWarning(const std::string &msg) {
+    Log::Write(Log::Level::Warning, msg);
+}
+
+void PrintError(const std::string &msg) {
+    Log::Write(Log::Level::Error, msg);
+}
+
+void PrintVerbose(const std::string &msg) {
+    Log::Write(Log::Level::Verbose, msg);
+}
+}

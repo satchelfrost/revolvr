@@ -13,7 +13,7 @@
 
 namespace rvr {
 namespace constants {
-const int MAX_ENTITIES = 100;
+const int MAX_ENTITIES = 500;
 const int ROOT_ID = 0;
 
 #define _IMPLEMENTED_COMPONENTS sizeof componentInfo / sizeof componentInfo[0]

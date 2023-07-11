@@ -13,8 +13,13 @@
 namespace rvr::system::timer {
 void UpdateTicks() {
     auto components = GlobalContext::Inst()->GetECS()->GetComponents(ComponentType::Timer);
-    for (auto& [eid, component] : components)
-        reinterpret_cast<Timer*>(component)->Tick();
+    for (auto& [eid, component] : components) {
+        auto timer = dynamic_cast<Timer*>(component);
+        if (timer)
+            timer->Tick();
+        else
+            PrintWarning("No timer component found");
+    }
 }
 void Start() {
     auto components = GlobalContext::Inst()->GetECS()->GetComponents(ComponentType::Timer);
