@@ -66,7 +66,7 @@ void App::Run(struct android_app *app) {
 
         // Do not begin frame unless session is running
         if (!xrContext->IsSessionRunning()) {
-            PrintVerbose("Session not running yet, throttle 250 ms");
+            PrintVerbose("XrSession not running yet, sleep 250 ms");
             std::this_thread::sleep_for(std::chrono::milliseconds(250));
             continue;
         }

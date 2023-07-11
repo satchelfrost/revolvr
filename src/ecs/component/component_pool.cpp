@@ -32,7 +32,8 @@ Component *ComponentPool::GetComponent(type::EntityId id) {
         return components_.at(id);
     }
     catch (std::out_of_range& e) {
-        Log::Write(Log::Level::Verbose, Fmt("Component does not exist for id %d", id));
+        std::string cType = std::string(toString(poolType_));
+        PrintWarning(cType + " component does not exist for id " + std::to_string(id));
         return nullptr;
     }
 }

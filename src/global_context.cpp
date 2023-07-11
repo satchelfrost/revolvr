@@ -40,8 +40,8 @@ GlobalContext::~GlobalContext() {
     delete audioEngine_;
     delete vulkanRenderer_;
     delete ecs_;
-    delete androidContext_;
     delete xrContext_;
+    delete androidContext_;
 }
 
 AudioEngine *GlobalContext::GetAudioEngine() {
