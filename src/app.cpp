@@ -64,6 +64,10 @@ void App::Run(struct android_app *app) {
             continue;
         }
 
+        if (requestRestart_) {
+            PrintWarning("Requested restart");
+        }
+
         // Do not begin frame unless session is running
         if (!xrContext->IsSessionRunning()) {
             PrintVerbose("XrSession not running yet, sleep 250 ms");
