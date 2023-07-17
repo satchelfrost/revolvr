@@ -10,5 +10,5 @@ Cristhian De La Paz (cdelapaz0) & Reese Gallagher (satchelfrost)
 
 (in alphabetical order)
 
-Cristhian De La Paz (cdelapaz0)
-Reese Gallagher (satchelfrost)
+    Cristhian De La Paz (cdelapaz0)
+    Reese Gallagher (satchelfrost)
