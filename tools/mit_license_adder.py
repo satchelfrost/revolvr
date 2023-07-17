@@ -1,13 +1,11 @@
 import os
 
 MIT_LICENSE_HEADER = """\
-/********************************************************************/
-/*                            MIT License                           */
-/*                                                                  */
-/*  Copyright (c) 2022-present Reese Gallagher, Cristhian De La Paz */
-/*  This code is licensed under the MIT license (MIT)               */
-/*  (http://opensource.org/licenses/MIT)                            */
-/********************************************************************/
+/***************************************************************************/
+/* Copyright (c) 2022-present RevolVR Engine contributors (see authors.md) */
+/* This code is licensed under the MIT license (MIT)                       */
+/* (http://opensource.org/licenses/MIT)                                    */
+/***************************************************************************/
 """
 
 def add_license_header(filename, header):

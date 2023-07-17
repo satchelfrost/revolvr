@@ -1,10 +1,8 @@
-/********************************************************************/
-/*                            MIT License                           */
-/*                                                                  */
-/*  Copyright (c) 2022-present Reese Gallagher, Cristhian De La Paz */
-/*  This code is licensed under the MIT license (MIT)               */
-/*  (http://opensource.org/licenses/MIT)                            */
-/********************************************************************/
+/***************************************************************************/
+/* Copyright (c) 2022-present RevolVR Engine contributors (see authors.md) */
+/* This code is licensed under the MIT license (MIT)                       */
+/* (http://opensource.org/licenses/MIT)                                    */
+/***************************************************************************/
 
 #include <common.h>
 #include <ecs/component/types/ritual.h>
