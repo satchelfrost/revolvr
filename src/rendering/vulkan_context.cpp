@@ -180,18 +180,18 @@ void VulkanContext::InitializeDevice(XrInstance instance, XrSystemId systemId) {
     deviceCreateInfo.vulkanCreateInfo = &deviceInfo;
     deviceCreateInfo.vulkanPhysicalDevice = m_vkPhysicalDevice;
     deviceCreateInfo.vulkanAllocator = nullptr;
-    CHECK_XRCMD(CreateVulkanDeviceKHR(instance, &deviceCreateInfo, &m_vkDevice, &err));
+    CHECK_XRCMD(CreateVulkanDeviceKHR(instance, &deviceCreateInfo, &device_, &err));
     CHECK_VKCMD(err);
 
-    vkGetDeviceQueue(m_vkDevice, queueInfo.queueFamilyIndex, 0, &m_vkQueue);
+    vkGetDeviceQueue(device_, queueInfo.queueFamilyIndex, 0, &m_vkQueue);
 
-    m_memAllocator.Init(m_vkPhysicalDevice, m_vkDevice);
+    m_memAllocator.Init(m_vkPhysicalDevice, device_);
 
     InitializeResources();
 
     m_graphicsBinding.instance = m_vkInstance;
     m_graphicsBinding.physicalDevice = m_vkPhysicalDevice;
-    m_graphicsBinding.device = m_vkDevice;
+    m_graphicsBinding.device = device_;
     m_graphicsBinding.queueFamilyIndex = queueInfo.queueFamilyIndex;
     m_graphicsBinding.queueIndex = 0;
 }
@@ -216,21 +216,21 @@ void VulkanContext::InitializeResources() {
     if (vertexSPIRV.empty()) THROW("Failed to compile vertex shader");
     if (fragmentSPIRV.empty()) THROW("Failed to compile fragment shader");
 
-    m_shaderProgram.Init(m_vkDevice);
+    m_shaderProgram.Init(device_);
     m_shaderProgram.LoadVertexShader(vertexSPIRV);
     m_shaderProgram.LoadFragmentShader(fragmentSPIRV);
 
     // Semaphore to block on draw complete
     VkSemaphoreCreateInfo semInfo{VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
-    CHECK_VKCMD(vkCreateSemaphore(m_vkDevice, &semInfo, nullptr, &m_vkDrawDone));
+    CHECK_VKCMD(vkCreateSemaphore(device_, &semInfo, nullptr, &m_vkDrawDone));
 
-    if (!m_cmdBuffer.Init(m_vkDevice, m_queueFamilyIndex))
+    if (!m_cmdBuffer.Init(device_, m_queueFamilyIndex))
         THROW("Failed to create command buffer");
 
-    m_pipelineLayout.Create(m_vkDevice);
+    m_pipelineLayout.Create(device_);
 
     static_assert(sizeof(Geometry::Vertex) == 24, "Unexpected Vertex size");
-    m_drawBuffer.Init(m_vkDevice, &m_memAllocator,
+    m_drawBuffer.Init(device_, &m_memAllocator,
                       {{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Geometry::Vertex, Position)},
                        {1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Geometry::Vertex, Color)}});
     uint32_t numCubeIndices = sizeof(Geometry::c_cubeIndices) / sizeof(Geometry::c_cubeIndices[0]);
@@ -272,7 +272,7 @@ std::vector<XrSwapchainImageBaseHeader *> VulkanContext::AllocateSwapchainImageS
     SwapchainImageContext &swapchainImageContext = m_swapchainImageContexts.back();
 
     std::vector<XrSwapchainImageBaseHeader *> bases = swapchainImageContext.Create(
-            m_vkDevice, &m_memAllocator, capacity, swapchainCreateInfo, m_pipelineLayout,
+            device_, &m_memAllocator, capacity, swapchainCreateInfo, m_pipelineLayout,
             m_shaderProgram, m_drawBuffer);
 
     // Map every swapchainImage base pointer to this context

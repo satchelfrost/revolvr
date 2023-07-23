@@ -75,7 +75,7 @@ private:
 
     VkInstance m_vkInstance{VK_NULL_HANDLE};
     VkPhysicalDevice m_vkPhysicalDevice{VK_NULL_HANDLE};
-    VkDevice m_vkDevice{VK_NULL_HANDLE};
+    VkDevice device_{VK_NULL_HANDLE};
     uint32_t m_queueFamilyIndex = 0;
     VkQueue m_vkQueue{VK_NULL_HANDLE};
     VkSemaphore m_vkDrawDone{VK_NULL_HANDLE};
