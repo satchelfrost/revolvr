@@ -4,6 +4,22 @@
 #include <pch.h>
 
 namespace rvr {
+VkResult CreateDebugReportCallbackEXT(VkInstance instance, VkDebugReportCallbackCreateInfoEXT* createInfo,
+                                      const VkAllocationCallbacks* pAllocator, VkDebugReportCallbackEXT* callback) {
+    auto func = (PFN_vkCreateDebugReportCallbackEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT");
+    if (func)
+        return func(instance, createInfo, pAllocator, callback);
+    else
+        return VK_ERROR_EXTENSION_NOT_PRESENT;
+}
+
+void DestroyDebugReportCallbackEXT(VkInstance instance, VkDebugReportCallbackEXT callback,
+                                   const VkAllocationCallbacks* pAllocator) {
+    auto func = (PFN_vkDestroyDebugReportCallbackEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugReportCallbackEXT");
+    if (func != nullptr)
+        func(instance, callback, pAllocator);
+}
+
 VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallback(VkDebugReportFlagsEXT flags,
                                                    VkDebugReportObjectTypeEXT objectType, uint64_t object,
                                                    size_t location, int32_t messageCode,
@@ -138,5 +154,10 @@ XrResult GetVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystemId syste
     CHECK_XRCMD(xrGetInstanceProcAddr(instance, "xrGetVulkanGraphicsRequirements2KHR",
                                       reinterpret_cast<PFN_xrVoidFunction *>(&pfnGetVulkanGraphicsRequirements2KHR)));
     return pfnGetVulkanGraphicsRequirements2KHR(instance, systemId, graphicsRequirements);
+}
+
+void CheckVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystemId systemId,
+                                         XrGraphicsRequirementsVulkan2KHR* graphicsRequirements) {
+    CHECK_XRCMD(GetVulkanGraphicsRequirements2KHR(instance, systemId, graphicsRequirements));
 }
 }

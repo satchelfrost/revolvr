@@ -25,16 +25,30 @@ class XrContext;
 
 class VulkanContext {
 public:
-    static std::vector<std::string> GetInstanceExtensions();
-    void InitializeDevice(XrInstance instance, XrSystemId systemId);
+    void Init(XrInstance xrInstance, XrSystemId systemId);
+    void Cleanup();
+
+    // TODO: Get rid of this
+    void InitializeDevice(XrInstance xrInstance, XrSystemId systemId);
+
     std::vector<XrSwapchainImageBaseHeader*> AllocateSwapchainImageStructs(
             uint32_t capacity,
             const XrSwapchainCreateInfo& swapchainCreateInfo);
+
+    static std::vector<std::string> GetInstanceExtensions();
     static uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView& view);
     const XrBaseInStructure* GetGraphicsBinding() const;
     void Render();
 
 private:
+    // Vulkan initialization methods
+    void CreateVulkanInstance(XrInstance xrInstance, XrSystemId systemId);
+    bool CheckValidationLayerSupport();
+//    std::vector<const char*> GetRequiredExtensions();
+    void SetupReportCallback();
+//    void PickPhysicalDevice();
+//    void CreateLogicalDevice();
+
     void DrawGrid();
     void RenderView(const XrCompositionLayerProjectionView& layerView, const XrSwapchainImageBaseHeader* swapchainImage,
                     int64_t swapchainFormat, const std::vector<math::Transform>& cubes);
@@ -60,11 +74,19 @@ private:
     PipelineLayout pipelineLayout_{};
     VertexBuffer<Geometry::Vertex> drawBuffer_{};
 
-    PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallbackEXT{nullptr};
-    PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallbackEXT{nullptr};
+    PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallbackEXT_{nullptr};
+    PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallbackEXT_{nullptr};
     VkDebugReportCallbackEXT debugReporter_{VK_NULL_HANDLE};
 
     static XrStructureType GetSwapchainImageType() ;
     void InitializeResources();
+
+    const std::vector<const char*> requestedValidationLayers_ = {"VK_LAYER_KHRONOS_validation"};
+
+    #if !defined(NDEBUG)
+    const bool enableValidationLayers_ = true;
+    #else
+    const bool enableValidationLayers_ = false;
+    #endif
 };
 }

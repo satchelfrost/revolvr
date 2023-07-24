@@ -14,23 +14,71 @@
 #include <rendering/utilities/vulkan_utils.h>
 
 namespace rvr {
-void VulkanContext::InitializeDevice(XrInstance instance, XrSystemId systemId) {
-    // Create the Vulkan device for the adapter associated with the system.
-    // Extension function must be loaded by name
+void VulkanContext::Init(XrInstance xrInstance, XrSystemId systemId) {
     XrGraphicsRequirementsVulkan2KHR graphicsRequirements{XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN2_KHR};
-    CHECK_XRCMD(GetVulkanGraphicsRequirements2KHR(instance, systemId, &graphicsRequirements));
+    CheckVulkanGraphicsRequirements2KHR(xrInstance, systemId, &graphicsRequirements);
+    CreateVulkanInstance(xrInstance, systemId);
+    SetupReportCallback();
+}
 
+void VulkanContext::CreateVulkanInstance(XrInstance xrInstance, XrSystemId systemId) {
+    bool validationLayerFound = CheckValidationLayerSupport();
+    if (enableValidationLayers_ && !validationLayerFound)
+        PrintWarning("Validation layers requested but not found");
+
+    // Optional application information
+    VkApplicationInfo appInfo{VK_STRUCTURE_TYPE_APPLICATION_INFO};
+    appInfo.pApplicationName = "app";
+    appInfo.applicationVersion = 1;
+    appInfo.pEngineName = "RevolVR";
+    appInfo.engineVersion = 1;
+    appInfo.apiVersion = VK_API_VERSION_1_0;
+
+    // Vulkan instance information
+    VkInstanceCreateInfo vkCreateInfo{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
+    vkCreateInfo.pApplicationInfo = &appInfo;
+    std::vector<const char *> extensions = {"VK_EXT_debug_report"};
+    if (enableValidationLayers_ && validationLayerFound) {
+        vkCreateInfo.enabledLayerCount = (uint32_t) requestedValidationLayers_.size();
+        vkCreateInfo.ppEnabledLayerNames = requestedValidationLayers_.data();
+        vkCreateInfo.enabledExtensionCount = (uint32_t) extensions.size();
+        vkCreateInfo.ppEnabledExtensionNames = extensions.data();
+    }
+    else {
+        vkCreateInfo.enabledLayerCount = 0;
+        vkCreateInfo.ppEnabledLayerNames = nullptr;
+        vkCreateInfo.enabledExtensionCount = (uint32_t) extensions.size();
+        vkCreateInfo.ppEnabledExtensionNames = extensions.data();
+    }
+
+    // OpenXR-Specific Vulkan instance information
+    XrVulkanInstanceCreateInfoKHR createInfo{XR_TYPE_VULKAN_INSTANCE_CREATE_INFO_KHR};
+    createInfo.systemId = systemId;
+    createInfo.pfnGetInstanceProcAddr = &vkGetInstanceProcAddr;
+    createInfo.vulkanCreateInfo = &vkCreateInfo;
+    createInfo.vulkanAllocator = nullptr;
+
+    VkResult vkResult;
+    XrResult xrResult;
+    xrResult = CreateVulkanInstanceKHR(xrInstance, &createInfo, &instance_,
+                                       &vkResult);
+    CHECK_XRCMD(xrResult);
+    CHECK_VKCMD(vkResult);
+}
+
+void VulkanContext::InitializeDevice(XrInstance instance, XrSystemId systemId) {
+    XrGraphicsRequirementsVulkan2KHR graphicsRequirements{XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN2_KHR};
+    CheckVulkanGraphicsRequirements2KHR(instance, systemId, &graphicsRequirements);
 
     std::vector<const char *> layers;
-    #if !defined(NDEBUG)
-    const char *const validationLayerName = GetValidationLayerName();
-    if (validationLayerName)
-        layers.push_back(validationLayerName);
-    else
-        PrintWarning("No validation layers found in the system, skipping");
-    #endif
+//    #if !defined(NDEBUG)
+//    const char *const validationLayerName = GetValidationLayerName();
+//    if (validationLayerName)
+//        layers.push_back(validationLayerName);
+//    else
+//        PrintWarning("No validation layers found in the system, skipping");
+//    #endif
 
-    std::vector<const char *> extensions = {"VK_EXT_debug_report"};
     VkApplicationInfo appInfo{VK_STRUCTURE_TYPE_APPLICATION_INFO};
     appInfo.pApplicationName = "fts";
     appInfo.applicationVersion = 1;
@@ -38,6 +86,7 @@ void VulkanContext::InitializeDevice(XrInstance instance, XrSystemId systemId) {
     appInfo.engineVersion = 1;
     appInfo.apiVersion = VK_API_VERSION_1_0;
 
+    std::vector<const char *> extensions = {"VK_EXT_debug_report"};
     VkInstanceCreateInfo instInfo{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
     instInfo.pApplicationInfo = &appInfo;
     instInfo.enabledLayerCount = (uint32_t) layers.size();
@@ -55,9 +104,9 @@ void VulkanContext::InitializeDevice(XrInstance instance, XrSystemId systemId) {
     CHECK_XRCMD(CreateVulkanInstanceKHR(instance, &createInfo, &instance_, &err));
     CHECK_VKCMD(err);
 
-    vkCreateDebugReportCallbackEXT =
+    vkCreateDebugReportCallbackEXT_ =
             (PFN_vkCreateDebugReportCallbackEXT) vkGetInstanceProcAddr(instance_, "vkCreateDebugReportCallbackEXT");
-    vkDestroyDebugReportCallbackEXT =
+    vkDestroyDebugReportCallbackEXT_ =
             (PFN_vkDestroyDebugReportCallbackEXT) vkGetInstanceProcAddr(instance_, "vkDestroyDebugReportCallbackEXT");
 
     VkDebugReportCallbackCreateInfoEXT debugInfo{VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT};
@@ -69,7 +118,7 @@ void VulkanContext::InitializeDevice(XrInstance instance, XrSystemId systemId) {
 #endif
     debugInfo.pfnCallback = DebugReportCallback;
     debugInfo.pUserData = this;
-    CHECK_VKCMD(vkCreateDebugReportCallbackEXT(instance_, &debugInfo, nullptr, &debugReporter_));
+    CHECK_VKCMD(vkCreateDebugReportCallbackEXT_(instance_, &debugInfo, nullptr, &debugReporter_));
 
     XrVulkanGraphicsDeviceGetInfoKHR deviceGetInfo{XR_TYPE_VULKAN_GRAPHICS_DEVICE_GET_INFO_KHR};
     deviceGetInfo.systemId = systemId;
@@ -374,5 +423,51 @@ uint32_t VulkanContext::GetSupportedSwapchainSampleCount(const XrViewConfigurati
 
 const XrBaseInStructure* VulkanContext::GetGraphicsBinding() const {
     return reinterpret_cast<const XrBaseInStructure *>(&graphicsBinding_);
+}
+
+bool VulkanContext::CheckValidationLayerSupport() {
+    uint32_t layerCount;
+    vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+    std::vector<VkLayerProperties> availableLayers(layerCount);
+    vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+
+    PrintVerbose("Checking for validation layers");
+    for (const char* layerName : requestedValidationLayers_) {
+        bool layerFound = false;
+        for (const auto& layerProperties : availableLayers) {
+            if (strcmp(layerName, layerProperties.layerName) == 0) {
+                layerFound = true;
+                PrintVerbose("Requested validation layer found");
+                break;
+            }
+        }
+
+        if (!layerFound) {
+            PrintVerbose("Requested validation layer was not found");
+            return false;
+        }
+    }
+    return true;
+}
+
+void VulkanContext::SetupReportCallback() {
+    if (!enableValidationLayers_)
+        return;
+
+    VkDebugReportCallbackCreateInfoEXT createInfo{VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT};
+    createInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT |
+                       VK_DEBUG_REPORT_WARNING_BIT_EXT |
+                       VK_DEBUG_REPORT_INFORMATION_BIT_EXT |
+                       VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT |
+                       VK_DEBUG_REPORT_DEBUG_BIT_EXT;
+    createInfo.pfnCallback = DebugReportCallback;
+    createInfo.pUserData = this;
+    CreateDebugReportCallbackEXT(instance_, &createInfo, nullptr, &debugReporter_);
+}
+
+void VulkanContext::Cleanup() {
+    if (enableValidationLayers_) {
+        DestroyDebugReportCallbackEXT(instance_, debugReporter_, nullptr);
+    }
 }
 }
