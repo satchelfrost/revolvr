@@ -25,7 +25,7 @@ public:
     XrBaseInStructure* GetInstanceCreateExtension() const;
 
     // OpenXR instance-level extensions required by this platform.
-    std::vector<std::string> GetInstanceExtensions();
+    static std::vector<std::string> GetInstanceExtensions();
 
     void HandleAndroidCmd(android_app *app, int32_t cmd);
     int32_t HandleAndroidInput(android_app *app, AInputEvent* event);

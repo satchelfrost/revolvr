@@ -9,8 +9,8 @@
 
 namespace rvr {
 InstanceExtensionManager::InstanceExtensionManager()  {
-    auto androidExtensions = GlobalContext::Inst()->GetAndroidContext()->GetInstanceExtensions();
-    auto vulkanExtensions = GlobalContext::Inst()->GetVulkanContext()->GetInstanceExtensions();
+    auto androidExtensions = AndroidContext::GetInstanceExtensions();
+    auto vulkanExtensions = VulkanContext::GetInstanceExtensions();
     std::vector<std::string> handTrackingExtensions = {XR_EXT_HAND_TRACKING_EXTENSION_NAME,
                                                        XR_FB_HAND_TRACKING_MESH_EXTENSION_NAME,
                                                        XR_FB_HAND_TRACKING_AIM_EXTENSION_NAME,

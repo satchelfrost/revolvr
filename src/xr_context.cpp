@@ -7,6 +7,7 @@
 #include "xr_context.h"
 #include <global_context.h>
 #include <instance_extension_manager.h>
+#include <rendering/utilities/vulkan_utils.h>
 
 namespace rvr {
 XrContext::XrContext() {
@@ -25,29 +26,24 @@ XrContext::XrContext() {
 }
 
 XrContext::~XrContext() {
-    for (Swapchain swapchain : swapchains) {
+    for (Swapchain swapchain : swapchains)
         xrDestroySwapchain(swapchain.handle);
-    }
 
-    for (auto referenceSpace : initializedRefSpaces_) {
+    for (auto referenceSpace : initializedRefSpaces_)
         xrDestroySpace(referenceSpace.second);
-    }
 
-    if (appSpace != XR_NULL_HANDLE) {
+    if (appSpace != XR_NULL_HANDLE)
         xrDestroySpace(appSpace);
-    }
 
     handTrackerLeft_.EndSession();
     handTrackerRight_.EndSession();
     actionManager.EndSession();
 
-    if (session != XR_NULL_HANDLE) {
+    if (session != XR_NULL_HANDLE)
         xrDestroySession(session);
-    }
 
-    if (xrInstance_ != XR_NULL_HANDLE) {
+    if (xrInstance_ != XR_NULL_HANDLE)
         xrDestroyInstance(xrInstance_);
-    }
 }
 
 void XrContext::InitializePlatformLoader() {
@@ -100,7 +96,7 @@ void XrContext::InitializeSystem() {
         THROW("Application requires hand tracking");
 
     // The graphics API can initialize the graphics device
-    vulkanRenderer_->InitializeDevice(xrInstance_, xrSystemId_);
+    vulkanRenderer_->Init(xrInstance_, xrSystemId_);
 }
 
 void XrContext::InitializeSession() {
@@ -168,12 +164,14 @@ void XrContext::CreateSwapchains() {
     if (viewCount > 0) {
         // Select a swapchain format.
         uint32_t swapchainFormatCount;
-        CHECK_XRCMD(xrEnumerateSwapchainFormats(session, 0, &swapchainFormatCount, nullptr));
+        CHECK_XRCMD(xrEnumerateSwapchainFormats(session, 0, &swapchainFormatCount,
+                                                nullptr));
         std::vector<int64_t> swapchainFormats(swapchainFormatCount);
-        CHECK_XRCMD(xrEnumerateSwapchainFormats(session, (uint32_t)swapchainFormats.size(), &swapchainFormatCount,
+        CHECK_XRCMD(xrEnumerateSwapchainFormats(session, (uint32_t)swapchainFormats.size(),
+                                                &swapchainFormatCount,
                                                 swapchainFormats.data()));
         CHECK(swapchainFormatCount == swapchainFormats.size());
-        colorSwapchainFormat = vulkanRenderer_->SelectColorSwapchainFormat(swapchainFormats);
+        colorSwapchainFormat = SelectColorSwapchainFormat(swapchainFormats);
 
         // Create a swapchain for each view.
         for (uint32_t i = 0; i < viewCount; i++) {
@@ -187,7 +185,7 @@ void XrContext::CreateSwapchains() {
             swapchainCreateInfo.height = vp.recommendedImageRectHeight;
             swapchainCreateInfo.mipCount = 1;
             swapchainCreateInfo.faceCount = 1;
-            swapchainCreateInfo.sampleCount = vulkanRenderer_->GetSupportedSwapchainSampleCount(vp);
+            swapchainCreateInfo.sampleCount = VulkanContext::GetSupportedSwapchainSampleCount(vp);
             swapchainCreateInfo.usageFlags = XR_SWAPCHAIN_USAGE_SAMPLED_BIT | XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT;
             Swapchain swapchain;
             swapchain.width = (int32_t)swapchainCreateInfo.width;
