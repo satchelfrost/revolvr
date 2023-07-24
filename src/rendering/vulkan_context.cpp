@@ -19,13 +19,15 @@ void VulkanContext::Init(XrInstance xrInstance, XrSystemId systemId) {
     CheckVulkanGraphicsRequirements2KHR(xrInstance, systemId, &graphicsRequirements);
     CreateVulkanInstance(xrInstance, systemId);
     SetupReportCallback();
+    PickPhysicalDevice(xrInstance, systemId);
+    CreateLogicalDevice(xrInstance, systemId);
+    vkGetDeviceQueue(device_, queueFamilyIndex_, 0, &graphicsQueue_);
+    memAllocator_.Init(physicalDevice_, device_);
+    InitializeResources();
+    StoreGraphicsBinding();
 }
 
 void VulkanContext::CreateVulkanInstance(XrInstance xrInstance, XrSystemId systemId) {
-    bool validationLayerFound = CheckValidationLayerSupport();
-    if (enableValidationLayers_ && !validationLayerFound)
-        PrintWarning("Validation layers requested but not found");
-
     // Optional application information
     VkApplicationInfo appInfo{VK_STRUCTURE_TYPE_APPLICATION_INFO};
     appInfo.pApplicationName = "app";
@@ -38,6 +40,7 @@ void VulkanContext::CreateVulkanInstance(XrInstance xrInstance, XrSystemId syste
     VkInstanceCreateInfo vkCreateInfo{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
     vkCreateInfo.pApplicationInfo = &appInfo;
     std::vector<const char *> extensions = {"VK_EXT_debug_report"};
+    bool validationLayerFound = CheckValidationLayerSupport();
     if (enableValidationLayers_ && validationLayerFound) {
         vkCreateInfo.enabledLayerCount = (uint32_t) requestedValidationLayers_.size();
         vkCreateInfo.ppEnabledLayerNames = requestedValidationLayers_.data();
@@ -64,118 +67,6 @@ void VulkanContext::CreateVulkanInstance(XrInstance xrInstance, XrSystemId syste
                                        &vkResult);
     CHECK_XRCMD(xrResult);
     CHECK_VKCMD(vkResult);
-}
-
-void VulkanContext::InitializeDevice(XrInstance instance, XrSystemId systemId) {
-    XrGraphicsRequirementsVulkan2KHR graphicsRequirements{XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN2_KHR};
-    CheckVulkanGraphicsRequirements2KHR(instance, systemId, &graphicsRequirements);
-
-    std::vector<const char *> layers;
-//    #if !defined(NDEBUG)
-//    const char *const validationLayerName = GetValidationLayerName();
-//    if (validationLayerName)
-//        layers.push_back(validationLayerName);
-//    else
-//        PrintWarning("No validation layers found in the system, skipping");
-//    #endif
-
-    VkApplicationInfo appInfo{VK_STRUCTURE_TYPE_APPLICATION_INFO};
-    appInfo.pApplicationName = "fts";
-    appInfo.applicationVersion = 1;
-    appInfo.pEngineName = "fts";
-    appInfo.engineVersion = 1;
-    appInfo.apiVersion = VK_API_VERSION_1_0;
-
-    std::vector<const char *> extensions = {"VK_EXT_debug_report"};
-    VkInstanceCreateInfo instInfo{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
-    instInfo.pApplicationInfo = &appInfo;
-    instInfo.enabledLayerCount = (uint32_t) layers.size();
-    instInfo.ppEnabledLayerNames = layers.empty() ? nullptr : layers.data();
-    instInfo.enabledExtensionCount = (uint32_t) extensions.size();
-    instInfo.ppEnabledExtensionNames = extensions.empty() ? nullptr : extensions.data();
-
-    XrVulkanInstanceCreateInfoKHR createInfo{XR_TYPE_VULKAN_INSTANCE_CREATE_INFO_KHR};
-    createInfo.systemId = systemId;
-    createInfo.pfnGetInstanceProcAddr = &vkGetInstanceProcAddr;
-    createInfo.vulkanCreateInfo = &instInfo;
-    createInfo.vulkanAllocator = nullptr;
-
-    VkResult err;
-    CHECK_XRCMD(CreateVulkanInstanceKHR(instance, &createInfo, &instance_, &err));
-    CHECK_VKCMD(err);
-
-    vkCreateDebugReportCallbackEXT_ =
-            (PFN_vkCreateDebugReportCallbackEXT) vkGetInstanceProcAddr(instance_, "vkCreateDebugReportCallbackEXT");
-    vkDestroyDebugReportCallbackEXT_ =
-            (PFN_vkDestroyDebugReportCallbackEXT) vkGetInstanceProcAddr(instance_, "vkDestroyDebugReportCallbackEXT");
-
-    VkDebugReportCallbackCreateInfoEXT debugInfo{VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT};
-    debugInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
-#if !defined(NDEBUG)
-    debugInfo.flags |=
-            VK_DEBUG_REPORT_INFORMATION_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT |
-            VK_DEBUG_REPORT_DEBUG_BIT_EXT;
-#endif
-    debugInfo.pfnCallback = DebugReportCallback;
-    debugInfo.pUserData = this;
-    CHECK_VKCMD(vkCreateDebugReportCallbackEXT_(instance_, &debugInfo, nullptr, &debugReporter_));
-
-    XrVulkanGraphicsDeviceGetInfoKHR deviceGetInfo{XR_TYPE_VULKAN_GRAPHICS_DEVICE_GET_INFO_KHR};
-    deviceGetInfo.systemId = systemId;
-    deviceGetInfo.vulkanInstance = instance_;
-    CHECK_XRCMD(GetVulkanGraphicsDevice2KHR(instance, &deviceGetInfo, &physicalDevice_));
-
-    VkDeviceQueueCreateInfo queueInfo{VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO};
-    float queuePriorities = 0;
-    queueInfo.queueCount = 1;
-    queueInfo.pQueuePriorities = &queuePriorities;
-
-    uint32_t queueFamilyCount = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice_, &queueFamilyCount,
-                                             nullptr);
-    std::vector<VkQueueFamilyProperties> queueFamilyProps(queueFamilyCount);
-    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice_, &queueFamilyCount,
-                                             &queueFamilyProps[0]);
-
-    for (uint32_t i = 0; i < queueFamilyCount; ++i) {
-        // Only need graphics (not presentation) for draw queue
-        if ((queueFamilyProps[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0u) {
-            queueFamilyIndex_ = queueInfo.queueFamilyIndex = i;
-            break;
-        }
-    }
-
-    std::vector<const char *> deviceExtensions;
-    VkPhysicalDeviceFeatures features{};
-    VkDeviceCreateInfo deviceInfo{VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO};
-    deviceInfo.queueCreateInfoCount = 1;
-    deviceInfo.pQueueCreateInfos = &queueInfo;
-    deviceInfo.enabledLayerCount = 0;
-    deviceInfo.ppEnabledLayerNames = nullptr;
-    deviceInfo.enabledExtensionCount = (uint32_t) deviceExtensions.size();
-    deviceInfo.ppEnabledExtensionNames = deviceExtensions.empty() ? nullptr : deviceExtensions.data();
-    deviceInfo.pEnabledFeatures = &features;
-
-    XrVulkanDeviceCreateInfoKHR deviceCreateInfo{XR_TYPE_VULKAN_DEVICE_CREATE_INFO_KHR};
-    deviceCreateInfo.systemId = systemId;
-    deviceCreateInfo.pfnGetInstanceProcAddr = &vkGetInstanceProcAddr;
-    deviceCreateInfo.vulkanCreateInfo = &deviceInfo;
-    deviceCreateInfo.vulkanPhysicalDevice = physicalDevice_;
-    deviceCreateInfo.vulkanAllocator = nullptr;
-
-    CHECK_XRCMD(CreateVulkanDeviceKHR(instance, &deviceCreateInfo, &device_, &err));
-    CHECK_VKCMD(err);
-
-    vkGetDeviceQueue(device_, queueInfo.queueFamilyIndex, 0, &graphicsQueue_);
-    memAllocator_.Init(physicalDevice_, device_);
-    InitializeResources();
-
-    graphicsBinding_.type = XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR;
-    graphicsBinding_.instance = instance_;
-    graphicsBinding_.physicalDevice = physicalDevice_;
-    graphicsBinding_.device = device_;
-    graphicsBinding_.queueFamilyIndex = queueInfo.queueFamilyIndex;
-    graphicsBinding_.queueIndex = 0;
 }
 
 void VulkanContext::InitializeResources() {
@@ -431,19 +322,18 @@ bool VulkanContext::CheckValidationLayerSupport() {
     std::vector<VkLayerProperties> availableLayers(layerCount);
     vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
-    PrintVerbose("Checking for validation layers");
     for (const char* layerName : requestedValidationLayers_) {
         bool layerFound = false;
         for (const auto& layerProperties : availableLayers) {
             if (strcmp(layerName, layerProperties.layerName) == 0) {
                 layerFound = true;
-                PrintVerbose("Requested validation layer found");
+                PrintInfo("Requested validation layer found " + std::string(layerName));
                 break;
             }
         }
 
         if (!layerFound) {
-            PrintVerbose("Requested validation layer was not found");
+            PrintWarning("No validation layers found");
             return false;
         }
     }
@@ -466,8 +356,61 @@ void VulkanContext::SetupReportCallback() {
 }
 
 void VulkanContext::Cleanup() {
-    if (enableValidationLayers_) {
+    if (enableValidationLayers_)
         DestroyDebugReportCallbackEXT(instance_, debugReporter_, nullptr);
-    }
+}
+
+void VulkanContext::PickPhysicalDevice(XrInstance xrInstance, XrSystemId systemId) {
+    XrVulkanGraphicsDeviceGetInfoKHR deviceGetInfo{XR_TYPE_VULKAN_GRAPHICS_DEVICE_GET_INFO_KHR};
+    deviceGetInfo.systemId = systemId;
+    deviceGetInfo.vulkanInstance = instance_;
+    CHECK_XRCMD(GetVulkanGraphicsDevice2KHR(xrInstance, &deviceGetInfo,
+                                            &physicalDevice_));
+}
+
+void VulkanContext::CreateLogicalDevice(XrInstance xrInstance, XrSystemId systemId) {
+    QueueFamilyIndices indices = FindQueueFamilies(physicalDevice_);
+    float queuePriority = 1.0f;
+    VkDeviceQueueCreateInfo queueCreateInfo{};
+    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
+    queueCreateInfo.queueCount = 1;
+    queueCreateInfo.pQueuePriorities = &queuePriority;
+
+    // Create the device
+    std::vector<const char *> deviceExtensions;
+    VkPhysicalDeviceFeatures features{};
+    VkDeviceCreateInfo deviceInfo{VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO};
+    deviceInfo.queueCreateInfoCount = 1;
+    deviceInfo.pQueueCreateInfos = &queueCreateInfo;
+    deviceInfo.enabledLayerCount = 0;
+    deviceInfo.ppEnabledLayerNames = nullptr;
+    deviceInfo.enabledExtensionCount = (uint32_t) deviceExtensions.size();
+    deviceInfo.ppEnabledExtensionNames = nullptr;
+    deviceInfo.pEnabledFeatures = &features;
+
+    // OpenXr-Specific device create information
+    XrVulkanDeviceCreateInfoKHR deviceCreateInfo{XR_TYPE_VULKAN_DEVICE_CREATE_INFO_KHR};
+    deviceCreateInfo.systemId = systemId;
+    deviceCreateInfo.pfnGetInstanceProcAddr = &vkGetInstanceProcAddr;
+    deviceCreateInfo.vulkanCreateInfo = &deviceInfo;
+    deviceCreateInfo.vulkanPhysicalDevice = physicalDevice_;
+    deviceCreateInfo.vulkanAllocator = nullptr;
+
+    VkResult vkResult;
+    XrResult xrResult;
+    xrResult = CreateVulkanDeviceKHR(xrInstance, &deviceCreateInfo, &device_,
+                                     &vkResult);
+    CHECK_XRCMD(xrResult);
+    CHECK_VKCMD(vkResult);
+}
+
+void VulkanContext::StoreGraphicsBinding() {
+    graphicsBinding_.type = XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR;
+    graphicsBinding_.instance = instance_;
+    graphicsBinding_.physicalDevice = physicalDevice_;
+    graphicsBinding_.device = device_;
+    graphicsBinding_.queueFamilyIndex = queueFamilyIndex_;
+    graphicsBinding_.queueIndex = 0;
 }
 }

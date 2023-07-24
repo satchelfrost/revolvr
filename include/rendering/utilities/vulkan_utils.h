@@ -2,6 +2,11 @@
 #include <pch.h>
 
 namespace rvr {
+struct QueueFamilyIndices {
+    std::optional<uint32_t> graphicsFamily;
+    bool isComplete() {return graphicsFamily.has_value();}
+};
+
 VkResult CreateDebugReportCallbackEXT(VkInstance instance, VkDebugReportCallbackCreateInfoEXT* createInfo,
                                       const VkAllocationCallbacks* pAllocator,
                                       VkDebugReportCallbackEXT* callback);
@@ -24,4 +29,5 @@ XrResult GetVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystemId syste
                                            XrGraphicsRequirementsVulkan2KHR* graphicsRequirements);
 void CheckVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystemId systemId,
                                          XrGraphicsRequirementsVulkan2KHR* graphicsRequirements);
+QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice physicalDevice);
 }

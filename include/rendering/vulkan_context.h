@@ -27,14 +27,9 @@ class VulkanContext {
 public:
     void Init(XrInstance xrInstance, XrSystemId systemId);
     void Cleanup();
-
-    // TODO: Get rid of this
-    void InitializeDevice(XrInstance xrInstance, XrSystemId systemId);
-
     std::vector<XrSwapchainImageBaseHeader*> AllocateSwapchainImageStructs(
             uint32_t capacity,
             const XrSwapchainCreateInfo& swapchainCreateInfo);
-
     static std::vector<std::string> GetInstanceExtensions();
     static uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView& view);
     const XrBaseInStructure* GetGraphicsBinding() const;
@@ -44,10 +39,10 @@ private:
     // Vulkan initialization methods
     void CreateVulkanInstance(XrInstance xrInstance, XrSystemId systemId);
     bool CheckValidationLayerSupport();
-//    std::vector<const char*> GetRequiredExtensions();
     void SetupReportCallback();
-//    void PickPhysicalDevice();
-//    void CreateLogicalDevice();
+    void PickPhysicalDevice(XrInstance xrInstance, XrSystemId systemId);
+    void CreateLogicalDevice(XrInstance xrInstance, XrSystemId systemId);
+    void StoreGraphicsBinding();
 
     void DrawGrid();
     void RenderView(const XrCompositionLayerProjectionView& layerView, const XrSwapchainImageBaseHeader* swapchainImage,
@@ -56,7 +51,6 @@ private:
                      XrCompositionLayerProjection& layer, XrContext* xrContext);
 
     std::vector<math::Transform> renderBuffer_;
-
     XrGraphicsBindingVulkan2KHR graphicsBinding_{XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR};
     std::list<SwapchainImageContext> swapchainImageContexts_;
     std::map<const XrSwapchainImageBaseHeader*, SwapchainImageContext*> swapchainImageContextMap_;

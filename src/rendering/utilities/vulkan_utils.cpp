@@ -160,4 +160,27 @@ void CheckVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystemId systemI
                                          XrGraphicsRequirementsVulkan2KHR* graphicsRequirements) {
     CHECK_XRCMD(GetVulkanGraphicsRequirements2KHR(instance, systemId, graphicsRequirements));
 }
+
+QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice physicalDevice) {
+    QueueFamilyIndices indices;
+    uint32_t queueFamilyCount = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount,
+                                             nullptr);
+    std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount,
+                                             queueFamilies.data());
+
+    // Here we want the queue family to support graphics
+    int i = 0;
+    for (const auto& queueFamily : queueFamilies) {
+        if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+            indices.graphicsFamily = i;
+
+        if (indices.isComplete())
+            break;
+
+        i++;
+    }
+    return indices;
+}
 }

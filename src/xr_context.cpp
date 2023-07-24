@@ -96,7 +96,7 @@ void XrContext::InitializeSystem() {
         THROW("Application requires hand tracking");
 
     // The graphics API can initialize the graphics device
-    vulkanRenderer_->InitializeDevice(xrInstance_, xrSystemId_);
+    vulkanRenderer_->Init(xrInstance_, xrSystemId_);
 }
 
 void XrContext::InitializeSession() {
