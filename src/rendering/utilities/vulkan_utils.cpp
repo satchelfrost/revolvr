@@ -184,12 +184,19 @@ QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice physicalDevice) {
     return indices;
 }
 
-uint32_t FindSuitableMemoryType(VkPhysicalDevice physicalDevice, uint32_t filter, VkMemoryPropertyFlags flags) {
+uint32_t FindMemoryType(VkPhysicalDevice physicalDevice, uint32_t filter, VkMemoryPropertyFlags flags) {
     VkPhysicalDeviceMemoryProperties properties;
     vkGetPhysicalDeviceMemoryProperties(physicalDevice, &properties);
     for (uint32_t i = 0; i < properties.memoryTypeCount; i++)
         if (filter & (1u << i) && (properties.memoryTypes[i].propertyFlags & flags) == flags)
             return i;
     THROW("Failed to find suitable memory type");
+}
+
+VkMemoryAllocateInfo CreateMemAllocInfo(VkDeviceSize size, uint32_t memIdx) {
+    VkMemoryAllocateInfo info{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
+    info.allocationSize = size;
+    info.memoryTypeIndex = memIdx;
+    return info;
 }
 }

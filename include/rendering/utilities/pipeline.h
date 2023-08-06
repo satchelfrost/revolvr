@@ -8,12 +8,11 @@
 
 #include <pch.h>
 #include <common.h>
+#include <rendering/utilities/render_pass.h>
+#include <rendering/utilities/shader_program.h>
+#include <rendering/utilities/vertex_buffer.h>
 
-class RenderPass;
-class ShaderProgram;
-class VertexBufferBase;
-
-// Simple vertex MVP xform & color fragment shader layout
+namespace rvr {
 class PipelineLayout {
 public:
     VkPipelineLayout layout{VK_NULL_HANDLE};
@@ -52,4 +51,4 @@ public:
 private:
     VkDevice m_vkDevice{VK_NULL_HANDLE};
 };
-
+}

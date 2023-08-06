@@ -8,7 +8,6 @@
 
 #include <pch.h>
 #include <common.h>
-
 #include <rendering/utilities/depth_buffer.h>
 #include <rendering/utilities/geometry.h>
 #include <rendering/utilities/pipeline.h>
@@ -16,30 +15,26 @@
 #include <rendering/utilities/render_pass.h>
 #include <rendering/utilities/vertex_buffer.h>
 
-class MemoryAllocator;
-
+namespace rvr {
 class SwapchainImageContext {
+private:
+    std::vector <XrSwapchainImageVulkan2KHR> swapchainImages_;
+    std::vector <RenderTarget> renderTarget_;
+    VkExtent2D size_{};
+    DepthBuffer depthBuffer_{};
+    RenderPass renderPass_{};
+    Pipeline pipeline_{};
+    XrStructureType swapchainImageType_;
+    VkDevice device_{VK_NULL_HANDLE};
+
 public:
-    std::vector <XrSwapchainImageVulkan2KHR> swapchainImages;
-    std::vector <RenderTarget> renderTarget;
-    VkExtent2D size{};
-    DepthBuffer depthBuffer{};
-    RenderPass rp{};
-    Pipeline pipe{};
-    XrStructureType swapchainImageType;
-
-    SwapchainImageContext() = default;
-    SwapchainImageContext(XrStructureType _swapchainImageType);
-
-    void Create(VkDevice device, MemoryAllocator *memAllocator, uint32_t capacity,
+    void TransitionLayout(CmdBuffer* cmdBuffer, VkImageLayout imageLayout);
+    SwapchainImageContext(XrStructureType swapchainImageType);
+    void Create(VkPhysicalDevice physicalDevice, VkDevice device, uint32_t capacity,
                 const XrSwapchainCreateInfo &swapchainCreateInfo, const PipelineLayout &layout,
                 const ShaderProgram &sp, const VertexBuffer<Geometry::Vertex> &vb);
-
     void BindRenderTarget(uint32_t index, VkRenderPassBeginInfo *renderPassBeginInfo);
     XrSwapchainImageBaseHeader* GetFirstImagePointer();
-
-private:
-    VkDevice m_vkDevice{VK_NULL_HANDLE};
+    VkPipeline GetPipeline();
 };
-
-
+}

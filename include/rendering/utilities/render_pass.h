@@ -9,7 +9,7 @@
 #include <pch.h>
 #include <common.h>
 
-// RenderPass wrapper
+namespace rvr {
 class RenderPass {
 public:
     VkFormat colorFmt{};
@@ -30,3 +30,4 @@ public:
 private:
     VkDevice m_vkDevice{VK_NULL_HANDLE};
 };
+}

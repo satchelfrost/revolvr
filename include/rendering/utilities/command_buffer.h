@@ -9,7 +9,7 @@
 #include <pch.h>
 #include <common.h>
 
-// CmdBuffer - manage VkCommandBuffer state
+namespace rvr {
 class CmdBuffer {
 public:
 
@@ -63,4 +63,4 @@ private:
 
 #undef LIST_CMDBUFFER_STATES
 };
-
+}

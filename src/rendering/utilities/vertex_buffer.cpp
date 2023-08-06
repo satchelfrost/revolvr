@@ -5,21 +5,22 @@
 /***************************************************************************/
 
 #include <rendering/utilities/vertex_buffer.h>
-#include <rendering/utilities/memory_allocator.h>
+#include <rendering/utilities/vulkan_utils.h>
 
+namespace rvr {
 VertexBufferBase::~VertexBufferBase() {
-    if (m_vkDevice != nullptr) {
+    if (device_ != nullptr) {
         if (idxBuf != VK_NULL_HANDLE) {
-            vkDestroyBuffer(m_vkDevice, idxBuf, nullptr);
+            vkDestroyBuffer(device_, idxBuf, nullptr);
         }
         if (idxMem != VK_NULL_HANDLE) {
-            vkFreeMemory(m_vkDevice, idxMem, nullptr);
+            vkFreeMemory(device_, idxMem, nullptr);
         }
         if (vtxBuf != VK_NULL_HANDLE) {
-            vkDestroyBuffer(m_vkDevice, vtxBuf, nullptr);
+            vkDestroyBuffer(device_, vtxBuf, nullptr);
         }
         if (vtxMem != VK_NULL_HANDLE) {
-            vkFreeMemory(m_vkDevice, vtxMem, nullptr);
+            vkFreeMemory(device_, vtxMem, nullptr);
         }
     }
     idxBuf = VK_NULL_HANDLE;
@@ -29,18 +30,22 @@ VertexBufferBase::~VertexBufferBase() {
     bindDesc = {};
     attrDesc.clear();
     count = {0, 0};
-    m_vkDevice = nullptr;
+    device_ = nullptr;
 }
 
-void VertexBufferBase::Init(VkDevice device, const MemoryAllocator *memAllocator,
+void VertexBufferBase::Init(VkPhysicalDevice physicalDevice, VkDevice device,
                             const std::vector<VkVertexInputAttributeDescription> &attr) {
-    m_vkDevice = device;
-    m_memAllocator = memAllocator;
+    device_ = device;
     attrDesc = attr;
 }
 
-void VertexBufferBase::AllocateBufferMemory(VkBuffer buf, VkDeviceMemory *mem) const {
+void VertexBufferBase::AllocateBufferMemory(VkPhysicalDevice physicalDevice, VkBuffer buf, VkDeviceMemory *mem) const {
     VkMemoryRequirements memReq = {};
-    vkGetBufferMemoryRequirements(m_vkDevice, buf, &memReq);
-    m_memAllocator->Allocate(memReq, mem);
+    vkGetBufferMemoryRequirements(device_, buf, &memReq);
+    uint32_t memIdx = FindMemoryType(physicalDevice, memReq.memoryTypeBits,
+                                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    VkMemoryAllocateInfo allocInfo = CreateMemAllocInfo(memReq.size, memIdx);
+    VkResult result = vkAllocateMemory(device_, &allocInfo, nullptr, mem);
+    CHECK_VKCMD(result);
+}
 }

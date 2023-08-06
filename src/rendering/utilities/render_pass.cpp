@@ -8,6 +8,7 @@
 #include <rendering//utilities/vulkan_results.h>
 #include <array>
 
+namespace rvr {
 bool RenderPass::Create(VkDevice device, VkFormat aColorFmt, VkFormat aDepthFmt) {
     m_vkDevice = device;
     colorFmt = aColorFmt;
@@ -71,4 +72,5 @@ RenderPass::~RenderPass() {
     }
     pass = VK_NULL_HANDLE;
     m_vkDevice = nullptr;
+}
 }

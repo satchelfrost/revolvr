@@ -8,13 +8,12 @@
 
 #include <pch.h>
 #include <common.h>
+#include <rendering/utilities/command_buffer.h>
 
-class MemoryAllocator;
-class CmdBuffer;
-
+namespace rvr {
 class DepthBuffer {
 public:
-    VkDeviceMemory depthMemory{VK_NULL_HANDLE};
+    VkDeviceMemory depthMemory_{VK_NULL_HANDLE};
     VkImage depthImage{VK_NULL_HANDLE};
 
     DepthBuffer() = default;
@@ -25,13 +24,13 @@ public:
     DepthBuffer(const DepthBuffer &) = delete;
     DepthBuffer &operator=(const DepthBuffer &) = delete;
 
-    void Create(VkDevice device, MemoryAllocator *memAllocator, VkFormat depthFormat,
+    void Create(VkPhysicalDevice physicalDevice, VkDevice device, VkFormat depthFormat,
                 const XrSwapchainCreateInfo &swapchainCreateInfo);
 
-    void TransitionLayout(CmdBuffer *cmdBuffer, VkImageLayout newLayout);
+    void TransitionLayout(CmdBuffer* cmdBuffer, VkImageLayout newLayout);
 
 private:
     VkDevice m_vkDevice{VK_NULL_HANDLE};
     VkImageLayout m_vkLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 };
-
+}

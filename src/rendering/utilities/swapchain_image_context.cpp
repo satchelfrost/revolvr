@@ -5,45 +5,52 @@
 /***************************************************************************/
 
 #include <rendering/utilities/swapchain_image_context.h>
-#include <rendering/utilities/memory_allocator.h>
 
-SwapchainImageContext::SwapchainImageContext(XrStructureType _swapchainImageType)
-: swapchainImageType(_swapchainImageType) {}
+namespace rvr {
+SwapchainImageContext::SwapchainImageContext(XrStructureType swapchainImageType) :
+swapchainImageType_(swapchainImageType) {}
 
-void SwapchainImageContext::Create(VkDevice device, MemoryAllocator *memAllocator, uint32_t capacity,
+void SwapchainImageContext::Create(VkPhysicalDevice physicalDevice, VkDevice device, uint32_t capacity,
                                    const XrSwapchainCreateInfo &swapchainCreateInfo, const PipelineLayout &layout,
                                    const ShaderProgram &sp, const VertexBuffer<Geometry::Vertex> &vb) {
-    m_vkDevice = device;
-
-    size = {swapchainCreateInfo.width, swapchainCreateInfo.height};
+    device_ = device;
+    size_ = {swapchainCreateInfo.width, swapchainCreateInfo.height};
     VkFormat colorFormat = (VkFormat) swapchainCreateInfo.format;
     VkFormat depthFormat = VK_FORMAT_D32_SFLOAT;
-    // XXX handle swapchainCreateInfo.sampleCount
 
-    depthBuffer.Create(m_vkDevice, memAllocator, depthFormat, swapchainCreateInfo);
-    rp.Create(m_vkDevice, colorFormat, depthFormat);
-    pipe.Create(m_vkDevice, size, layout, rp, sp, vb);
+    depthBuffer_.Create(physicalDevice, device_, depthFormat, swapchainCreateInfo);
+    renderPass_.Create(device_, colorFormat, depthFormat);
+    pipeline_.Create(device_, size_, layout, renderPass_, sp, vb);
 
-    swapchainImages.resize(capacity);
-    renderTarget.resize(capacity);
+    swapchainImages_.resize(capacity);
+    renderTarget_.resize(capacity);
     std::vector <XrSwapchainImageBaseHeader*> bases(capacity);
     for (uint32_t i = 0; i < capacity; ++i) {
-        swapchainImages[i] = {swapchainImageType};
-        bases[i] = reinterpret_cast<XrSwapchainImageBaseHeader*>(&swapchainImages[i]);
+        swapchainImages_[i] = {swapchainImageType_};
+        bases[i] = reinterpret_cast<XrSwapchainImageBaseHeader*>(&swapchainImages_[i]);
     }
 }
 
 void SwapchainImageContext::BindRenderTarget(uint32_t index, VkRenderPassBeginInfo *renderPassBeginInfo) {
-    if (renderTarget[index].fb == VK_NULL_HANDLE) {
-        renderTarget[index].Create(m_vkDevice, swapchainImages[index].image,
-                                   depthBuffer.depthImage, size, rp);
+    if (renderTarget_[index].fb == VK_NULL_HANDLE) {
+        renderTarget_[index].Create(device_, swapchainImages_[index].image,
+                                   depthBuffer_.depthImage, size_, renderPass_);
     }
-    renderPassBeginInfo->renderPass = rp.pass;
-    renderPassBeginInfo->framebuffer = renderTarget[index].fb;
+    renderPassBeginInfo->renderPass = renderPass_.pass;
+    renderPassBeginInfo->framebuffer = renderTarget_[index].fb;
     renderPassBeginInfo->renderArea.offset = {0, 0};
-    renderPassBeginInfo->renderArea.extent = size;
+    renderPassBeginInfo->renderArea.extent = size_;
 }
 
 XrSwapchainImageBaseHeader *SwapchainImageContext::GetFirstImagePointer() {
-    return reinterpret_cast<XrSwapchainImageBaseHeader*>(&swapchainImages[0]);
+    return reinterpret_cast<XrSwapchainImageBaseHeader*>(&swapchainImages_[0]);
+}
+
+void SwapchainImageContext::TransitionLayout(CmdBuffer *cmdBuffer, VkImageLayout imageLayout) {
+    depthBuffer_.TransitionLayout(cmdBuffer, imageLayout);
+}
+
+VkPipeline SwapchainImageContext::GetPipeline() {
+    return pipeline_.pipe;
+}
 }

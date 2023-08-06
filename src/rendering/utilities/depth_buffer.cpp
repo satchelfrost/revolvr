@@ -6,20 +6,21 @@
 
 #include <rendering/utilities/depth_buffer.h>
 #include <rendering/utilities/command_buffer.h>
-#include <rendering/utilities/memory_allocator.h>
-#include <rendering//utilities/vulkan_results.h>
+#include <rendering/utilities/vulkan_results.h>
+#include <rendering/utilities/vulkan_utils.h>
 
+namespace rvr {
 DepthBuffer::~DepthBuffer() {
     if (m_vkDevice != nullptr) {
         if (depthImage != VK_NULL_HANDLE) {
             vkDestroyImage(m_vkDevice, depthImage, nullptr);
         }
-        if (depthMemory != VK_NULL_HANDLE) {
-            vkFreeMemory(m_vkDevice, depthMemory, nullptr);
+        if (depthMemory_ != VK_NULL_HANDLE) {
+            vkFreeMemory(m_vkDevice, depthMemory_, nullptr);
         }
     }
     depthImage = VK_NULL_HANDLE;
-    depthMemory = VK_NULL_HANDLE;
+    depthMemory_ = VK_NULL_HANDLE;
     m_vkDevice = nullptr;
 }
 
@@ -27,7 +28,7 @@ DepthBuffer::DepthBuffer(DepthBuffer &&other) noexcept: DepthBuffer() {
     using std::swap;
 
     swap(depthImage, other.depthImage);
-    swap(depthMemory, other.depthMemory);
+    swap(depthMemory_, other.depthMemory_);
     swap(m_vkDevice, other.m_vkDevice);
 }
 
@@ -40,18 +41,18 @@ DepthBuffer &DepthBuffer::operator=(DepthBuffer &&other) noexcept {
     using std::swap;
 
     swap(depthImage, other.depthImage);
-    swap(depthMemory, other.depthMemory);
+    swap(depthMemory_, other.depthMemory_);
     swap(m_vkDevice, other.m_vkDevice);
     return *this;
 }
 
-void DepthBuffer::Create(VkDevice device, MemoryAllocator *memAllocator, VkFormat depthFormat,
+void DepthBuffer::Create(VkPhysicalDevice physicalDevice, VkDevice device, VkFormat depthFormat,
                          const XrSwapchainCreateInfo &swapchainCreateInfo) {
     m_vkDevice = device;
 
     VkExtent2D size = {swapchainCreateInfo.width, swapchainCreateInfo.height};
 
-    // Create a D32 depthbuffer
+    // Create a D32 depth buffer
     VkImageCreateInfo imageInfo{VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
     imageInfo.imageType = VK_IMAGE_TYPE_2D;
     imageInfo.extent.width = size.width;
@@ -69,9 +70,14 @@ void DepthBuffer::Create(VkDevice device, MemoryAllocator *memAllocator, VkForma
 
     VkMemoryRequirements memRequirements{};
     vkGetImageMemoryRequirements(device, depthImage, &memRequirements);
-    memAllocator->Allocate(memRequirements, &depthMemory,
-                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-    CHECK_VKCMD(vkBindImageMemory(device, depthImage, depthMemory, 0));
+    uint32_t memoryIdx = FindMemoryType(physicalDevice, memRequirements.memoryTypeBits,
+                                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    VkMemoryAllocateInfo allocInfo = CreateMemAllocInfo(memRequirements.size, memoryIdx);
+
+    VkResult result = vkAllocateMemory(device, &allocInfo, nullptr, &depthMemory_);
+    CHECK_VKCMD(result);
+
+    CHECK_VKCMD(vkBindImageMemory(device, depthImage, depthMemory_, 0));
 }
 
 void DepthBuffer::TransitionLayout(CmdBuffer *cmdBuffer, VkImageLayout newLayout) {
@@ -91,4 +97,5 @@ void DepthBuffer::TransitionLayout(CmdBuffer *cmdBuffer, VkImageLayout newLayout
                          0, nullptr, 1, &depthBarrier);
 
     m_vkLayout = newLayout;
+}
 }

@@ -9,6 +9,7 @@
 #include <rendering/utilities/vulkan_results.h>
 #include <array>
 
+namespace rvr {
 RenderTarget::~RenderTarget() {
     if (m_vkDevice != nullptr) {
         if (fb != VK_NULL_HANDLE) {
@@ -114,4 +115,5 @@ RenderTarget::Create(VkDevice device, VkImage aColorImage, VkImage aDepthImage, 
     fbInfo.height = size.height;
     fbInfo.layers = 1;
     CHECK_VKCMD(vkCreateFramebuffer(m_vkDevice, &fbInfo, nullptr, &fb));
+}
 }

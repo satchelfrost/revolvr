@@ -8,7 +8,6 @@
 
 #include <pch.h>
 
-#include "rendering/utilities/memory_allocator.h"
 #include "rendering/utilities/command_buffer.h"
 #include "rendering/utilities/shader_program.h"
 #include "rendering/utilities/vertex_buffer.h"
@@ -36,7 +35,6 @@ private:
     std::vector<math::Transform> renderBuffer_;
     XrGraphicsBindingVulkan2KHR graphicsBinding_{XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR};
     VkSemaphore drawDone_{VK_NULL_HANDLE};
-    MemoryAllocator memAllocator_{};
     ShaderProgram shaderProgram_{};
     CmdBuffer cmdBuffer_{};
     PipelineLayout pipelineLayout_{};

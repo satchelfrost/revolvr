@@ -7,6 +7,7 @@
 #include <rendering/utilities/shader_program.h>
 #include <rendering//utilities/vulkan_results.h>
 
+namespace rvr {
 ShaderProgram::~ShaderProgram() {
     if (m_vkDevice != nullptr) {
         for (auto &si: shaderInfo) {
@@ -60,4 +61,5 @@ void ShaderProgram::Load(uint32_t index, const std::vector<char> &code) {
     CHECK_VKCMD(vkCreateShaderModule(m_vkDevice, &modInfo, nullptr, &si.module));
 
     Log::Write(Log::Level::Info, Fmt("Loaded %s shader", name.c_str()));
+}
 }

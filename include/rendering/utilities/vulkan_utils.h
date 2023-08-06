@@ -30,5 +30,6 @@ XrResult GetVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystemId syste
 void CheckVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystemId systemId,
                                          XrGraphicsRequirementsVulkan2KHR* graphicsRequirements);
 QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice physicalDevice);
-uint32_t FindSuitableMemoryType(VkPhysicalDevice physicalDevice, uint32_t filter, VkMemoryPropertyFlags flags);
+uint32_t FindMemoryType(VkPhysicalDevice physicalDevice, uint32_t filter, VkMemoryPropertyFlags flags);
+VkMemoryAllocateInfo CreateMemAllocInfo(VkDeviceSize size, uint32_t memIdx);
 }

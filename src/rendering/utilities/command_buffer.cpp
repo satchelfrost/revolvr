@@ -16,6 +16,7 @@
         }                                                                                                          \
     while (0)
 
+namespace rvr {
 CmdBuffer::~CmdBuffer() {
     SetState(CmdBufferState::Undefined);
     if (m_vkDevice != nullptr) {
@@ -121,6 +122,5 @@ bool CmdBuffer::Reset() {
 
     return true;
 }
-
+}
 #undef CHECK_CBSTATE
-

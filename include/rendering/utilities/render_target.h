@@ -8,10 +8,9 @@
 
 #include <pch.h>
 #include <common.h>
+#include <rendering/utilities/render_pass.h>
 
-class RenderPass;
-
-// VkImage + framebuffer wrapper
+namespace rvr {
 class RenderTarget {
 public:
     VkImage colorImage{VK_NULL_HANDLE};
@@ -21,17 +20,14 @@ public:
     VkFramebuffer fb{VK_NULL_HANDLE};
 
     RenderTarget() = default;
-
     RenderTarget(RenderTarget &&other) noexcept;
     RenderTarget &operator=(RenderTarget &&other) noexcept;
     RenderTarget(const RenderTarget &) = delete;
     RenderTarget &operator=(const RenderTarget &) = delete;
-
     ~RenderTarget();
-
     void Create(VkDevice device, VkImage aColorImage, VkImage aDepthImage, VkExtent2D size, RenderPass &renderPass);
 
 private:
     VkDevice m_vkDevice{VK_NULL_HANDLE};
 };
-
+}

@@ -10,6 +10,7 @@
 #include <rendering/utilities/vertex_buffer.h>
 #include <rendering//utilities/vulkan_results.h>
 
+namespace rvr {
 PipelineLayout::~PipelineLayout() {
     if (m_vkDevice != nullptr) {
         if (layout != VK_NULL_HANDLE) {
@@ -161,4 +162,5 @@ void Pipeline::Release() {
     }
     pipe = VK_NULL_HANDLE;
     m_vkDevice = nullptr;
+}
 }

@@ -10,7 +10,7 @@
 #include <common.h>
 #include <array>
 
-// ShaderProgram to hold a pair of vertex & fragment shaders
+namespace rvr {
 class ShaderProgram {
 public:
     std::array<VkPipelineShaderStageCreateInfo, 2> shaderInfo{
@@ -35,3 +35,4 @@ private:
 
     void Load(uint32_t index, const std::vector<char> &code);
 };
+}
