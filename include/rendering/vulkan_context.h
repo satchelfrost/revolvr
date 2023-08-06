@@ -16,6 +16,7 @@
 #include "rendering/utilities/depth_buffer.h"
 #include <rendering/utilities/geometry.h>
 #include <rendering/utilities/swapchain_image_context.h>
+//#include "rendering/utilities/gltf/vulkan_gltf_model.h"
 
 #include <platform/android_context.h>
 #include <ecs/system/render_system.h>
@@ -24,63 +25,53 @@ namespace rvr {
 class XrContext;
 
 class VulkanContext {
-public:
-    void Init(XrInstance xrInstance, XrSystemId systemId);
-    void Cleanup();
-    std::vector<XrSwapchainImageBaseHeader*> AllocateSwapchainImageStructs(
-            uint32_t capacity,
-            const XrSwapchainCreateInfo& swapchainCreateInfo);
-    static std::vector<std::string> GetInstanceExtensions();
-    static uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView& view);
-    const XrBaseInStructure* GetGraphicsBinding() const;
-    void Render();
-
 private:
-    // Vulkan initialization methods
-    void CreateVulkanInstance(XrInstance xrInstance, XrSystemId systemId);
-    bool CheckValidationLayerSupport();
-    void SetupReportCallback();
-    void PickPhysicalDevice(XrInstance xrInstance, XrSystemId systemId);
-    void CreateLogicalDevice(XrInstance xrInstance, XrSystemId systemId);
-    void StoreGraphicsBinding();
-
-    void DrawGrid();
-    void RenderView(const XrCompositionLayerProjectionView& layerView, const XrSwapchainImageBaseHeader* swapchainImage,
-                    int64_t swapchainFormat, const std::vector<math::Transform>& cubes);
-    bool RenderLayer(std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
-                     XrCompositionLayerProjection& layer, XrContext* xrContext);
-
-    std::vector<math::Transform> renderBuffer_;
-    XrGraphicsBindingVulkan2KHR graphicsBinding_{XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR};
-    std::list<SwapchainImageContext> swapchainImageContexts_;
-    std::map<const XrSwapchainImageBaseHeader*, SwapchainImageContext*> swapchainImageContextMap_;
-
     VkInstance instance_{VK_NULL_HANDLE};
+    VkDebugReportCallbackEXT debugReporter_{VK_NULL_HANDLE};
+    const std::vector<const char*> requestedValidationLayers_ = {"VK_LAYER_KHRONOS_validation"};
     VkPhysicalDevice physicalDevice_{VK_NULL_HANDLE};
     VkDevice device_{VK_NULL_HANDLE};
-    uint32_t queueFamilyIndex_ = 0;
     VkQueue graphicsQueue_{VK_NULL_HANDLE};
+    std::map<const XrSwapchainImageBaseHeader*, std::shared_ptr<SwapchainImageContext>> imageToContextMap_;
+    std::vector<math::Transform> renderBuffer_;
+    XrGraphicsBindingVulkan2KHR graphicsBinding_{XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR};
     VkSemaphore drawDone_{VK_NULL_HANDLE};
-
     MemoryAllocator memAllocator_{};
     ShaderProgram shaderProgram_{};
     CmdBuffer cmdBuffer_{};
     PipelineLayout pipelineLayout_{};
     VertexBuffer<Geometry::Vertex> drawBuffer_{};
 
-    PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallbackEXT_{nullptr};
-    PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallbackEXT_{nullptr};
-    VkDebugReportCallbackEXT debugReporter_{VK_NULL_HANDLE};
+#if !defined(NDEBUG)
+        const bool enableValidationLayers_ = true;
+#else
+        const bool enableValidationLayers_ = false;
+#endif
 
-    static XrStructureType GetSwapchainImageType() ;
+    public:
+    void Init(XrInstance xrInstance, XrSystemId systemId);
+    void Cleanup();
+    XrSwapchainImageBaseHeader* AllocateSwapchainImageStructs(uint32_t capacity,
+                                                               const XrSwapchainCreateInfo& swapchainCreateInfo);
+    static std::vector<std::string> GetInstanceExtensions();
+    static uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView& view);
+    const XrBaseInStructure* GetGraphicsBinding() const;
+    void Render();
+
+private:
+    void CreateVulkanInstance(XrInstance xrInstance, XrSystemId systemId);
+    bool CheckValidationLayerSupport();
+    void SetupReportCallback();
+    void PickPhysicalDevice(XrInstance xrInstance, XrSystemId systemId);
+    void CreateLogicalDevice(XrInstance xrInstance, XrSystemId systemId);
+    void StoreGraphicsBinding();
+    void DrawGrid();
+    void RenderView(const XrCompositionLayerProjectionView& layerView, const XrSwapchainImageBaseHeader* swapchainImage,
+                    const uint32_t imageIndex, const std::vector<math::Transform>& cubes);
+    bool RenderLayer(std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
+                     XrCompositionLayerProjection& layer, XrContext* xrContext);
+    static XrStructureType GetSwapchainImageType();
     void InitializeResources();
-
-    const std::vector<const char*> requestedValidationLayers_ = {"VK_LAYER_KHRONOS_validation"};
-
-    #if !defined(NDEBUG)
-    const bool enableValidationLayers_ = true;
-    #else
-    const bool enableValidationLayers_ = false;
-    #endif
+    void RetrieveQueues();
 };
 }

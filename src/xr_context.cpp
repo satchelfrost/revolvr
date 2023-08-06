@@ -152,10 +152,13 @@ void XrContext::CreateSwapchains() {
 
     // Query and cache view configuration views.
     uint32_t viewCount;
-    CHECK_XRCMD(xrEnumerateViewConfigurationViews(xrInstance_, xrSystemId_, viewConfigType, 0, &viewCount, nullptr));
+    CHECK_XRCMD(xrEnumerateViewConfigurationViews(xrInstance_, xrSystemId_,
+                                                  viewConfigType, 0,
+                                                  &viewCount, nullptr));
     configViews.resize(viewCount, {XR_TYPE_VIEW_CONFIGURATION_VIEW});
-    CHECK_XRCMD(xrEnumerateViewConfigurationViews(xrInstance_, xrSystemId_, viewConfigType, viewCount, &viewCount,
-                                                  configViews.data()));
+    CHECK_XRCMD(xrEnumerateViewConfigurationViews(xrInstance_, xrSystemId_,
+                                                  viewConfigType, viewCount,
+                                                  &viewCount, configViews.data()));
 
     // Create and cache view buffer for xrLocateViews later.
     views.resize(viewCount, {XR_TYPE_VIEW});
@@ -195,13 +198,14 @@ void XrContext::CreateSwapchains() {
             swapchains.push_back(swapchain);
 
             uint32_t imageCount;
-            CHECK_XRCMD(xrEnumerateSwapchainImages(swapchain.handle, 0, &imageCount, nullptr));
-            // XXX This should really just return XrSwapchainImageBaseHeader*
-            std::vector<XrSwapchainImageBaseHeader*> swapchainImages =
-                    vulkanRenderer_->AllocateSwapchainImageStructs(imageCount, swapchainCreateInfo);
-            CHECK_XRCMD(xrEnumerateSwapchainImages(swapchain.handle, imageCount, &imageCount, swapchainImages[0]));
+            CHECK_XRCMD(xrEnumerateSwapchainImages(swapchain.handle, 0,
+                                                   &imageCount, nullptr));
+            XrSwapchainImageBaseHeader* swapchainImages = vulkanRenderer_->AllocateSwapchainImageStructs(
+                    imageCount, swapchainCreateInfo);
+            CHECK_XRCMD(xrEnumerateSwapchainImages(swapchain.handle, imageCount,
+                                                   &imageCount, swapchainImages));
 
-            swapchainImageMap.insert(std::make_pair(swapchain.handle, std::move(swapchainImages)));
+            swapchainImages_.insert(std::make_pair(swapchain.handle, swapchainImages));
         }
     }
 }

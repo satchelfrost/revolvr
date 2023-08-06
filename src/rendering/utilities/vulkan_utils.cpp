@@ -183,4 +183,13 @@ QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice physicalDevice) {
     }
     return indices;
 }
+
+uint32_t FindSuitableMemoryType(VkPhysicalDevice physicalDevice, uint32_t filter, VkMemoryPropertyFlags flags) {
+    VkPhysicalDeviceMemoryProperties properties;
+    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &properties);
+    for (uint32_t i = 0; i < properties.memoryTypeCount; i++)
+        if (filter & (1u << i) && (properties.memoryTypes[i].propertyFlags & flags) == flags)
+            return i;
+    THROW("Failed to find suitable memory type");
+}
 }

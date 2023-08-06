@@ -5,7 +5,6 @@
 /***************************************************************************/
 
 #include <rendering/utilities/depth_buffer.h>
-
 #include <rendering/utilities/command_buffer.h>
 #include <rendering/utilities/memory_allocator.h>
 #include <rendering//utilities/vulkan_results.h>

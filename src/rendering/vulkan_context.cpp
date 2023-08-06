@@ -21,7 +21,7 @@ void VulkanContext::Init(XrInstance xrInstance, XrSystemId systemId) {
     SetupReportCallback();
     PickPhysicalDevice(xrInstance, systemId);
     CreateLogicalDevice(xrInstance, systemId);
-    vkGetDeviceQueue(device_, queueFamilyIndex_, 0, &graphicsQueue_);
+    RetrieveQueues();
     memAllocator_.Init(physicalDevice_, device_);
     InitializeResources();
     StoreGraphicsBinding();
@@ -84,7 +84,8 @@ void VulkanContext::InitializeResources() {
     VkSemaphoreCreateInfo semInfo{VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
     CHECK_VKCMD(vkCreateSemaphore(device_, &semInfo, nullptr, &drawDone_));
 
-    if (!cmdBuffer_.Init(device_, queueFamilyIndex_))
+    QueueFamilyIndices indices = FindQueueFamilies(physicalDevice_);
+    if (!cmdBuffer_.Init(device_, indices.graphicsFamily.value()))
         THROW("Failed to create command buffer");
 
     pipelineLayout_.Create(device_);
@@ -101,34 +102,24 @@ void VulkanContext::InitializeResources() {
     drawBuffer_.UpdateVertices(Geometry::c_cubeVertices, numCubeVertices, 0);
 }
 
-std::vector<XrSwapchainImageBaseHeader *> VulkanContext::AllocateSwapchainImageStructs(
+XrSwapchainImageBaseHeader* VulkanContext::AllocateSwapchainImageStructs(
         uint32_t capacity, const XrSwapchainCreateInfo &swapchainCreateInfo) {
-    // Allocate and initialize the buffer of image structs (must be sequential in memory for xrEnumerateSwapchainImages).
-    // Return back an array of pointers to each swapchain image struct so the consumer doesn't need to know the type/size.
-    // Keep the buffer alive by adding it into the list of buffers.
-    swapchainImageContexts_.emplace_back(GetSwapchainImageType());
 
-    SwapchainImageContext &swapchainImageContext = swapchainImageContexts_.back();
+    auto swapchainImageContext = std::make_shared<SwapchainImageContext>(GetSwapchainImageType());
 
-    std::vector<XrSwapchainImageBaseHeader *> bases = swapchainImageContext.Create(
-            device_, &memAllocator_, capacity, swapchainCreateInfo, pipelineLayout_,
-            shaderProgram_, drawBuffer_);
-
-    // Map every swapchainImage base pointer to this context
-    for (auto &base : bases) {
-        swapchainImageContextMap_[base] = &swapchainImageContext;
-    }
-
-    return bases;
+    swapchainImageContext->Create(device_, &memAllocator_, capacity,
+                                 swapchainCreateInfo, pipelineLayout_, shaderProgram_, drawBuffer_);
+    auto images = swapchainImageContext->GetFirstImagePointer();
+    imageToContextMap_.insert(std::make_pair(images, swapchainImageContext));
+    return images;
 }
 
 void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView,
                                const XrSwapchainImageBaseHeader *swapchainImage,
-                               int64_t /*swapchainFormat*/, const std::vector<math::Transform> &cubes) {
+                               uint32_t imageIndex, const std::vector<math::Transform> &cubes) {
     CHECK(layerView.subImage.imageArrayIndex == 0);  // Texture arrays not supported.
 
-    auto swapchainContext = swapchainImageContextMap_[swapchainImage];
-    uint32_t imageIndex = swapchainContext->ImageIndex(swapchainImage);
+    auto swapchainContext = imageToContextMap_[swapchainImage];
 
     cmdBuffer_.Reset();
     cmdBuffer_.Begin();
@@ -255,8 +246,9 @@ bool VulkanContext::RenderLayer(std::vector<XrCompositionLayerProjectionView>& p
         projectionLayerViews[i].subImage.imageRect.offset = {0, 0};
         projectionLayerViews[i].subImage.imageRect.extent = {viewSwapchain.width, viewSwapchain.height};
 
-        const XrSwapchainImageBaseHeader* const swapchainImage = xrContext->swapchainImageMap[viewSwapchain.handle][swapchainImageIndex];
-        RenderView(projectionLayerViews[i], swapchainImage, xrContext->colorSwapchainFormat, renderBuffer_);
+        const XrSwapchainImageBaseHeader* const swapchainImage = xrContext->swapchainImages_[viewSwapchain.handle];
+//        RenderView(projectionLayerViews[i], swapchainImage, xrContext->colorSwapchainFormat, renderBuffer_);
+        RenderView(projectionLayerViews[i], swapchainImage, swapchainImageIndex, renderBuffer_);
 
         XrSwapchainImageReleaseInfo releaseInfo{XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO};
         CHECK_XRCMD(xrReleaseSwapchainImage(viewSwapchain.handle, &releaseInfo));
@@ -406,11 +398,17 @@ void VulkanContext::CreateLogicalDevice(XrInstance xrInstance, XrSystemId system
 }
 
 void VulkanContext::StoreGraphicsBinding() {
+    QueueFamilyIndices indices = FindQueueFamilies(physicalDevice_);
     graphicsBinding_.type = XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR;
     graphicsBinding_.instance = instance_;
     graphicsBinding_.physicalDevice = physicalDevice_;
     graphicsBinding_.device = device_;
-    graphicsBinding_.queueFamilyIndex = queueFamilyIndex_;
+    graphicsBinding_.queueFamilyIndex = indices.graphicsFamily.value();
     graphicsBinding_.queueIndex = 0;
+}
+
+void VulkanContext::RetrieveQueues() {
+    QueueFamilyIndices indices = FindQueueFamilies(physicalDevice_);
+    vkGetDeviceQueue(device_, indices.graphicsFamily.value(), 0, &graphicsQueue_);
 }
 }

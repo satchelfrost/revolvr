@@ -106,7 +106,7 @@ public:
     XrViewConfigurationType viewConfigType{XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO};
 
     std::vector<Swapchain> swapchains;
-    std::map<XrSwapchain, std::vector<XrSwapchainImageBaseHeader*>> swapchainImageMap;
+    std::map<XrSwapchain, const XrSwapchainImageBaseHeader*> swapchainImages_;
     int64_t colorSwapchainFormat{-1};
 
     ActionManager actionManager;

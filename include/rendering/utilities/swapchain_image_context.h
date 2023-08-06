@@ -20,7 +20,6 @@ class MemoryAllocator;
 
 class SwapchainImageContext {
 public:
-    // A packed array of XrSwapchainImageVulkan2KHR's for xrEnumerateSwapchainImages
     std::vector <XrSwapchainImageVulkan2KHR> swapchainImages;
     std::vector <RenderTarget> renderTarget;
     VkExtent2D size{};
@@ -32,14 +31,12 @@ public:
     SwapchainImageContext() = default;
     SwapchainImageContext(XrStructureType _swapchainImageType);
 
-    std::vector<XrSwapchainImageBaseHeader *> Create(VkDevice device,
-           MemoryAllocator *memAllocator, uint32_t capacity,
-           const XrSwapchainCreateInfo &swapchainCreateInfo, const PipelineLayout &layout,
-           const ShaderProgram &sp, const VertexBuffer<Geometry::Vertex> &vb);
-
-    uint32_t ImageIndex(const XrSwapchainImageBaseHeader *swapchainImageHeader);
+    void Create(VkDevice device, MemoryAllocator *memAllocator, uint32_t capacity,
+                const XrSwapchainCreateInfo &swapchainCreateInfo, const PipelineLayout &layout,
+                const ShaderProgram &sp, const VertexBuffer<Geometry::Vertex> &vb);
 
     void BindRenderTarget(uint32_t index, VkRenderPassBeginInfo *renderPassBeginInfo);
+    XrSwapchainImageBaseHeader* GetFirstImagePointer();
 
 private:
     VkDevice m_vkDevice{VK_NULL_HANDLE};
