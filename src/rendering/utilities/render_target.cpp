@@ -11,35 +11,35 @@
 
 namespace rvr {
 RenderTarget::~RenderTarget() {
-    if (m_vkDevice != nullptr) {
-        if (fb != VK_NULL_HANDLE) {
-            vkDestroyFramebuffer(m_vkDevice, fb, nullptr);
+    if (device_ != nullptr) {
+        if (framebuffer_ != VK_NULL_HANDLE) {
+            vkDestroyFramebuffer(device_, framebuffer_, nullptr);
         }
-        if (colorView != VK_NULL_HANDLE) {
-            vkDestroyImageView(m_vkDevice, colorView, nullptr);
+        if (colorView_ != VK_NULL_HANDLE) {
+            vkDestroyImageView(device_, colorView_, nullptr);
         }
-        if (depthView != VK_NULL_HANDLE) {
-            vkDestroyImageView(m_vkDevice, depthView, nullptr);
+        if (depthView_ != VK_NULL_HANDLE) {
+            vkDestroyImageView(device_, depthView_, nullptr);
         }
     }
 
     // Note we don't own color/depthImage, it will get destroyed when xrDestroySwapchain is called
-    colorImage = VK_NULL_HANDLE;
-    depthImage = VK_NULL_HANDLE;
-    colorView = VK_NULL_HANDLE;
-    depthView = VK_NULL_HANDLE;
-    fb = VK_NULL_HANDLE;
-    m_vkDevice = nullptr;
+    colorImage_ = VK_NULL_HANDLE;
+    depthImage_ = VK_NULL_HANDLE;
+    colorView_ = VK_NULL_HANDLE;
+    depthView_ = VK_NULL_HANDLE;
+    framebuffer_ = VK_NULL_HANDLE;
+    device_ = nullptr;
 }
 
 RenderTarget::RenderTarget(RenderTarget &&other) noexcept: RenderTarget() {
     using std::swap;
-    swap(colorImage, other.colorImage);
-    swap(depthImage, other.depthImage);
-    swap(colorView, other.colorView);
-    swap(depthView, other.depthView);
-    swap(fb, other.fb);
-    swap(m_vkDevice, other.m_vkDevice);
+    swap(colorImage_, other.colorImage_);
+    swap(depthImage_, other.depthImage_);
+    swap(colorView_, other.colorView_);
+    swap(depthView_, other.depthView_);
+    swap(framebuffer_, other.framebuffer_);
+    swap(device_, other.device_);
 }
 
 RenderTarget &RenderTarget::operator=(RenderTarget &&other) noexcept {
@@ -49,30 +49,30 @@ RenderTarget &RenderTarget::operator=(RenderTarget &&other) noexcept {
     // Clean up ourselves.
     this->~RenderTarget();
     using std::swap;
-    swap(colorImage, other.colorImage);
-    swap(depthImage, other.depthImage);
-    swap(colorView, other.colorView);
-    swap(depthView, other.depthView);
-    swap(fb, other.fb);
-    swap(m_vkDevice, other.m_vkDevice);
+    swap(colorImage_, other.colorImage_);
+    swap(depthImage_, other.depthImage_);
+    swap(colorView_, other.colorView_);
+    swap(depthView_, other.depthView_);
+    swap(framebuffer_, other.framebuffer_);
+    swap(device_, other.device_);
     return *this;
 }
 
 void
 RenderTarget::Create(VkDevice device, VkImage aColorImage, VkImage aDepthImage, VkExtent2D size,
                      RenderPass &renderPass) {
-    m_vkDevice = device;
+    device_ = device;
 
-    colorImage = aColorImage;
-    depthImage = aDepthImage;
+    colorImage_ = aColorImage;
+    depthImage_ = aDepthImage;
 
     std::array<VkImageView, 2> attachments{};
     uint32_t attachmentCount = 0;
 
     // Create color image view
-    if (colorImage != VK_NULL_HANDLE) {
+    if (colorImage_ != VK_NULL_HANDLE) {
         VkImageViewCreateInfo colorViewInfo{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
-        colorViewInfo.image = colorImage;
+        colorViewInfo.image = colorImage_;
         colorViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
         colorViewInfo.format = renderPass.colorFmt;
         colorViewInfo.components.r = VK_COMPONENT_SWIZZLE_R;
@@ -84,14 +84,14 @@ RenderTarget::Create(VkDevice device, VkImage aColorImage, VkImage aDepthImage, 
         colorViewInfo.subresourceRange.levelCount = 1;
         colorViewInfo.subresourceRange.baseArrayLayer = 0;
         colorViewInfo.subresourceRange.layerCount = 1;
-        CHECK_VKCMD(vkCreateImageView(m_vkDevice, &colorViewInfo, nullptr, &colorView));
-        attachments[attachmentCount++] = colorView;
+        CHECK_VKCMD(vkCreateImageView(device_, &colorViewInfo, nullptr, &colorView_));
+        attachments[attachmentCount++] = colorView_;
     }
 
     // Create depth image view
-    if (depthImage != VK_NULL_HANDLE) {
+    if (depthImage_ != VK_NULL_HANDLE) {
         VkImageViewCreateInfo depthViewInfo{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
-        depthViewInfo.image = depthImage;
+        depthViewInfo.image = depthImage_;
         depthViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
         depthViewInfo.format = renderPass.depthFmt;
         depthViewInfo.components.r = VK_COMPONENT_SWIZZLE_R;
@@ -103,8 +103,8 @@ RenderTarget::Create(VkDevice device, VkImage aColorImage, VkImage aDepthImage, 
         depthViewInfo.subresourceRange.levelCount = 1;
         depthViewInfo.subresourceRange.baseArrayLayer = 0;
         depthViewInfo.subresourceRange.layerCount = 1;
-        CHECK_VKCMD(vkCreateImageView(m_vkDevice, &depthViewInfo, nullptr, &depthView));
-        attachments[attachmentCount++] = depthView;
+        CHECK_VKCMD(vkCreateImageView(device_, &depthViewInfo, nullptr, &depthView_));
+        attachments[attachmentCount++] = depthView_;
     }
 
     VkFramebufferCreateInfo fbInfo{VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO};
@@ -114,6 +114,6 @@ RenderTarget::Create(VkDevice device, VkImage aColorImage, VkImage aDepthImage, 
     fbInfo.width = size.width;
     fbInfo.height = size.height;
     fbInfo.layers = 1;
-    CHECK_VKCMD(vkCreateFramebuffer(m_vkDevice, &fbInfo, nullptr, &fb));
+    CHECK_VKCMD(vkCreateFramebuffer(device_, &fbInfo, nullptr, &framebuffer_));
 }
 }

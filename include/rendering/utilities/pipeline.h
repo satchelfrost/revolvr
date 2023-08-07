@@ -14,41 +14,34 @@
 
 namespace rvr {
 class PipelineLayout {
+private:
+    VkDevice device_{VK_NULL_HANDLE};
+
 public:
     VkPipelineLayout layout{VK_NULL_HANDLE};
 
+    void Create(VkDevice device);
+    ~PipelineLayout();
     PipelineLayout() = default;
-
     PipelineLayout(const PipelineLayout &) = delete;
     PipelineLayout &operator=(const PipelineLayout &) = delete;
     PipelineLayout(PipelineLayout &&) = delete;
     PipelineLayout &operator=(PipelineLayout &&) = delete;
-
-    ~PipelineLayout();
-
-    void Create(VkDevice device);
-
-private:
-    VkDevice m_vkDevice{VK_NULL_HANDLE};
 };
 
-// Pipeline wrapper for rendering pipeline state
 class Pipeline {
-public:
-    VkPipeline pipe{VK_NULL_HANDLE};
-    VkPrimitiveTopology topology{VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST};
-    std::vector <VkDynamicState> dynamicStateEnables;
-
-    Pipeline() = default;
-
-    void Dynamic(VkDynamicState state);
-    void Create(VkDevice device, VkExtent2D size, const PipelineLayout &layout, const RenderPass &rp,
-           const ShaderProgram &sp,
-           const VertexBufferBase &vb);
-
-    void Release();
-
 private:
-    VkDevice m_vkDevice{VK_NULL_HANDLE};
+    VkDevice device_{VK_NULL_HANDLE};
+    PipelineLayout pipelineLayout_{};
+    VkPipeline pipeline_{VK_NULL_HANDLE};
+    VkPrimitiveTopology topology_{VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST};
+    std::vector <VkDynamicState> dynamicStateEnables_;
+
+public:
+    void Dynamic(VkDynamicState state);
+    void Create(VkDevice device, const RenderPass &renderPass, const ShaderProgram &shaderProgram,
+                const DrawBuffer &drawBuffer);
+    void Release();
+    Pipeline() = default;
 };
 }

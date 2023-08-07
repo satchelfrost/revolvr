@@ -14,27 +14,23 @@
 #include <rendering/utilities/render_target.h>
 #include <rendering/utilities/render_pass.h>
 #include <rendering/utilities/vertex_buffer.h>
+#include <math/transform.h>
 
 namespace rvr {
 class SwapchainImageContext {
 private:
     std::vector <XrSwapchainImageVulkan2KHR> swapchainImages_;
+    VkFormat swapchainImageFormat_;
+    VkExtent2D swapchainExtent_;
+    VkViewport viewport_{};
+    VkRect2D scissor_{};
     std::vector <RenderTarget> renderTarget_;
-    VkExtent2D size_{};
-    DepthBuffer depthBuffer_{};
-    RenderPass renderPass_{};
-    Pipeline pipeline_{};
-    XrStructureType swapchainImageType_;
-    VkDevice device_{VK_NULL_HANDLE};
 
 public:
-    void TransitionLayout(CmdBuffer* cmdBuffer, VkImageLayout imageLayout);
-    SwapchainImageContext(XrStructureType swapchainImageType);
-    void Create(VkPhysicalDevice physicalDevice, VkDevice device, uint32_t capacity,
-                const XrSwapchainCreateInfo &swapchainCreateInfo, const PipelineLayout &layout,
-                const ShaderProgram &sp, const VertexBuffer<Geometry::Vertex> &vb);
+    SwapchainImageContext(uint32_t capacity, const XrSwapchainCreateInfo &swapchainCreateInfo);
+    void Draw(uint32_t imageIndex, uint32_t indexCount, std::shared_ptr<Pipeline> pipeline,
+              const std::vector<math::Transform> &transforms);
     void BindRenderTarget(uint32_t index, VkRenderPassBeginInfo *renderPassBeginInfo);
     XrSwapchainImageBaseHeader* GetFirstImagePointer();
-    VkPipeline GetPipeline();
 };
 }

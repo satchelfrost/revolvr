@@ -33,12 +33,14 @@ private:
     VkQueue graphicsQueue_{VK_NULL_HANDLE};
     std::map<const XrSwapchainImageBaseHeader*, std::shared_ptr<SwapchainImageContext>> imageToContextMap_;
     std::vector<math::Transform> renderBuffer_;
+    DepthBuffer depthBuffer_{};
     XrGraphicsBindingVulkan2KHR graphicsBinding_{XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR};
     VkSemaphore drawDone_{VK_NULL_HANDLE};
     ShaderProgram shaderProgram_{};
     CmdBuffer cmdBuffer_{};
-    PipelineLayout pipelineLayout_{};
-    VertexBuffer<Geometry::Vertex> drawBuffer_{};
+    Pipeline pipeline_{};
+    RenderPass renderPass_{};
+    DrawBuffer drawBuffer_{};
 
 #if !defined(NDEBUG)
         const bool enableValidationLayers_ = true;
@@ -46,11 +48,11 @@ private:
         const bool enableValidationLayers_ = false;
 #endif
 
-    public:
+public:
     void Init(XrInstance xrInstance, XrSystemId systemId);
     void Cleanup();
     XrSwapchainImageBaseHeader* AllocateSwapchainImageStructs(uint32_t capacity,
-                                                               const XrSwapchainCreateInfo& swapchainCreateInfo);
+                                                              const XrSwapchainCreateInfo& swapchainCreateInfo);
     static std::vector<std::string> GetInstanceExtensions();
     static uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView& view);
     const XrBaseInStructure* GetGraphicsBinding() const;
@@ -68,7 +70,6 @@ private:
                     const uint32_t imageIndex, const std::vector<math::Transform>& cubes);
     bool RenderLayer(std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
                      XrCompositionLayerProjection& layer, XrContext* xrContext);
-    static XrStructureType GetSwapchainImageType();
     void InitializeResources();
     void RetrieveQueues();
 };

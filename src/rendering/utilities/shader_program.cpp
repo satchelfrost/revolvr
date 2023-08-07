@@ -9,16 +9,16 @@
 
 namespace rvr {
 ShaderProgram::~ShaderProgram() {
-    if (m_vkDevice != nullptr) {
-        for (auto &si: shaderInfo) {
+    if (device_ != nullptr) {
+        for (auto &si: shaderInfo_) {
             if (si.module != VK_NULL_HANDLE) {
-                vkDestroyShaderModule(m_vkDevice, shaderInfo[0].module, nullptr);
+                vkDestroyShaderModule(device_, shaderInfo_[0].module, nullptr);
             }
             si.module = VK_NULL_HANDLE;
         }
     }
-    shaderInfo = {};
-    m_vkDevice = nullptr;
+    shaderInfo_ = {};
+    device_ = nullptr;
 }
 
 void ShaderProgram::LoadVertexShader(const std::vector<char> &code) {
@@ -30,13 +30,13 @@ void ShaderProgram::LoadFragmentShader(const std::vector<char> &code) {
 }
 
 void ShaderProgram::Init(VkDevice device) {
-    m_vkDevice = device;
+    device_ = device;
 }
 
 void ShaderProgram::Load(uint32_t index, const std::vector<char> &code) {
     VkShaderModuleCreateInfo modInfo{VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO};
 
-    auto &si = shaderInfo[index];
+    auto &si = shaderInfo_[index];
     si.pName = "main";
     std::string name;
 
@@ -58,7 +58,7 @@ void ShaderProgram::Load(uint32_t index, const std::vector<char> &code) {
     CHECK_MSG((modInfo.codeSize > 0) && modInfo.pCode,
               Fmt("Invalid %s shader ", name.c_str()));
 
-    CHECK_VKCMD(vkCreateShaderModule(m_vkDevice, &modInfo, nullptr, &si.module));
+    CHECK_VKCMD(vkCreateShaderModule(device_, &modInfo, nullptr, &si.module));
 
     Log::Write(Log::Level::Info, Fmt("Loaded %s shader", name.c_str()));
 }

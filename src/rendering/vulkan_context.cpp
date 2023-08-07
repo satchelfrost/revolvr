@@ -22,6 +22,7 @@ void VulkanContext::Init(XrInstance xrInstance, XrSystemId systemId) {
     PickPhysicalDevice(xrInstance, systemId);
     CreateLogicalDevice(xrInstance, systemId);
     RetrieveQueues();
+
     InitializeResources();
     StoreGraphicsBinding();
 }
@@ -87,8 +88,6 @@ void VulkanContext::InitializeResources() {
     if (!cmdBuffer_.Init(device_, indices.graphicsFamily.value()))
         THROW("Failed to create command buffer");
 
-    pipelineLayout_.Create(device_);
-
     static_assert(sizeof(Geometry::Vertex) == 24, "Unexpected Vertex size");
     drawBuffer_.Init(physicalDevice_, device_,
                      {{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Geometry::Vertex, Position)},
@@ -96,18 +95,20 @@ void VulkanContext::InitializeResources() {
     uint32_t numCubeIndices = sizeof(Geometry::c_cubeIndices) / sizeof(Geometry::c_cubeIndices[0]);
     uint32_t numCubeVertices =
             sizeof(Geometry::c_cubeVertices) / sizeof(Geometry::c_cubeVertices[0]);
-    drawBuffer_.Create(physicalDevice_, numCubeIndices, numCubeVertices);
+    drawBuffer_.Create(physicalDevice_, numCubeIndices, numCubeVertices, );
     drawBuffer_.UpdateIndices(Geometry::c_cubeIndices, numCubeIndices, 0);
     drawBuffer_.UpdateVertices(Geometry::c_cubeVertices, numCubeVertices, 0);
+
+    VkFormat colorFormat = (VkFormat) swapchainCreateInfo.format;
+    VkFormat depthFormat = VK_FORMAT_D32_SFLOAT;
+    depthBuffer_.Create(physicalDevice, device_, depthFormat, swapchainCreateInfo);
+    renderPass_.Create(device_, colorFormat, depthFormat);
+    pipeline_.Create(device_, renderPass_, shaderProgram_, drawBuffer_);
 }
 
 XrSwapchainImageBaseHeader* VulkanContext::AllocateSwapchainImageStructs(
         uint32_t capacity, const XrSwapchainCreateInfo &swapchainCreateInfo) {
-
-    auto swapchainImageContext = std::make_shared<SwapchainImageContext>(GetSwapchainImageType());
-
-    swapchainImageContext->Create(physicalDevice_, device_, capacity, swapchainCreateInfo,
-                                  pipelineLayout_, shaderProgram_, drawBuffer_);
+    auto swapchainImageContext = std::make_shared<SwapchainImageContext>(capacity, swapchainCreateInfo);
     auto images = swapchainImageContext->GetFirstImagePointer();
     imageToContextMap_.insert(std::make_pair(images, swapchainImageContext));
     return images;
@@ -293,10 +294,6 @@ void VulkanContext::DrawGrid() {
 
 std::vector<std::string> VulkanContext::GetInstanceExtensions() {
     return {XR_KHR_VULKAN_ENABLE2_EXTENSION_NAME};
-}
-
-XrStructureType VulkanContext::GetSwapchainImageType() {
-    return XR_TYPE_SWAPCHAIN_IMAGE_VULKAN2_KHR;
 }
 
 uint32_t VulkanContext::GetSupportedSwapchainSampleCount(const XrViewConfigurationView &) {

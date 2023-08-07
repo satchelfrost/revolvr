@@ -8,38 +8,37 @@
 #include <rendering/utilities/vulkan_utils.h>
 
 namespace rvr {
-VertexBufferBase::~VertexBufferBase() {
+DrawBuffer::~DrawBuffer() {
     if (device_ != nullptr) {
-        if (idxBuf != VK_NULL_HANDLE) {
-            vkDestroyBuffer(device_, idxBuf, nullptr);
+        if (indexBuffer_ != VK_NULL_HANDLE) {
+            vkDestroyBuffer(device_, indexBuffer_, nullptr);
         }
-        if (idxMem != VK_NULL_HANDLE) {
-            vkFreeMemory(device_, idxMem, nullptr);
+        if (indexMemory_ != VK_NULL_HANDLE) {
+            vkFreeMemory(device_, indexMemory_, nullptr);
         }
-        if (vtxBuf != VK_NULL_HANDLE) {
-            vkDestroyBuffer(device_, vtxBuf, nullptr);
+        if (vertexBuffer_ != VK_NULL_HANDLE) {
+            vkDestroyBuffer(device_, vertexBuffer_, nullptr);
         }
-        if (vtxMem != VK_NULL_HANDLE) {
-            vkFreeMemory(device_, vtxMem, nullptr);
+        if (vertexMemory_ != VK_NULL_HANDLE) {
+            vkFreeMemory(device_, vertexMemory_, nullptr);
         }
     }
-    idxBuf = VK_NULL_HANDLE;
-    idxMem = VK_NULL_HANDLE;
-    vtxBuf = VK_NULL_HANDLE;
-    vtxMem = VK_NULL_HANDLE;
+    indexBuffer_ = VK_NULL_HANDLE;
+    indexMemory_ = VK_NULL_HANDLE;
+    vertexBuffer_ = VK_NULL_HANDLE;
+    vertexMemory_ = VK_NULL_HANDLE;
     bindDesc = {};
     attrDesc.clear();
-    count = {0, 0};
+    count_ = {0, 0};
     device_ = nullptr;
 }
 
-void VertexBufferBase::Init(VkPhysicalDevice physicalDevice, VkDevice device,
-                            const std::vector<VkVertexInputAttributeDescription> &attr) {
-    device_ = device;
+void DrawBuffer::Init(VkDevice device, const std::vector<VkVertexInputAttributeDescription> &attr) {
     attrDesc = attr;
+    device_ = device;
 }
 
-void VertexBufferBase::AllocateBufferMemory(VkPhysicalDevice physicalDevice, VkBuffer buf, VkDeviceMemory *mem) const {
+void DrawBuffer::AllocateBufferMemory(VkPhysicalDevice physicalDevice, VkBuffer buf, VkDeviceMemory *mem) const {
     VkMemoryRequirements memReq = {};
     vkGetBufferMemoryRequirements(device_, buf, &memReq);
     uint32_t memIdx = FindMemoryType(physicalDevice, memReq.memoryTypeBits,
@@ -47,5 +46,15 @@ void VertexBufferBase::AllocateBufferMemory(VkPhysicalDevice physicalDevice, VkB
     VkMemoryAllocateInfo allocInfo = CreateMemAllocInfo(memReq.size, memIdx);
     VkResult result = vkAllocateMemory(device_, &allocInfo, nullptr, mem);
     CHECK_VKCMD(result);
+}
+
+
+void DrawBuffer::UpdateIndices(const uint16_t *data, uint32_t elements, uint32_t offset) {
+    uint16_t *map = nullptr;
+    CHECK_VKCMD(vkMapMemory(device_, indexMemory_, sizeof(map[0]) * offset,
+                            sizeof(map[0]) * elements, 0, (void **) &map));
+    for (size_t i = 0; i < elements; ++i)
+        map[i] = data[i];
+    vkUnmapMemory(device_, indexMemory_);
 }
 }

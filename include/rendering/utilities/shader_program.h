@@ -12,27 +12,21 @@
 
 namespace rvr {
 class ShaderProgram {
+private:
+    VkDevice device_{VK_NULL_HANDLE};
+    void Load(uint32_t index, const std::vector<char> &code);
+    std::array<VkPipelineShaderStageCreateInfo, 2> shaderInfo_{{{VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO},
+                                                                {VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO}}};
 public:
-    std::array<VkPipelineShaderStageCreateInfo, 2> shaderInfo{
-            {{VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO},
-             {VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO}}};
-
+    void LoadVertexShader(const std::vector<char> &code);
+    void LoadFragmentShader(const std::vector<char> &code);
+    void Init(VkDevice device);
     ShaderProgram() = default;
     ShaderProgram(const ShaderProgram &) = delete;
     ShaderProgram &operator=(const ShaderProgram &) = delete;
     ShaderProgram(ShaderProgram &&) = delete;
     ShaderProgram &operator=(ShaderProgram &&) = delete;
-
     ~ShaderProgram();
 
-    void LoadVertexShader(const std::vector<char> &code);
-    void LoadFragmentShader(const std::vector<char> &code);
-
-    void Init(VkDevice device);
-
-private:
-    VkDevice m_vkDevice{VK_NULL_HANDLE};
-
-    void Load(uint32_t index, const std::vector<char> &code);
 };
 }

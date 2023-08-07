@@ -12,22 +12,20 @@
 
 namespace rvr {
 class RenderTarget {
+private:
+    VkDevice device_{VK_NULL_HANDLE};
+    VkImage colorImage_{VK_NULL_HANDLE};
+    VkImage depthImage_{VK_NULL_HANDLE};
+    VkImageView colorView_{VK_NULL_HANDLE};
+    VkImageView depthView_{VK_NULL_HANDLE};
+    VkFramebuffer framebuffer_{VK_NULL_HANDLE};
 public:
-    VkImage colorImage{VK_NULL_HANDLE};
-    VkImage depthImage{VK_NULL_HANDLE};
-    VkImageView colorView{VK_NULL_HANDLE};
-    VkImageView depthView{VK_NULL_HANDLE};
-    VkFramebuffer fb{VK_NULL_HANDLE};
-
+    void Create(VkDevice device, VkImage aColorImage, VkImage aDepthImage, VkExtent2D size, RenderPass &renderPass);
     RenderTarget() = default;
     RenderTarget(RenderTarget &&other) noexcept;
     RenderTarget &operator=(RenderTarget &&other) noexcept;
     RenderTarget(const RenderTarget &) = delete;
     RenderTarget &operator=(const RenderTarget &) = delete;
     ~RenderTarget();
-    void Create(VkDevice device, VkImage aColorImage, VkImage aDepthImage, VkExtent2D size, RenderPass &renderPass);
-
-private:
-    VkDevice m_vkDevice{VK_NULL_HANDLE};
 };
 }
