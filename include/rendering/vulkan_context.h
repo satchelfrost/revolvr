@@ -49,7 +49,7 @@ private:
 #endif
 
 public:
-    void Init(XrInstance xrInstance, XrSystemId systemId);
+    void InitDevice(XrInstance xrInstance, XrSystemId systemId);
     void Cleanup();
     XrSwapchainImageBaseHeader* AllocateSwapchainImageStructs(uint32_t capacity,
                                                               const XrSwapchainCreateInfo& swapchainCreateInfo);
@@ -57,6 +57,7 @@ public:
     static uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView& view);
     const XrBaseInStructure* GetGraphicsBinding() const;
     void Render();
+    void InitializeResources(VkFormat colorFormat);
 
 private:
     void CreateVulkanInstance(XrInstance xrInstance, XrSystemId systemId);
@@ -70,7 +71,6 @@ private:
                     const uint32_t imageIndex, const std::vector<math::Transform>& cubes);
     bool RenderLayer(std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
                      XrCompositionLayerProjection& layer, XrContext* xrContext);
-    void InitializeResources();
     void RetrieveQueues();
 };
 }

@@ -11,7 +11,7 @@
 
 namespace rvr {
 XrContext::XrContext() {
-    vulkanRenderer_ = GlobalContext::Inst()->GetVulkanContext();
+    vulkanContext_ = GlobalContext::Inst()->GetVulkanContext();
 
     InitializePlatformLoader();
     CreateXrInstance();
@@ -95,8 +95,7 @@ void XrContext::InitializeSystem() {
     if(!handTrackingSystemProperties.supportsHandTracking)
         THROW("Application requires hand tracking");
 
-    // The graphics API can initialize the graphics device
-    vulkanRenderer_->Init(xrInstance_, xrSystemId_);
+    vulkanContext_->InitDevice(xrInstance_, xrSystemId_);
 }
 
 void XrContext::InitializeSession() {
@@ -104,7 +103,7 @@ void XrContext::InitializeSession() {
     CHECK(session == XR_NULL_HANDLE);
 
     XrSessionCreateInfo createInfo{XR_TYPE_SESSION_CREATE_INFO};
-    createInfo.next = vulkanRenderer_->GetGraphicsBinding();
+    createInfo.next = vulkanContext_->GetGraphicsBinding();
     createInfo.systemId = xrSystemId_;
     CHECK_XRCMD(xrCreateSession(xrInstance_, &createInfo, &session));
 }
@@ -175,6 +174,7 @@ void XrContext::CreateSwapchains() {
                                                 swapchainFormats.data()));
         CHECK(swapchainFormatCount == swapchainFormats.size());
         colorSwapchainFormat = SelectColorSwapchainFormat(swapchainFormats);
+        vulkanContext_->InitializeResources(static_cast<VkFormat>(colorSwapchainFormat));
 
         // Create a swapchain for each view.
         for (uint32_t i = 0; i < viewCount; i++) {
@@ -200,11 +200,10 @@ void XrContext::CreateSwapchains() {
             uint32_t imageCount;
             CHECK_XRCMD(xrEnumerateSwapchainImages(swapchain.handle, 0,
                                                    &imageCount, nullptr));
-            XrSwapchainImageBaseHeader* swapchainImages = vulkanRenderer_->AllocateSwapchainImageStructs(
+            XrSwapchainImageBaseHeader* swapchainImages = vulkanContext_->AllocateSwapchainImageStructs(
                     imageCount, swapchainCreateInfo);
             CHECK_XRCMD(xrEnumerateSwapchainImages(swapchain.handle, imageCount,
                                                    &imageCount, swapchainImages));
-
             swapchainImages_.insert(std::make_pair(swapchain.handle, swapchainImages));
         }
     }

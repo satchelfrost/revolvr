@@ -27,8 +27,7 @@ XrResult GetVulkanGraphicsDevice2KHR(XrInstance instance, const XrVulkanGraphics
                                      VkPhysicalDevice* vulkanPhysicalDevice);
 XrResult GetVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystemId systemId,
                                            XrGraphicsRequirementsVulkan2KHR* graphicsRequirements);
-void CheckVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystemId systemId,
-                                         XrGraphicsRequirementsVulkan2KHR* graphicsRequirements);
+void CheckVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystemId systemId);
 QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice physicalDevice);
 uint32_t FindMemoryType(VkPhysicalDevice physicalDevice, uint32_t filter, VkMemoryPropertyFlags flags);
 VkMemoryAllocateInfo CreateMemAllocInfo(VkDeviceSize size, uint32_t memIdx);

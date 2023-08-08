@@ -80,7 +80,7 @@ private:
 
     void LogActionSourceName(Action* action) const;
 
-    VulkanContext* vulkanRenderer_;
+    VulkanContext* vulkanContext_;
 
     XrInstance xrInstance_{XR_NULL_HANDLE};
     XrSystemId xrSystemId_{XR_NULL_SYSTEM_ID};

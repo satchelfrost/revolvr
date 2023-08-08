@@ -10,14 +10,14 @@
 namespace rvr {
 ShaderProgram::~ShaderProgram() {
     if (device_ != nullptr) {
-        for (auto &si: shaderInfo_) {
+        for (auto &si: shaderInfo) {
             if (si.module != VK_NULL_HANDLE) {
-                vkDestroyShaderModule(device_, shaderInfo_[0].module, nullptr);
+                vkDestroyShaderModule(device_, shaderInfo[0].module, nullptr);
             }
             si.module = VK_NULL_HANDLE;
         }
     }
-    shaderInfo_ = {};
+    shaderInfo = {};
     device_ = nullptr;
 }
 
@@ -36,7 +36,7 @@ void ShaderProgram::Init(VkDevice device) {
 void ShaderProgram::Load(uint32_t index, const std::vector<char> &code) {
     VkShaderModuleCreateInfo modInfo{VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO};
 
-    auto &si = shaderInfo_[index];
+    auto &si = shaderInfo[index];
     si.pName = "main";
     std::string name;
 

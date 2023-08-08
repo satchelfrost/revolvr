@@ -14,16 +14,13 @@
 #include <rendering/utilities/vulkan_utils.h>
 
 namespace rvr {
-void VulkanContext::Init(XrInstance xrInstance, XrSystemId systemId) {
-    XrGraphicsRequirementsVulkan2KHR graphicsRequirements{XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN2_KHR};
-    CheckVulkanGraphicsRequirements2KHR(xrInstance, systemId, &graphicsRequirements);
+void VulkanContext::InitDevice(XrInstance xrInstance, XrSystemId systemId) {
+    CheckVulkanGraphicsRequirements2KHR(xrInstance, systemId);
     CreateVulkanInstance(xrInstance, systemId);
     SetupReportCallback();
     PickPhysicalDevice(xrInstance, systemId);
     CreateLogicalDevice(xrInstance, systemId);
     RetrieveQueues();
-
-    InitializeResources();
     StoreGraphicsBinding();
 }
 
@@ -69,7 +66,7 @@ void VulkanContext::CreateVulkanInstance(XrInstance xrInstance, XrSystemId syste
     CHECK_VKCMD(vkResult);
 }
 
-void VulkanContext::InitializeResources() {
+void VulkanContext::InitializeResources(VkFormat colorFormat) {
     auto fragmentSPIRV = CreateSPIRVVector("shaders/basic.frag.spv");
     auto vertexSPIRV = CreateSPIRVVector("shaders/basic.vert.spv");
 
@@ -89,19 +86,18 @@ void VulkanContext::InitializeResources() {
         THROW("Failed to create command buffer");
 
     static_assert(sizeof(Geometry::Vertex) == 24, "Unexpected Vertex size");
-    drawBuffer_.Init(physicalDevice_, device_,
+    drawBuffer_.Init(device_,
                      {{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Geometry::Vertex, Position)},
-                       {1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Geometry::Vertex, Color)}});
+                      {1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Geometry::Vertex, Color)}});
     uint32_t numCubeIndices = sizeof(Geometry::c_cubeIndices) / sizeof(Geometry::c_cubeIndices[0]);
-    uint32_t numCubeVertices =
-            sizeof(Geometry::c_cubeVertices) / sizeof(Geometry::c_cubeVertices[0]);
-    drawBuffer_.Create(physicalDevice_, numCubeIndices, numCubeVertices, );
+    uint32_t numCubeVertices = sizeof(Geometry::c_cubeVertices) / sizeof(Geometry::c_cubeVertices[0]);
+    drawBuffer_.Create<Geometry::Vertex>(physicalDevice_, numCubeIndices, numCubeVertices);
     drawBuffer_.UpdateIndices(Geometry::c_cubeIndices, numCubeIndices, 0);
     drawBuffer_.UpdateVertices(Geometry::c_cubeVertices, numCubeVertices, 0);
 
-    VkFormat colorFormat = (VkFormat) swapchainCreateInfo.format;
+
     VkFormat depthFormat = VK_FORMAT_D32_SFLOAT;
-    depthBuffer_.Create(physicalDevice, device_, depthFormat, swapchainCreateInfo);
+    depthBuffer_.Create(physicalDevice_, device_, depthFormat, swapchainCreateInfo);
     renderPass_.Create(device_, colorFormat, depthFormat);
     pipeline_.Create(device_, renderPass_, shaderProgram_, drawBuffer_);
 }

@@ -156,9 +156,9 @@ XrResult GetVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystemId syste
     return pfnGetVulkanGraphicsRequirements2KHR(instance, systemId, graphicsRequirements);
 }
 
-void CheckVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystemId systemId,
-                                         XrGraphicsRequirementsVulkan2KHR* graphicsRequirements) {
-    CHECK_XRCMD(GetVulkanGraphicsRequirements2KHR(instance, systemId, graphicsRequirements));
+void CheckVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystemId systemId) {
+    XrGraphicsRequirementsVulkan2KHR graphicsRequirements{XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN2_KHR};
+    CHECK_XRCMD(GetVulkanGraphicsRequirements2KHR(instance, systemId, &graphicsRequirements));
 }
 
 QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice physicalDevice) {
