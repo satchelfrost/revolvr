@@ -8,6 +8,7 @@
 
 #include <pch.h>
 #include <common.h>
+#include <rendering/utilities/rendering_context.h>
 
 namespace rvr {
 class CmdBuffer {
@@ -49,7 +50,7 @@ public:
         return "(Unknown)";
     }
 
-    bool Init(VkDevice device, uint32_t queueFamilyIndex);
+    bool Init(const std::shared_ptr<RenderingContext>& context);
     bool Begin();
     bool End();
     bool Exec(VkQueue queue);
@@ -57,7 +58,7 @@ public:
     bool Reset();
 
 private:
-    VkDevice m_vkDevice{VK_NULL_HANDLE};
+    VkDevice device_{VK_NULL_HANDLE};
 
     void SetState(CmdBufferState newState) { state = newState; }
 

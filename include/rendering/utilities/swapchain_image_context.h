@@ -13,7 +13,7 @@
 #include <rendering/utilities/pipeline.h>
 #include <rendering/utilities/render_target.h>
 #include <rendering/utilities/render_pass.h>
-#include <rendering/utilities/vertex_buffer.h>
+#include <rendering/utilities/draw_buffer.h>
 #include <math/transform.h>
 
 namespace rvr {
@@ -25,6 +25,8 @@ private:
     VkViewport viewport_{};
     VkRect2D scissor_{};
     std::vector <RenderTarget> renderTarget_;
+    DepthBuffer depthBuffer_;
+    RenderPass renderPass_;
 
 public:
     SwapchainImageContext(uint32_t capacity, const XrSwapchainCreateInfo &swapchainCreateInfo);
@@ -32,5 +34,6 @@ public:
               const std::vector<math::Transform> &transforms);
     void BindRenderTarget(uint32_t index, VkRenderPassBeginInfo *renderPassBeginInfo);
     XrSwapchainImageBaseHeader* GetFirstImagePointer();
+    void InitResources();
 };
 }

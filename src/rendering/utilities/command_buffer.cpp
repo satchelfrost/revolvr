@@ -19,43 +19,43 @@
 namespace rvr {
 CmdBuffer::~CmdBuffer() {
     SetState(CmdBufferState::Undefined);
-    if (m_vkDevice != nullptr) {
+    if (device_ != nullptr) {
         if (buf != VK_NULL_HANDLE) {
-            vkFreeCommandBuffers(m_vkDevice, pool, 1, &buf);
+            vkFreeCommandBuffers(device_, pool, 1, &buf);
         }
         if (pool != VK_NULL_HANDLE) {
-            vkDestroyCommandPool(m_vkDevice, pool, nullptr);
+            vkDestroyCommandPool(device_, pool, nullptr);
         }
         if (execFence != VK_NULL_HANDLE) {
-            vkDestroyFence(m_vkDevice, execFence, nullptr);
+            vkDestroyFence(device_, execFence, nullptr);
         }
     }
     buf = VK_NULL_HANDLE;
     pool = VK_NULL_HANDLE;
     execFence = VK_NULL_HANDLE;
-    m_vkDevice = nullptr;
+    device_ = nullptr;
 }
 
-bool CmdBuffer::Init(VkDevice device, uint32_t queueFamilyIndex) {
+bool CmdBuffer::Init(const std::shared_ptr<RenderingContext>& context) {
     CHECK_CBSTATE(CmdBufferState::Undefined);
 
-    m_vkDevice = device;
+    device_ = context->GetDevice();
 
     // Create a command pool to allocate our command buffer from
     VkCommandPoolCreateInfo cmdPoolInfo{VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO};
     cmdPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-    cmdPoolInfo.queueFamilyIndex = queueFamilyIndex;
-    CHECK_VKCMD(vkCreateCommandPool(m_vkDevice, &cmdPoolInfo, nullptr, &pool));
+    cmdPoolInfo.queueFamilyIndex = context->GetGraphicsQueueFamilyIndex();
+    CHECK_VKCMD(vkCreateCommandPool(device_, &cmdPoolInfo, nullptr, &pool));
 
     // Create the command buffer from the command pool
     VkCommandBufferAllocateInfo cmd{VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO};
     cmd.commandPool = pool;
     cmd.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     cmd.commandBufferCount = 1;
-    CHECK_VKCMD(vkAllocateCommandBuffers(m_vkDevice, &cmd, &buf));
+    CHECK_VKCMD(vkAllocateCommandBuffers(device_, &cmd, &buf));
 
     VkFenceCreateInfo fenceInfo{VK_STRUCTURE_TYPE_FENCE_CREATE_INFO};
-    CHECK_VKCMD(vkCreateFence(m_vkDevice, &fenceInfo, nullptr, &execFence));
+    CHECK_VKCMD(vkCreateFence(device_, &fenceInfo, nullptr, &execFence));
 
     SetState(CmdBufferState::Initialized);
     return true;
@@ -98,7 +98,7 @@ bool CmdBuffer::Wait() {
 
     const uint32_t timeoutNs = 1 * 1000 * 1000 * 1000;
     for (int i = 0; i < 5; ++i) {
-        auto res = vkWaitForFences(m_vkDevice, 1, &execFence, VK_TRUE, timeoutNs);
+        auto res = vkWaitForFences(device_, 1, &execFence, VK_TRUE, timeoutNs);
         if (res == VK_SUCCESS) {
             // Buffer can be executed multiple times...
             SetState(CmdBufferState::Executable);
@@ -114,7 +114,7 @@ bool CmdBuffer::Reset() {
     if (state != CmdBufferState::Initialized) {
         CHECK_CBSTATE(CmdBufferState::Executable);
 
-        CHECK_VKCMD(vkResetFences(m_vkDevice, 1, &execFence));
+        CHECK_VKCMD(vkResetFences(device_, 1, &execFence));
         CHECK_VKCMD(vkResetCommandBuffer(buf, 0));
 
         SetState(CmdBufferState::Initialized);

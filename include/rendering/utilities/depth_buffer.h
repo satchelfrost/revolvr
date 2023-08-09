@@ -24,6 +24,7 @@ public:
     DepthBuffer(const DepthBuffer &) = delete;
     DepthBuffer &operator=(const DepthBuffer &) = delete;
 
+//    const std::shared_ptr<RenderingContext>& context;
     void Create(VkPhysicalDevice physicalDevice, VkDevice device, VkFormat depthFormat,
                 const XrSwapchainCreateInfo &swapchainCreateInfo);
 

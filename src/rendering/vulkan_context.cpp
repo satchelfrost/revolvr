@@ -66,7 +66,7 @@ void VulkanContext::CreateVulkanInstance(XrInstance xrInstance, XrSystemId syste
     CHECK_VKCMD(vkResult);
 }
 
-void VulkanContext::InitializeResources(VkFormat colorFormat) {
+void VulkanContext::InitializeResources() {
     auto fragmentSPIRV = CreateSPIRVVector("shaders/basic.frag.spv");
     auto vertexSPIRV = CreateSPIRVVector("shaders/basic.vert.spv");
 
@@ -82,7 +82,7 @@ void VulkanContext::InitializeResources(VkFormat colorFormat) {
     CHECK_VKCMD(vkCreateSemaphore(device_, &semInfo, nullptr, &drawDone_));
 
     QueueFamilyIndices indices = FindQueueFamilies(physicalDevice_);
-    if (!cmdBuffer_.Init(device_, indices.graphicsFamily.value()))
+    if (!cmdBuffer_.Init(renderingContext_))
         THROW("Failed to create command buffer");
 
     static_assert(sizeof(Geometry::Vertex) == 24, "Unexpected Vertex size");
@@ -96,9 +96,9 @@ void VulkanContext::InitializeResources(VkFormat colorFormat) {
     drawBuffer_.UpdateVertices(Geometry::c_cubeVertices, numCubeVertices, 0);
 
 
-    VkFormat depthFormat = VK_FORMAT_D32_SFLOAT;
-    depthBuffer_.Create(physicalDevice_, device_, depthFormat, swapchainCreateInfo);
-    renderPass_.Create(device_, colorFormat, depthFormat);
+    // TODO: move this to after swapchain has been created
+//    depthBuffer_.Create(physicalDevice_, device_, depthFormat, swapchainCreateInfo);
+
     pipeline_.Create(device_, renderPass_, shaderProgram_, drawBuffer_);
 }
 
@@ -402,5 +402,15 @@ void VulkanContext::StoreGraphicsBinding() {
 void VulkanContext::RetrieveQueues() {
     QueueFamilyIndices indices = FindQueueFamilies(physicalDevice_);
     vkGetDeviceQueue(device_, indices.graphicsFamily.value(), 0, &graphicsQueue_);
+}
+
+void VulkanContext::SwapchainImagesReady(XrSwapchainImageBaseHeader *images) {
+    auto swapchainContext = imageToContextMap_[images];
+}
+
+void VulkanContext::InitRenderingContext(VkFormat colorFormat) {
+    renderingContext_ = std::make_shared<RenderingContext>(physicalDevice_, device_,
+                                                           graphicsQueue_, colorFormat);
+    InitializeResources()
 }
 }

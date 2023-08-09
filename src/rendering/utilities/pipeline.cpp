@@ -7,7 +7,7 @@
 #include <rendering/utilities/pipeline.h>
 #include <rendering/utilities/render_pass.h>
 #include <rendering/utilities/shader_program.h>
-#include <rendering/utilities/vertex_buffer.h>
+#include <rendering/utilities/draw_buffer.h>
 #include <rendering//utilities/vulkan_results.h>
 
 namespace rvr {

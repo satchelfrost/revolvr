@@ -4,7 +4,7 @@
 /* (http://opensource.org/licenses/MIT)                                    */
 /***************************************************************************/
 
-#include <rendering/utilities/vertex_buffer.h>
+#include <rendering/utilities/draw_buffer.h>
 #include <rendering/utilities/vulkan_utils.h>
 
 namespace rvr {

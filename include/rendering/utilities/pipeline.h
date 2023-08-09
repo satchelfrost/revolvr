@@ -10,7 +10,7 @@
 #include <common.h>
 #include <rendering/utilities/render_pass.h>
 #include <rendering/utilities/shader_program.h>
-#include <rendering/utilities/vertex_buffer.h>
+#include <rendering/utilities/draw_buffer.h>
 
 namespace rvr {
 class PipelineLayout {

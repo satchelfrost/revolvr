@@ -204,6 +204,7 @@ void XrContext::CreateSwapchains() {
                     imageCount, swapchainCreateInfo);
             CHECK_XRCMD(xrEnumerateSwapchainImages(swapchain.handle, imageCount,
                                                    &imageCount, swapchainImages));
+            vulkanContext_->
             swapchainImages_.insert(std::make_pair(swapchain.handle, swapchainImages));
         }
     }

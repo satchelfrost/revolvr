@@ -10,12 +10,14 @@
 
 #include "rendering/utilities/command_buffer.h"
 #include "rendering/utilities/shader_program.h"
-#include "rendering/utilities/vertex_buffer.h"
+#include "rendering/utilities/draw_buffer.h"
 #include "rendering/utilities/pipeline.h"
 #include "rendering/utilities/depth_buffer.h"
 #include <rendering/utilities/geometry.h>
 #include <rendering/utilities/swapchain_image_context.h>
 //#include "rendering/utilities/gltf/vulkan_gltf_model.h"
+
+#include <rendering/utilities/rendering_context.h>
 
 #include <platform/android_context.h>
 #include <ecs/system/render_system.h>
@@ -41,6 +43,8 @@ private:
     Pipeline pipeline_{};
     RenderPass renderPass_{};
     DrawBuffer drawBuffer_{};
+    std::shared_ptr<RenderingContext> renderingContext_ = nullptr;
+
 
 #if !defined(NDEBUG)
         const bool enableValidationLayers_ = true;
@@ -57,7 +61,9 @@ public:
     static uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView& view);
     const XrBaseInStructure* GetGraphicsBinding() const;
     void Render();
-    void InitializeResources(VkFormat colorFormat);
+    void InitializeResources();
+    void InitRenderingContext(VkFormat colorFormat);
+    void SwapchainImagesReady(XrSwapchainImageBaseHeader* images);
 
 private:
     void CreateVulkanInstance(XrInstance xrInstance, XrSystemId systemId);

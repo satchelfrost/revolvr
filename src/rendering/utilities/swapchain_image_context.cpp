@@ -24,6 +24,7 @@ swapchainExtent_({swapchainCreateInfo.width, swapchainCreateInfo.height}) {
     scissor_.extent.width = static_cast<uint32_t>(swapchainExtent_.width);
     scissor_.extent.height = static_cast<uint32_t>(swapchainExtent_.height);
 
+
     for (auto& image : swapchainImages_ )
         image.type = XR_TYPE_SWAPCHAIN_IMAGE_VULKAN2_KHR;
 }
@@ -98,5 +99,11 @@ void SwapchainImageContext::Draw(uint32_t imageIdx, uint32_t idxCount, std::shar
 
     // XXX Should double-buffer the command buffers, for now just flush
     cmdBuffer_.Wait();
+}
+
+void SwapchainImageContext::InitResources() {
+    VkFormat depthFormat = VK_FORMAT_D32_SFLOAT;
+    depthBuffer_.Create(physicalDevice_, device_, depthFormat, swapchainCreateInfo);
+    renderPass_.Create(device_, colorFormat, depthFormat);
 }
 }
