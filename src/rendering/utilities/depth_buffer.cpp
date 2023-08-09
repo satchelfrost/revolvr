@@ -46,38 +46,36 @@ DepthBuffer &DepthBuffer::operator=(DepthBuffer &&other) noexcept {
     return *this;
 }
 
-void DepthBuffer::Create(VkPhysicalDevice physicalDevice, VkDevice device, VkFormat depthFormat,
-                         const XrSwapchainCreateInfo &swapchainCreateInfo) {
-    m_vkDevice = device;
+void DepthBuffer::Create(const std::shared_ptr<RenderingContext>& context, const std::shared_ptr<SwapchainImageContext>& swapchainImageContext) {
 
-    VkExtent2D size = {swapchainCreateInfo.width, swapchainCreateInfo.height};
+    m_vkDevice = context->GetDevice();
 
     // Create a D32 depth buffer
     VkImageCreateInfo imageInfo{VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
     imageInfo.imageType = VK_IMAGE_TYPE_2D;
-    imageInfo.extent.width = size.width;
-    imageInfo.extent.height = size.height;
+    imageInfo.extent.width = swapchainImageContext.GetSwapchainExtent().width;
+    imageInfo.extent.height = swapchainImageContext.GetSwapchainExtent().height;
     imageInfo.extent.depth = 1;
     imageInfo.mipLevels = 1;
     imageInfo.arrayLayers = 1;
-    imageInfo.format = depthFormat;
+    imageInfo.format = context->GetDepthFormat();
     imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
     imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-    imageInfo.samples = (VkSampleCountFlagBits) swapchainCreateInfo.sampleCount;
+    imageInfo.samples = swapchainImageContext.GetSampleFlagBits();
     imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    CHECK_VKCMD(vkCreateImage(device, &imageInfo, nullptr, &depthImage));
+    CHECK_VKCMD(vkCreateImage(context->GetDevice(), &imageInfo, nullptr, &depthImage));
 
     VkMemoryRequirements memRequirements{};
-    vkGetImageMemoryRequirements(device, depthImage, &memRequirements);
-    uint32_t memoryIdx = FindMemoryType(physicalDevice, memRequirements.memoryTypeBits,
+    vkGetImageMemoryRequirements(context->GetDevice(), depthImage, &memRequirements);
+    uint32_t memoryIdx = FindMemoryType(context->GetPhysicalDevice(),memRequirements.memoryTypeBits,
                                         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     VkMemoryAllocateInfo allocInfo = CreateMemAllocInfo(memRequirements.size, memoryIdx);
 
-    VkResult result = vkAllocateMemory(device, &allocInfo, nullptr, &depthMemory_);
+    VkResult result = vkAllocateMemory(context->GetDevice(), &allocInfo, nullptr, &depthMemory_);
     CHECK_VKCMD(result);
 
-    CHECK_VKCMD(vkBindImageMemory(device, depthImage, depthMemory_, 0));
+    CHECK_VKCMD(vkBindImageMemory(context->GetDevice(), depthImage, depthMemory_, 0));
 }
 
 void DepthBuffer::TransitionLayout(CmdBuffer *cmdBuffer, VkImageLayout newLayout) {

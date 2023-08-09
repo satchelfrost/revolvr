@@ -174,7 +174,7 @@ void XrContext::CreateSwapchains() {
                                                 swapchainFormats.data()));
         CHECK(swapchainFormatCount == swapchainFormats.size());
         colorSwapchainFormat = SelectColorSwapchainFormat(swapchainFormats);
-        vulkanContext_->InitializeResources(static_cast<VkFormat>(colorSwapchainFormat));
+        vulkanContext_->InitRenderingContext(static_cast<VkFormat>(colorSwapchainFormat));
 
         // Create a swapchain for each view.
         for (uint32_t i = 0; i < viewCount; i++) {
@@ -204,7 +204,7 @@ void XrContext::CreateSwapchains() {
                     imageCount, swapchainCreateInfo);
             CHECK_XRCMD(xrEnumerateSwapchainImages(swapchain.handle, imageCount,
                                                    &imageCount, swapchainImages));
-            vulkanContext_->
+            vulkanContext_->SwapchainImagesReady(swapchainImages);
             swapchainImages_.insert(std::make_pair(swapchain.handle, swapchainImages));
         }
     }

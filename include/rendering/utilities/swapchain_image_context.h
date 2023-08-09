@@ -16,7 +16,10 @@
 #include <rendering/utilities/draw_buffer.h>
 #include <math/transform.h>
 
+
 namespace rvr {
+class DepthBuffer;
+
 class SwapchainImageContext {
 private:
     std::vector <XrSwapchainImageVulkan2KHR> swapchainImages_;
@@ -27,6 +30,7 @@ private:
     std::vector <RenderTarget> renderTarget_;
     DepthBuffer depthBuffer_;
     RenderPass renderPass_;
+    uint32_t sampleCount_;
 
 public:
     SwapchainImageContext(uint32_t capacity, const XrSwapchainCreateInfo &swapchainCreateInfo);
@@ -35,5 +39,7 @@ public:
     void BindRenderTarget(uint32_t index, VkRenderPassBeginInfo *renderPassBeginInfo);
     XrSwapchainImageBaseHeader* GetFirstImagePointer();
     void InitResources();
+    VkExtent2D GetSwapchainExtent();
+    VkSampleCountFlagBits GetSampleFlagBits();
 };
 }

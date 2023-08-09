@@ -9,8 +9,11 @@
 #include <pch.h>
 #include <common.h>
 #include <rendering/utilities/command_buffer.h>
+#include "swapchain_image_context.h"
 
 namespace rvr {
+class SwapchainImageContext;
+
 class DepthBuffer {
 public:
     VkDeviceMemory depthMemory_{VK_NULL_HANDLE};
@@ -24,9 +27,7 @@ public:
     DepthBuffer(const DepthBuffer &) = delete;
     DepthBuffer &operator=(const DepthBuffer &) = delete;
 
-//    const std::shared_ptr<RenderingContext>& context;
-    void Create(VkPhysicalDevice physicalDevice, VkDevice device, VkFormat depthFormat,
-                const XrSwapchainCreateInfo &swapchainCreateInfo);
+    void Create(const std::shared_ptr<RenderingContext>& context, const std::shared_ptr<SwapchainImageContext>& swapchainImageContext);
 
     void TransitionLayout(CmdBuffer* cmdBuffer, VkImageLayout newLayout);
 

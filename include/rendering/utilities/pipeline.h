@@ -11,6 +11,7 @@
 #include <rendering/utilities/render_pass.h>
 #include <rendering/utilities/shader_program.h>
 #include <rendering/utilities/draw_buffer.h>
+#include <rendering/utilities/rendering_context.h>
 
 namespace rvr {
 class PipelineLayout {
@@ -39,8 +40,8 @@ private:
 
 public:
     void Dynamic(VkDynamicState state);
-    void Create(VkDevice device, const RenderPass &renderPass, const ShaderProgram &shaderProgram,
-                const DrawBuffer &drawBuffer);
+    void Create(std::shared_ptr<RenderingContext>& context, ShaderProgram& shaderProgram,
+                DrawBuffer& drawBuffer);
     void Release();
     Pipeline() = default;
 };

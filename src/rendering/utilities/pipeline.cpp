@@ -36,9 +36,9 @@ void PipelineLayout::Create(VkDevice device) {
                                        &layout));
 }
 
-void Pipeline::Create(VkDevice device, const RenderPass &renderPass, const ShaderProgram &shaderProgram,
-                      const DrawBuffer &drawBuffer) {
-    device_ = device;
+void Pipeline::Create(std::shared_ptr<RenderingContext>& context, ShaderProgram& shaderProgram,
+                      DrawBuffer& drawBuffer) {
+    device_ = context->GetDevice();
     pipelineLayout_.Create(device_);
 
     VkPipelineDynamicStateCreateInfo dynamicState{VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO};
@@ -126,7 +126,7 @@ void Pipeline::Create(VkDevice device, const RenderPass &renderPass, const Shade
     if (dynamicState.dynamicStateCount > 0)
         pipeInfo.pDynamicState = &dynamicState;
     pipeInfo.layout = pipelineLayout_.layout;
-    pipeInfo.renderPass = renderPass.pass;
+    pipeInfo.renderPass = context->GetRenderPass();
     pipeInfo.subpass = 0;
     CHECK_VKCMD(vkCreateGraphicsPipelines(device_, VK_NULL_HANDLE, 1,
                                           &pipeInfo, nullptr,&pipeline_));

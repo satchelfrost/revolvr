@@ -17,5 +17,10 @@ public:
     RenderingContext(VkPhysicalDevice physicalDevice, VkDevice device, VkQueue graphicsQueue, VkFormat colorFormat);
     uint32_t GetGraphicsQueueFamilyIndex();
     VkDevice GetDevice();
+    VkPhysicalDevice GetPhysicalDevice();
+    VkQueue GetGraphicsQueue();
+    VkFormat GetColorFormat();
+    VkFormat GetDepthFormat();
+    VkRenderPass GetRenderPass();
 };
 }

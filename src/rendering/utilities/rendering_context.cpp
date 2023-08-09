@@ -1,6 +1,8 @@
 #include <rendering/utilities/rendering_context.h>
 
 #include <rendering/utilities/vulkan_utils.h>
+#include <rendering/utilities/rendering_context.h>
+
 
 namespace rvr {
 RenderingContext::RenderingContext(VkPhysicalDevice physicalDevice, VkDevice device, VkQueue graphicsQueue,
@@ -16,5 +18,24 @@ uint32_t RenderingContext::GetGraphicsQueueFamilyIndex() {
 
 VkDevice RenderingContext::GetDevice() {
     return device_;
+}
+
+VkPhysicalDevice RenderingContext::GetPhysicalDevice() {
+    return physicalDevice_;
+}
+
+VkQueue RenderingContext::GetGraphicsQueue() {
+    return graphicsQueue_;
+}
+
+VkFormat RenderingContext::GetColorFormat() {
+    return colorFormat_;
+}
+VkFormat RenderingContext::GetDepthFormat() {
+    return depthFormat_;
+}
+
+VkRenderPass RenderingContext::GetRenderPass() {
+    return renderPass_.pass;
 }
 }
