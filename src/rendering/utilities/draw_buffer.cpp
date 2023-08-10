@@ -8,53 +8,28 @@
 #include <rendering/utilities/vulkan_utils.h>
 
 namespace rvr {
-DrawBuffer::~DrawBuffer() {
-    if (device_ != nullptr) {
-        if (indexBuffer_ != VK_NULL_HANDLE) {
-            vkDestroyBuffer(device_, indexBuffer_, nullptr);
-        }
-        if (indexMemory_ != VK_NULL_HANDLE) {
-            vkFreeMemory(device_, indexMemory_, nullptr);
-        }
-        if (vertexBuffer_ != VK_NULL_HANDLE) {
-            vkDestroyBuffer(device_, vertexBuffer_, nullptr);
-        }
-        if (vertexMemory_ != VK_NULL_HANDLE) {
-            vkFreeMemory(device_, vertexMemory_, nullptr);
-        }
-    }
-    indexBuffer_ = VK_NULL_HANDLE;
-    indexMemory_ = VK_NULL_HANDLE;
-    vertexBuffer_ = VK_NULL_HANDLE;
-    vertexMemory_ = VK_NULL_HANDLE;
-    bindDesc = {};
-    attrDesc.clear();
-    count_ = {0, 0};
-    device_ = nullptr;
-}
-
-void DrawBuffer::Init(VkDevice device, const std::vector<VkVertexInputAttributeDescription> &attr) {
+void DrawBuffer::Init(const std::shared_ptr<RenderingContext>& context,
+                      const std::vector<VkVertexInputAttributeDescription> &attr) {
     attrDesc = attr;
-    device_ = device;
+    device_ = renderingContext_->GetDevice();
+    renderingContext_ = context;
 }
 
-void DrawBuffer::AllocateBufferMemory(VkPhysicalDevice physicalDevice, VkBuffer buf, VkDeviceMemory *mem) const {
-    VkMemoryRequirements memReq = {};
-    vkGetBufferMemoryRequirements(device_, buf, &memReq);
-    uint32_t memIdx = FindMemoryType(physicalDevice, memReq.memoryTypeBits,
-                                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-    VkMemoryAllocateInfo allocInfo = CreateMemAllocInfo(memReq.size, memIdx);
-    VkResult result = vkAllocateMemory(device_, &allocInfo, nullptr, mem);
-    CHECK_VKCMD(result);
+void DrawBuffer::CreateVertexBuffer(size_t sizeInBytes) {
+    vertexBuffer_ = std::make_shared<VulkanBuffer>(renderingContext_, sizeInBytes,
+                                                   VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
 }
 
+void DrawBuffer::CreateIndexBuffer(size_t sizeInBytes) {
+    indexBuffer_ = std::make_shared<VulkanBuffer>(renderingContext_, sizeInBytes,
+                                                  VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+}
 
-void DrawBuffer::UpdateIndices(const uint16_t *data, uint32_t elements, uint32_t offset) {
-    uint16_t *map = nullptr;
-    CHECK_VKCMD(vkMapMemory(device_, indexMemory_, sizeof(map[0]) * offset,
-                            sizeof(map[0]) * elements, 0, (void **) &map));
-    for (size_t i = 0; i < elements; ++i)
-        map[i] = data[i];
-    vkUnmapMemory(device_, indexMemory_);
+void DrawBuffer::UpdateIndices(const void *data) {
+    indexBuffer_->Update(data);
+}
+
+void DrawBuffer::UpdateVertices(const void *data) {
+    vertexBuffer_->Update(data);
 }
 }

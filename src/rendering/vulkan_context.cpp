@@ -77,11 +77,6 @@ void VulkanContext::InitializeResources() {
     shaderProgram_.LoadVertexShader(vertexSPIRV);
     shaderProgram_.LoadFragmentShader(fragmentSPIRV);
 
-//    // TODO: can probably put this inside of swapchain image context
-//    // Semaphore to block on draw complete
-//    VkSemaphoreCreateInfo semInfo{VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
-//    CHECK_VKCMD(vkCreateSemaphore(device_, &semInfo, nullptr, &drawDone_));
-
     static_assert(sizeof(Geometry::Vertex) == 24, "Unexpected Vertex size");
     drawBuffer_.Init(device_,
                      {{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Geometry::Vertex, Position)},
@@ -338,8 +333,8 @@ void VulkanContext::RetrieveQueues() {
 }
 
 void VulkanContext::SwapchainImagesReady(XrSwapchainImageBaseHeader *images) {
-    auto swapchainContext = imageToContextMap_[images];
-    swapchainContext->InitRenderTargets();
+    auto context = imageToSwapchainContext_[images];
+    context->InitRenderTargets();
 }
 
 void VulkanContext::InitRenderingContext(VkFormat colorFormat) {

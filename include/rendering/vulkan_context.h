@@ -34,10 +34,9 @@ private:
     std::map<const XrSwapchainImageBaseHeader*, std::shared_ptr<SwapchainImageContext>> imageToSwapchainContext_;
     std::vector<math::Transform> renderBuffer_;
     XrGraphicsBindingVulkan2KHR graphicsBinding_{XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR};
-    VkSemaphore drawDone_{VK_NULL_HANDLE};
+//    VkSemaphore drawDone_{VK_NULL_HANDLE};
     ShaderProgram shaderProgram_{};
     std::shared_ptr<Pipeline> pipeline_;
-    DrawBuffer drawBuffer_{};
     std::shared_ptr<RenderingContext> renderingContext_ = nullptr;
 
 
