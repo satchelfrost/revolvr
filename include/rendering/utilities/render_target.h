@@ -8,7 +8,7 @@
 
 #include <pch.h>
 #include <common.h>
-#include <rendering/utilities/render_pass.h>
+#include <rendering/utilities/rendering_context.h>
 
 namespace rvr {
 class RenderTarget {
@@ -20,12 +20,13 @@ private:
     VkImageView depthView_{VK_NULL_HANDLE};
     VkFramebuffer framebuffer_{VK_NULL_HANDLE};
 public:
-    void Create(VkDevice device, VkImage aColorImage, VkImage aDepthImage, VkExtent2D size, RenderPass &renderPass);
+    void Create(const std::shared_ptr<RenderingContext>& context, VkImage colorImage, VkImage depthImage, VkExtent2D size);
     RenderTarget() = default;
     RenderTarget(RenderTarget &&other) noexcept;
     RenderTarget &operator=(RenderTarget &&other) noexcept;
     RenderTarget(const RenderTarget &) = delete;
     RenderTarget &operator=(const RenderTarget &) = delete;
+    VkFramebuffer GetFramebuffer();
     ~RenderTarget();
 };
 }

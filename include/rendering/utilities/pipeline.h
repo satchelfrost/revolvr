@@ -40,8 +40,8 @@ private:
 
 public:
     void Dynamic(VkDynamicState state);
-    void Create(std::shared_ptr<RenderingContext>& context, ShaderProgram& shaderProgram,
-                DrawBuffer& drawBuffer);
+    Pipeline(std::shared_ptr<RenderingContext>& context, ShaderProgram& shaderProgram, DrawBuffer& drawBuffer);
+    VkPipeline GetPipeline();
     void Release();
     Pipeline() = default;
 };

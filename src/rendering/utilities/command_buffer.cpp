@@ -104,7 +104,7 @@ bool CmdBuffer::Wait() {
             SetState(CmdBufferState::Executable);
             return true;
         }
-        Log::Write(Log::Level::Info, "Waiting for CmdBuffer fence timed out, retrying...");
+        PrintInfo("Waiting for CmdBuffer fence timed out, retrying...");
     }
 
     return false;

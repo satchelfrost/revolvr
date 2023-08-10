@@ -77,13 +77,10 @@ void VulkanContext::InitializeResources() {
     shaderProgram_.LoadVertexShader(vertexSPIRV);
     shaderProgram_.LoadFragmentShader(fragmentSPIRV);
 
-    // Semaphore to block on draw complete
-    VkSemaphoreCreateInfo semInfo{VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
-    CHECK_VKCMD(vkCreateSemaphore(device_, &semInfo, nullptr, &drawDone_));
-
-    QueueFamilyIndices indices = FindQueueFamilies(physicalDevice_);
-    if (!cmdBuffer_.Init(renderingContext_))
-        THROW("Failed to create command buffer");
+//    // TODO: can probably put this inside of swapchain image context
+//    // Semaphore to block on draw complete
+//    VkSemaphoreCreateInfo semInfo{VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
+//    CHECK_VKCMD(vkCreateSemaphore(device_, &semInfo, nullptr, &drawDone_));
 
     static_assert(sizeof(Geometry::Vertex) == 24, "Unexpected Vertex size");
     drawBuffer_.Init(device_,
@@ -94,15 +91,15 @@ void VulkanContext::InitializeResources() {
     drawBuffer_.Create<Geometry::Vertex>(physicalDevice_, numCubeIndices, numCubeVertices);
     drawBuffer_.UpdateIndices(Geometry::c_cubeIndices, numCubeIndices, 0);
     drawBuffer_.UpdateVertices(Geometry::c_cubeVertices, numCubeVertices, 0);
-    pipeline_.Create(renderingContext_, shaderProgram_, drawBuffer_);
+    pipeline_ = std::make_shared<Pipeline>(renderingContext_, shaderProgram_, drawBuffer_);
 }
 
 XrSwapchainImageBaseHeader* VulkanContext::AllocateSwapchainImageStructs(
         uint32_t capacity, const XrSwapchainCreateInfo &swapchainCreateInfo) {
-    std::make_shared<SwapchainImageContext>(capacity, swapchainCreateInfo);
-//    auto swapchainImageContext = std::make_shared<SwapchainImageContext>(capacity, swapchainCreateInfo);
-    auto images = swapchainImageContext->GetFirstImagePointer();
-    imageToContextMap_.insert(std::make_pair(images, swapchainImageContext));
+    auto context = std::make_shared<SwapchainImageContext>(renderingContext_,
+                                                                         capacity, swapchainCreateInfo);
+    auto images = context->GetFirstImagePointer();
+    imageToSwapchainContext_.insert(std::make_pair(images, context));
     return images;
 }
 
@@ -110,68 +107,8 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
                                const XrSwapchainImageBaseHeader *swapchainImage,
                                uint32_t imageIndex, const std::vector<math::Transform> &cubes) {
     CHECK(layerView.subImage.imageArrayIndex == 0);  // Texture arrays not supported.
-
-    auto swapchainContext = imageToContextMap_[swapchainImage];
-
-//    cmdBuffer_.Reset();
-//    cmdBuffer_.Begin();
-//
-//    // Ensure depth is in the right layout
-//    swapchainContext->TransitionLayout(&cmdBuffer_,
-//                                       VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
-//
-//    // Bind and clear eye render target
-//    static XrColor4f darkSlateGrey = {0.184313729f, 0.309803933f, 0.309803933f, 1.0f};
-//    static std::array<VkClearValue, 2> clearValues;
-//    clearValues[0].color.float32[0] = darkSlateGrey.r;
-//    clearValues[0].color.float32[1] = darkSlateGrey.g;
-//    clearValues[0].color.float32[2] = darkSlateGrey.b;
-//    clearValues[0].color.float32[3] = darkSlateGrey.a;
-//    clearValues[1].depthStencil.depth = 1.0f;
-//    clearValues[1].depthStencil.stencil = 0;
-//    VkRenderPassBeginInfo renderPassBeginInfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
-//    renderPassBeginInfo.clearValueCount = (uint32_t) clearValues.size();
-//    renderPassBeginInfo.pClearValues = clearValues.data();
-//
-//    swapchainContext->BindRenderTarget(imageIndex, &renderPassBeginInfo);
-//
-//    vkCmdBeginRenderPass(cmdBuffer_.buf, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-//
-//    vkCmdBindPipeline(cmdBuffer_.buf, VK_PIPELINE_BIND_POINT_GRAPHICS,
-//                      swapchainContext->GetPipeline());
-//
-//    // Bind index and vertex buffers
-//    vkCmdBindIndexBuffer(cmdBuffer_.buf, drawBuffer_.idxBuf, 0, VK_INDEX_TYPE_UINT16);
-//    VkDeviceSize offset = 0;
-//    vkCmdBindVertexBuffers(cmdBuffer_.buf, 0, 1, &drawBuffer_.vtxBuf, &offset);
-//
-//    // Compute the view-projection transform.
-//    // Note all matrices (including OpenXR) are column-major, right-handed.
-//    const auto &pose = layerView.pose;
-//
-//    glm::mat4 projectionMatrix = math::matrix::CreateProjectionFromXrFOV(layerView.fov, 0.05f, 100.0f);
-//    glm::mat4 poseMatrix = math::Pose(pose).ToMat4();
-//    glm::mat4 viewMatrix = glm::affineInverse(poseMatrix);
-//    glm::mat4 viewProjection = projectionMatrix * viewMatrix;
-//
-//    // Render each cube
-//    for (const math::Transform &cube : cubes) {
-//        glm::mat4 modelMatrix = cube.ToMat4();
-//        glm::mat4 mvp = viewProjection * modelMatrix;
-//        vkCmdPushConstants(cmdBuffer_.buf, pipelineLayout_.layout,
-//                           VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(mvp),
-//                           glm::value_ptr(mvp));
-//        vkCmdDrawIndexed(cmdBuffer_.buf, drawBuffer_.count.idx,
-//                         1, 0, 0, 0);
-//    }
-//
-//    vkCmdEndRenderPass(cmdBuffer_.buf);
-//
-//    cmdBuffer_.End();
-//    cmdBuffer_.Exec(graphicsQueue_);
-//
-//    // XXX Should double-buffer the command buffers, for now just flush
-//    cmdBuffer_.Wait();
+    auto swapchainContext = imageToSwapchainContext_[swapchainImage];
+    swapchainContext->Draw(imageIndex, cubes.size(), pipeline_, cubes);
 }
 
 void VulkanContext::Render() {
@@ -402,7 +339,7 @@ void VulkanContext::RetrieveQueues() {
 
 void VulkanContext::SwapchainImagesReady(XrSwapchainImageBaseHeader *images) {
     auto swapchainContext = imageToContextMap_[images];
-    depthBuffer_.Create(renderingContext_, swapchainContext);
+    swapchainContext->InitRenderTargets();
 }
 
 void VulkanContext::InitRenderingContext(VkFormat colorFormat) {

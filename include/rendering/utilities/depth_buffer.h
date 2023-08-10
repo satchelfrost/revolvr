@@ -12,8 +12,6 @@
 #include "swapchain_image_context.h"
 
 namespace rvr {
-class SwapchainImageContext;
-
 class DepthBuffer {
 public:
     VkDeviceMemory depthMemory_{VK_NULL_HANDLE};
@@ -27,7 +25,8 @@ public:
     DepthBuffer(const DepthBuffer &) = delete;
     DepthBuffer &operator=(const DepthBuffer &) = delete;
 
-    void Create(const std::shared_ptr<RenderingContext>& context, const std::shared_ptr<SwapchainImageContext>& swapchainImageContext);
+    void Create(const std::shared_ptr<RenderingContext>& context, VkExtent2D extent,
+                VkSampleCountFlagBits samples);
 
     void TransitionLayout(CmdBuffer* cmdBuffer, VkImageLayout newLayout);
 

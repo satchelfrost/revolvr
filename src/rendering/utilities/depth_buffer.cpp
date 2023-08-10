@@ -46,15 +46,16 @@ DepthBuffer &DepthBuffer::operator=(DepthBuffer &&other) noexcept {
     return *this;
 }
 
-void DepthBuffer::Create(const std::shared_ptr<RenderingContext>& context, const std::shared_ptr<SwapchainImageContext>& swapchainImageContext) {
+void DepthBuffer::Create(const std::shared_ptr<RenderingContext>& context, VkExtent2D extent,
+                         VkSampleCountFlagBits samples) {
 
     m_vkDevice = context->GetDevice();
 
     // Create a D32 depth buffer
     VkImageCreateInfo imageInfo{VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
     imageInfo.imageType = VK_IMAGE_TYPE_2D;
-    imageInfo.extent.width = swapchainImageContext.GetSwapchainExtent().width;
-    imageInfo.extent.height = swapchainImageContext.GetSwapchainExtent().height;
+    imageInfo.extent.width = extent.width;
+    imageInfo.extent.height = extent.height;
     imageInfo.extent.depth = 1;
     imageInfo.mipLevels = 1;
     imageInfo.arrayLayers = 1;
@@ -62,7 +63,7 @@ void DepthBuffer::Create(const std::shared_ptr<RenderingContext>& context, const
     imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
     imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-    imageInfo.samples = swapchainImageContext.GetSampleFlagBits();
+    imageInfo.samples = samples;
     imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     CHECK_VKCMD(vkCreateImage(context->GetDevice(), &imageInfo, nullptr, &depthImage));
 

@@ -8,11 +8,9 @@
 
 #include <pch.h>
 
-#include "rendering/utilities/command_buffer.h"
 #include "rendering/utilities/shader_program.h"
 #include "rendering/utilities/draw_buffer.h"
 #include "rendering/utilities/pipeline.h"
-#include "rendering/utilities/depth_buffer.h"
 #include <rendering/utilities/geometry.h>
 #include <rendering/utilities/swapchain_image_context.h>
 //#include "rendering/utilities/gltf/vulkan_gltf_model.h"
@@ -33,15 +31,12 @@ private:
     VkPhysicalDevice physicalDevice_{VK_NULL_HANDLE};
     VkDevice device_{VK_NULL_HANDLE};
     VkQueue graphicsQueue_{VK_NULL_HANDLE};
-    std::map<const XrSwapchainImageBaseHeader*, std::shared_ptr<SwapchainImageContext>> imageToContextMap_;
+    std::map<const XrSwapchainImageBaseHeader*, std::shared_ptr<SwapchainImageContext>> imageToSwapchainContext_;
     std::vector<math::Transform> renderBuffer_;
-    DepthBuffer depthBuffer_{};
     XrGraphicsBindingVulkan2KHR graphicsBinding_{XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR};
     VkSemaphore drawDone_{VK_NULL_HANDLE};
     ShaderProgram shaderProgram_{};
-    CmdBuffer cmdBuffer_{};
-    Pipeline pipeline_{};
-    RenderPass renderPass_{};
+    std::shared_ptr<Pipeline> pipeline_;
     DrawBuffer drawBuffer_{};
     std::shared_ptr<RenderingContext> renderingContext_ = nullptr;
 

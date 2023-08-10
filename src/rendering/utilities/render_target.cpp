@@ -58,13 +58,12 @@ RenderTarget &RenderTarget::operator=(RenderTarget &&other) noexcept {
     return *this;
 }
 
-void
-RenderTarget::Create(VkDevice device, VkImage aColorImage, VkImage aDepthImage, VkExtent2D size,
-                     RenderPass &renderPass) {
-    device_ = device;
+void RenderTarget::Create(const std::shared_ptr<RenderingContext>& context, VkImage colorImage, VkImage depthImage,
+                          VkExtent2D size) {
+    device_ = context->GetDevice();
 
-    colorImage_ = aColorImage;
-    depthImage_ = aDepthImage;
+    colorImage_ = colorImage;
+    depthImage_ = depthImage;
 
     std::array<VkImageView, 2> attachments{};
     uint32_t attachmentCount = 0;
@@ -74,7 +73,7 @@ RenderTarget::Create(VkDevice device, VkImage aColorImage, VkImage aDepthImage, 
         VkImageViewCreateInfo colorViewInfo{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
         colorViewInfo.image = colorImage_;
         colorViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        colorViewInfo.format = renderPass.colorFmt;
+        colorViewInfo.format = context->GetColorFormat();
         colorViewInfo.components.r = VK_COMPONENT_SWIZZLE_R;
         colorViewInfo.components.g = VK_COMPONENT_SWIZZLE_G;
         colorViewInfo.components.b = VK_COMPONENT_SWIZZLE_B;
@@ -93,7 +92,7 @@ RenderTarget::Create(VkDevice device, VkImage aColorImage, VkImage aDepthImage, 
         VkImageViewCreateInfo depthViewInfo{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
         depthViewInfo.image = depthImage_;
         depthViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        depthViewInfo.format = renderPass.depthFmt;
+        depthViewInfo.format = context->GetDepthFormat();
         depthViewInfo.components.r = VK_COMPONENT_SWIZZLE_R;
         depthViewInfo.components.g = VK_COMPONENT_SWIZZLE_G;
         depthViewInfo.components.b = VK_COMPONENT_SWIZZLE_B;
@@ -108,12 +107,16 @@ RenderTarget::Create(VkDevice device, VkImage aColorImage, VkImage aDepthImage, 
     }
 
     VkFramebufferCreateInfo fbInfo{VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO};
-    fbInfo.renderPass = renderPass.pass;
+    fbInfo.renderPass = context->GetRenderPass();
     fbInfo.attachmentCount = attachmentCount;
     fbInfo.pAttachments = attachments.data();
     fbInfo.width = size.width;
     fbInfo.height = size.height;
     fbInfo.layers = 1;
     CHECK_VKCMD(vkCreateFramebuffer(device_, &fbInfo, nullptr, &framebuffer_));
+}
+
+VkFramebuffer RenderTarget::GetFramebuffer() {
+    return framebuffer_;
 }
 }

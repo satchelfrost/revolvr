@@ -36,8 +36,7 @@ void PipelineLayout::Create(VkDevice device) {
                                        &layout));
 }
 
-void Pipeline::Create(std::shared_ptr<RenderingContext>& context, ShaderProgram& shaderProgram,
-                      DrawBuffer& drawBuffer) {
+Pipeline::Pipeline(std::shared_ptr<RenderingContext>& context, ShaderProgram& shaderProgram, DrawBuffer& drawBuffer) {
     device_ = context->GetDevice();
     pipelineLayout_.Create(device_);
 
@@ -142,5 +141,9 @@ void Pipeline::Release() {
 
     pipeline_ = VK_NULL_HANDLE;
     device_ = nullptr;
+}
+
+VkPipeline Pipeline::GetPipeline() {
+    return pipeline_;
 }
 }
