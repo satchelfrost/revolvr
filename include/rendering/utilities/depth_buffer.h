@@ -13,25 +13,22 @@
 
 namespace rvr {
 class DepthBuffer {
-public:
+private:
     VkDeviceMemory depthMemory_{VK_NULL_HANDLE};
-    VkImage depthImage{VK_NULL_HANDLE};
+    VkImage depthImage_{VK_NULL_HANDLE};
+    VkDevice device_{VK_NULL_HANDLE};
+    VkImageLayout imageLayout_ = VK_IMAGE_LAYOUT_UNDEFINED;
+    std::shared_ptr<VulkanBuffer> buffer_;
 
+public:
+    DepthBuffer(const std::shared_ptr<RenderingContext>& context, VkExtent2D extent,
+                VkSampleCountFlagBits samples, VkCommandBuffer cmdBuffer, VkImageLayout newLayout);
+    void TransitionLayout(VkCommandBuffer cmdBuffer, VkImageLayout newLayout);
     DepthBuffer() = default;
     ~DepthBuffer();
     DepthBuffer(DepthBuffer &&other) noexcept;
     DepthBuffer &operator=(DepthBuffer &&other) noexcept;
-
     DepthBuffer(const DepthBuffer &) = delete;
     DepthBuffer &operator=(const DepthBuffer &) = delete;
-
-    void Create(const std::shared_ptr<RenderingContext>& context, VkExtent2D extent,
-                VkSampleCountFlagBits samples);
-
-    void TransitionLayout(CmdBuffer* cmdBuffer, VkImageLayout newLayout);
-
-private:
-    VkDevice m_vkDevice{VK_NULL_HANDLE};
-    VkImageLayout m_vkLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 };
 }

@@ -14,19 +14,21 @@
 #include <rendering/utilities/render_target.h>
 #include <math/transform.h>
 
-
 namespace rvr {
 class SwapchainImageContext {
 private:
     std::shared_ptr<RenderingContext> renderingContext_;
     std::vector <XrSwapchainImageVulkan2KHR> swapchainImages_;
-    VkFormat swapchainImageFormat_;
+    std::vector<VkImageView> swapChainImageViews_;
+
     VkExtent2D swapchainExtent_;
     VkViewport viewport_{};
     VkRect2D scissor_{};
-    std::vector <RenderTarget> renderTargets_;
-    DepthBuffer depthBuffer_;
-    CmdBuffer cmdBuffer_;
+
+    std::vector <std::unique_ptr<RenderTarget>> renderTargets_;
+
+    std::unique_ptr<CommandBuffer> cmdBuffer_;
+//    std::unique_ptr<VulkanImage> colorImage_;
     uint32_t sampleCount_;
 
 public:

@@ -3,18 +3,20 @@
 #include <rendering/utilities/vulkan_utils.h>
 #include <rendering/utilities/rendering_context.h>
 #include "rendering/utilities/vulkan_results.h"
+#include "rendering/utilities/command_buffer.h"
 
 namespace rvr {
 RenderingContext::RenderingContext(VkPhysicalDevice physicalDevice, VkDevice device, VkQueue graphicsQueue,
-                                   VkFormat colorFormat) :
-physicalDevice_(physicalDevice), device_(device), graphicsQueue_(graphicsQueue), colorFormat_(colorFormat) {
+                                   VkFormat colorFormat, VkCommandPool graphicsPool) :
+physicalDevice_(physicalDevice), device_(device), graphicsQueue_(graphicsQueue), colorFormat_(colorFormat),
+graphicsPool_(graphicsPool) {
     renderPass_.Create(device, colorFormat, depthFormat_);
 }
 
-uint32_t RenderingContext::GetGraphicsQueueFamilyIndex() {
-    QueueFamilyIndices indices = FindQueueFamilies(physicalDevice_);
-    indices.graphicsFamily.value();
-}
+//uint32_t RenderingContext::GetGraphicsQueueFamilyIndex() {
+//    QueueFamilyIndices indices = FindQueueFamilies(physicalDevice_);
+//    indices.graphicsFamily.value();
+//}
 
 VkDevice RenderingContext::GetDevice() {
     return device_;
@@ -67,4 +69,87 @@ void RenderingContext::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDevi
                                   VkDeviceSize dstOffset) {
     // TODO
 }
+
+VkCommandPool RenderingContext::GetGraphicsPool() {
+    return graphicsPool_;
+}
+
+void RenderingContext::CreateImage(VkExtent2D extent, VkFormat format, VkImageUsageFlags usage, VkImage *image,
+                                   VkDeviceMemory *imageMemory) {
+    VkImageCreateInfo imageInfo{VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
+    imageInfo.imageType = VK_IMAGE_TYPE_2D;
+    imageInfo.extent.width = extent.width;
+    imageInfo.extent.height = extent.height;
+    imageInfo.extent.depth = 1;
+    imageInfo.mipLevels = 1;
+    imageInfo.arrayLayers = 1;
+    imageInfo.format = format;
+    imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+    imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    imageInfo.usage = usage;
+    imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+    imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    VkResult result = vkCreateImage(device_, &imageInfo, nullptr, image);
+    CHECK_VKCMD(result);
+    AllocateImageMemory(*image, imageMemory);
+    result = vkBindImageMemory(device_, *image, *imageMemory, 0);
+    CHECK_VKCMD(result);
+}
+
+void RenderingContext::AllocateImageMemory(VkImage image, VkDeviceMemory *memory) {
+    VkMemoryRequirements memRequirements{};
+    vkGetImageMemoryRequirements(device_, image, &memRequirements);
+    uint32_t memoryIdx = FindMemoryType(physicalDevice_,memRequirements.memoryTypeBits,
+                                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    VkMemoryAllocateInfo allocInfo = CreateMemAllocInfo(memRequirements.size, memoryIdx);
+
+    VkResult result = vkAllocateMemory(device_, &allocInfo, nullptr, memory);
+    CHECK_VKCMD(result);
+}
+
+void RenderingContext::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlagBits aspectMask,
+                                       VkImageView *imageView) {
+    VkImageViewCreateInfo colorViewInfo{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
+    colorViewInfo.image = image;
+    colorViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    colorViewInfo.format = colorFormat_;
+    colorViewInfo.components.r = VK_COMPONENT_SWIZZLE_R;
+    colorViewInfo.components.g = VK_COMPONENT_SWIZZLE_G;
+    colorViewInfo.components.b = VK_COMPONENT_SWIZZLE_B;
+    colorViewInfo.components.a = VK_COMPONENT_SWIZZLE_A;
+    colorViewInfo.subresourceRange.aspectMask = aspectMask;
+    colorViewInfo.subresourceRange.baseMipLevel = 0;
+    colorViewInfo.subresourceRange.levelCount = 1;
+    colorViewInfo.subresourceRange.baseArrayLayer = 0;
+    colorViewInfo.subresourceRange.layerCount = 1;
+    VkResult result = vkCreateImageView(device_, &colorViewInfo, nullptr, imageView);
+    CHECK_VKCMD(result);
+}
+
+void RenderingContext::CreateTransitionLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout) {
+    VkImageMemoryBarrier barrier{VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER};
+    barrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+    barrier.oldLayout = oldLayout;
+    barrier.newLayout = newLayout;
+    barrier.image = image;
+    barrier.subresourceRange.baseMipLevel = 0;
+    barrier.subresourceRange.levelCount = 1;
+    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.layerCount = 1;
+
+    VkPipelineStageFlags srcStage{};
+    VkPipelineStageFlags dstStage{};
+    PopulateTransitionLayoutInfo(barrier, srcStage, dstStage, oldLayout, newLayout);
+
+    CommandBuffer commandBuffer(device_, graphicsPool_);
+    commandBuffer.Begin();
+    vkCmdPipelineBarrier(commandBuffer.GetBuffer(), srcStage, dstStage,
+                         0, 0, nullptr,0,
+                         nullptr, 1, &barrier);
+    commandBuffer.End();
+    commandBuffer.Exec(graphicsQueue_);
+}
+
 }

@@ -16,12 +16,12 @@ void DrawBuffer::Init(const std::shared_ptr<RenderingContext>& context,
 }
 
 void DrawBuffer::CreateVertexBuffer(size_t sizeInBytes) {
-    vertexBuffer_ = std::make_shared<VulkanBuffer>(renderingContext_, sizeInBytes,
+    vertexBuffer_ = std::make_unique<VulkanBuffer>(renderingContext_, sizeInBytes,
                                                    VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
 }
 
 void DrawBuffer::CreateIndexBuffer(size_t sizeInBytes) {
-    indexBuffer_ = std::make_shared<VulkanBuffer>(renderingContext_, sizeInBytes,
+    indexBuffer_ = std::make_unique<VulkanBuffer>(renderingContext_, sizeInBytes,
                                                   VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
 }
 

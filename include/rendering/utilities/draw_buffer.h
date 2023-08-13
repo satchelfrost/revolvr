@@ -16,8 +16,8 @@ namespace rvr {
 class DrawBuffer {
 private:
     VkDevice device_{VK_NULL_HANDLE};
-    std::shared_ptr<VulkanBuffer> indexBuffer_;
-    std::shared_ptr<VulkanBuffer> vertexBuffer_;
+    std::unique_ptr<VulkanBuffer> indexBuffer_;
+    std::unique_ptr<VulkanBuffer> vertexBuffer_;
     std::shared_ptr<RenderingContext> renderingContext_;
 
 public:

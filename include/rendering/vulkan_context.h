@@ -11,6 +11,7 @@
 #include "rendering/utilities/shader_program.h"
 #include "rendering/utilities/draw_buffer.h"
 #include "rendering/utilities/pipeline.h"
+#include "rendering/utilities/vulkan_utils.h"
 #include <rendering/utilities/geometry.h>
 #include <rendering/utilities/swapchain_image_context.h>
 //#include "rendering/utilities/gltf/vulkan_gltf_model.h"
@@ -31,13 +32,14 @@ private:
     VkPhysicalDevice physicalDevice_{VK_NULL_HANDLE};
     VkDevice device_{VK_NULL_HANDLE};
     VkQueue graphicsQueue_{VK_NULL_HANDLE};
+    VkCommandPool graphicsPool_;
     std::map<const XrSwapchainImageBaseHeader*, std::shared_ptr<SwapchainImageContext>> imageToSwapchainContext_;
     std::vector<math::Transform> renderBuffer_;
     XrGraphicsBindingVulkan2KHR graphicsBinding_{XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR};
-//    VkSemaphore drawDone_{VK_NULL_HANDLE};
     ShaderProgram shaderProgram_{};
     std::shared_ptr<Pipeline> pipeline_;
     std::shared_ptr<RenderingContext> renderingContext_ = nullptr;
+    QueueFamilyIndices queueFamilyIndices_;
 
 
 #if !defined(NDEBUG)
@@ -65,10 +67,11 @@ private:
     void SetupReportCallback();
     void PickPhysicalDevice(XrInstance xrInstance, XrSystemId systemId);
     void CreateLogicalDevice(XrInstance xrInstance, XrSystemId systemId);
+    void CreateCommandPool();
     void StoreGraphicsBinding();
     void DrawGrid();
     void RenderView(const XrCompositionLayerProjectionView& layerView, const XrSwapchainImageBaseHeader* swapchainImage,
-                    const uint32_t imageIndex, const std::vector<math::Transform>& cubes);
+                    const uint32_t imageIndex, std::vector<math::Transform>& cubes);
     bool RenderLayer(std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
                      XrCompositionLayerProjection& layer, XrContext* xrContext);
     void RetrieveQueues();

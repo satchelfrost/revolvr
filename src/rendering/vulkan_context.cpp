@@ -20,6 +20,7 @@ void VulkanContext::InitDevice(XrInstance xrInstance, XrSystemId systemId) {
     SetupReportCallback();
     PickPhysicalDevice(xrInstance, systemId);
     CreateLogicalDevice(xrInstance, systemId);
+    CreateCommandPool();
     RetrieveQueues();
     StoreGraphicsBinding();
 }
@@ -100,10 +101,26 @@ XrSwapchainImageBaseHeader* VulkanContext::AllocateSwapchainImageStructs(
 
 void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView,
                                const XrSwapchainImageBaseHeader *swapchainImage,
-                               uint32_t imageIndex, const std::vector<math::Transform> &cubes) {
+                               uint32_t imageIndex, std::vector<math::Transform> &models) {
     CHECK(layerView.subImage.imageArrayIndex == 0);  // Texture arrays not supported.
+    // Compute the view-projection transform.
+    // Note all matrices (including OpenXR) are column-major, right-handed.
+//    const auto &pose = layerView.pose;
+
+    glm::mat4 projectionMatrix = math::matrix::CreateProjectionFromXrFOV(layerView.fov, 0.05f, 100.0f);
+    glm::mat4 poseMatrix = math::Pose(layerView.pose).ToMat4();
+    glm::mat4 viewMatrix = glm::affineInverse(poseMatrix);
+    glm::mat4 viewProjection = projectionMatrix * viewMatrix;
+    for (math::Transform &model : models) {
+        model = viewProjection * model.ToMat4();
+//        glm::mat4 modelMatrix = transform.ToMat4();
+//        glm::mat4 mvp = viewProjection * modelMatrix;
+//        transform = math::Transform(mvp);
+    }
+
     auto swapchainContext = imageToSwapchainContext_[swapchainImage];
-    swapchainContext->Draw(imageIndex, cubes.size(), pipeline_, cubes);
+    // TODO: index count parameter is incorrect
+    swapchainContext->Draw(imageIndex, models.size(), pipeline_, models);
 }
 
 void VulkanContext::Render() {
@@ -281,11 +298,11 @@ void VulkanContext::PickPhysicalDevice(XrInstance xrInstance, XrSystemId systemI
 }
 
 void VulkanContext::CreateLogicalDevice(XrInstance xrInstance, XrSystemId systemId) {
-    QueueFamilyIndices indices = FindQueueFamilies(physicalDevice_);
+    queueFamilyIndices_ = FindQueueFamilies(physicalDevice_);
     float queuePriority = 1.0f;
     VkDeviceQueueCreateInfo queueCreateInfo{};
     queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
+    queueCreateInfo.queueFamilyIndex = queueFamilyIndices_.graphicsFamily.value();
     queueCreateInfo.queueCount = 1;
     queueCreateInfo.pQueuePriorities = &queuePriority;
 
@@ -317,6 +334,14 @@ void VulkanContext::CreateLogicalDevice(XrInstance xrInstance, XrSystemId system
     CHECK_VKCMD(vkResult);
 }
 
+void VulkanContext::CreateCommandPool() {
+    VkCommandPoolCreateInfo cmdPoolInfo{VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO};
+    cmdPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    cmdPoolInfo.queueFamilyIndex = queueFamilyIndices_.graphicsFamily.value();
+    CHECK_VKCMD(vkCreateCommandPool(device_, &cmdPoolInfo, nullptr,
+                                    &graphicsPool_));
+}
+
 void VulkanContext::StoreGraphicsBinding() {
     QueueFamilyIndices indices = FindQueueFamilies(physicalDevice_);
     graphicsBinding_.type = XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR;
@@ -328,8 +353,8 @@ void VulkanContext::StoreGraphicsBinding() {
 }
 
 void VulkanContext::RetrieveQueues() {
-    QueueFamilyIndices indices = FindQueueFamilies(physicalDevice_);
-    vkGetDeviceQueue(device_, indices.graphicsFamily.value(), 0, &graphicsQueue_);
+    vkGetDeviceQueue(device_, queueFamilyIndices_.graphicsFamily.value(),
+                     0, &graphicsQueue_);
 }
 
 void VulkanContext::SwapchainImagesReady(XrSwapchainImageBaseHeader *images) {
@@ -339,7 +364,8 @@ void VulkanContext::SwapchainImagesReady(XrSwapchainImageBaseHeader *images) {
 
 void VulkanContext::InitRenderingContext(VkFormat colorFormat) {
     renderingContext_ = std::make_shared<RenderingContext>(physicalDevice_, device_,
-                                                           graphicsQueue_, colorFormat);
+                                                           graphicsQueue_, colorFormat,
+                                                           graphicsPool_);
     InitializeResources();
 }
 }

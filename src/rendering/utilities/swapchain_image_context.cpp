@@ -11,15 +11,13 @@
 namespace rvr {
 SwapchainImageContext::SwapchainImageContext(std::shared_ptr<RenderingContext>  renderingContext, uint32_t capacity,
                                              const XrSwapchainCreateInfo &swapchainCreateInfo) :
-renderingContext_(std::move(renderingContext)),
-swapchainImageFormat_(static_cast<VkFormat>(swapchainCreateInfo.format)),
+renderingContext_(renderingContext),
 swapchainExtent_({swapchainCreateInfo.width, swapchainCreateInfo.height}),
 sampleCount_(swapchainCreateInfo.sampleCount) {
-    depthBuffer_.Create(renderingContext_, swapchainExtent_, GetSampleFlagBits());
-    cmdBuffer_.Init(renderingContext_);
-    depthBuffer_.TransitionLayout(&cmdBuffer_, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
-
+    cmdBuffer_ = std::make_unique<CommandBuffer>(renderingContext_->GetDevice(),
+                                                 renderingContext->GetGraphicsPool());
     swapchainImages_.resize(capacity);
+    swapChainImageViews_.resize(capacity);
     renderTargets_.resize(capacity);
 
     viewport_.x = 0.0f;
@@ -39,7 +37,7 @@ sampleCount_(swapchainCreateInfo.sampleCount) {
 
 void SwapchainImageContext::BindRenderTarget(uint32_t index, VkRenderPassBeginInfo *renderPassBeginInfo) {
     renderPassBeginInfo->renderPass = renderingContext_->GetRenderPass();
-    renderPassBeginInfo->framebuffer = renderTargets_[index].GetFramebuffer();
+    renderPassBeginInfo->framebuffer = renderTargets_[index]->GetFramebuffer();
     renderPassBeginInfo->renderArea.offset = {0, 0};
     renderPassBeginInfo->renderArea.extent = swapchainExtent_;
 }
@@ -50,8 +48,8 @@ XrSwapchainImageBaseHeader *SwapchainImageContext::GetFirstImagePointer() {
 
 void SwapchainImageContext::Draw(uint32_t imageIdx, uint32_t idxCount, const std::shared_ptr<Pipeline>& pipeline,
                                  const std::vector<math::Transform> &transforms) {
-    cmdBuffer_.Reset();
-    cmdBuffer_.Begin();
+    cmdBuffer_->Reset();
+    cmdBuffer_->Begin();
 
     // Bind and clear eye render target
     static XrColor4f darkSlateGrey = {0.184313729f, 0.309803933f, 0.309803933f, 1.0f};
@@ -68,16 +66,17 @@ void SwapchainImageContext::Draw(uint32_t imageIdx, uint32_t idxCount, const std
 
     BindRenderTarget(imageIdx, &renderPassBeginInfo);
 
-    vkCmdBeginRenderPass(cmdBuffer_.buf, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdBeginRenderPass(cmdBuffer_->GetBuffer(), &renderPassBeginInfo,
+                         VK_SUBPASS_CONTENTS_INLINE);
 
-    vkCmdBindPipeline(cmdBuffer_.buf, VK_PIPELINE_BIND_POINT_GRAPHICS,
+    vkCmdBindPipeline(cmdBuffer_->GetBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS,
                       pipeline->GetPipeline());
 
     // Bind index and vertex buffers
-    vkCmdBindIndexBuffer(cmdBuffer_.buf, drawBuffer_.idxBuf, 0, VK_INDEX_TYPE_UINT16);
+    vkCmdBindIndexBuffer(cmdBuffer_->GetBuffer(), drawBuffer_.idxBuf, 0, VK_INDEX_TYPE_UINT16);
     VkDeviceSize offset = 0;
-    vkCmdBindVertexBuffers(cmdBuffer_.buf, 0, 1, &drawBuffer_.vtxBuf, &offset);
-//
+    vkCmdBindVertexBuffers(cmdBuffer_->GetBuffer(), 0, 1, &drawBuffer_.vtxBuf, &offset);
+
 //    // Compute the view-projection transform.
 //    // Note all matrices (including OpenXR) are column-major, right-handed.
 //    const auto &pose = layerView.pose;
@@ -95,14 +94,12 @@ void SwapchainImageContext::Draw(uint32_t imageIdx, uint32_t idxCount, const std
 //                           glm::value_ptr(mvp));
 //        vkCmdDrawIndexed(cmdBuffer_.buf, drawBuffer_.count.idx, 1, 0, 0, 0);
 //    }
-//
-//    vkCmdEndRenderPass(cmdBuffer_.buf);
-//
-//    cmdBuffer_.End();
-//    cmdBuffer_.Exec(graphicsQueue_);
 
-    // XXX Should double-buffer the command buffers, for now just flush
-    cmdBuffer_.Wait();
+    vkCmdEndRenderPass(cmdBuffer_->GetBuffer());
+
+    cmdBuffer_->End();
+    cmdBuffer_->Exec(renderingContext_->GetGraphicsQueue());
+    cmdBuffer_->Wait();
 }
 
 
@@ -115,10 +112,9 @@ VkSampleCountFlagBits SwapchainImageContext::GetSampleFlagBits() const {
 }
 
 void SwapchainImageContext::InitRenderTargets() {
-    for (size_t i = 0; i < swapchainImages_.size(); i++) {
-        VkImage image = swapchainImages_[i].image;
-        renderTargets_[i].Create(renderingContext_, image, depthBuffer_.depthImage,
-                                 swapchainExtent_);
-    }
+    for (size_t i = 0; i < swapchainImages_.size(); i++)
+        renderTargets_[i] = std::make_unique<RenderTarget>(renderingContext_,
+                                                           swapchainImages_[i].image,
+                                                           swapchainExtent_);
 }
 }

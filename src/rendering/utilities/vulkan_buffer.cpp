@@ -2,7 +2,7 @@
 #include "rendering/utilities/vulkan_results.h"
 
 namespace rvr {
-rvr::VulkanBuffer::VulkanBuffer(const std::shared_ptr<RenderingContext> &context, size_t length,
+VulkanBuffer::VulkanBuffer(const std::shared_ptr<RenderingContext> &context, size_t length,
                                 VkBufferUsageFlags usage) :
 rendering_context_(context), sizeInBytes_(length), device_(context->GetDevice()) {
     context->CreateBuffer(length, usage, &buffer_, &memory_);

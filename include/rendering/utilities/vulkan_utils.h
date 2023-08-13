@@ -31,4 +31,6 @@ void CheckVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystemId systemI
 QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice physicalDevice);
 uint32_t FindMemoryType(VkPhysicalDevice physicalDevice, uint32_t filter, VkMemoryPropertyFlags flags);
 VkMemoryAllocateInfo CreateMemAllocInfo(VkDeviceSize size, uint32_t memIdx);
+void PopulateTransitionLayoutInfo(VkImageMemoryBarrier& barrier, VkPipelineStageFlags& srcStage,
+                                  VkPipelineStageFlags& dstStage, VkImageLayout oldLayout, VkImageLayout newLayout);
 }
