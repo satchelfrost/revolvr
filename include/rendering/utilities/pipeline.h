@@ -37,11 +37,12 @@ private:
     VkPipeline pipeline_{VK_NULL_HANDLE};
     VkPrimitiveTopology topology_{VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST};
     std::vector <VkDynamicState> dynamicStateEnables_;
-    DrawBuffer drawBuffer_;
+    std::shared_ptr<DrawBuffer> drawBuffer_;
 
 public:
     void Dynamic(VkDynamicState state);
-    Pipeline(std::shared_ptr<RenderingContext>& context, ShaderProgram& shaderProgram);
+    Pipeline(std::shared_ptr<RenderingContext>& context, ShaderProgram& shaderProgram,
+             const std::shared_ptr<DrawBuffer>& drawBuffer);
     VkPipeline GetPipeline();
     void Release();
     Pipeline() = default;

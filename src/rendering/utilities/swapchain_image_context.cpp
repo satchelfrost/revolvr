@@ -9,10 +9,9 @@
 #include <utility>
 
 namespace rvr {
-SwapchainImageContext::SwapchainImageContext(std::shared_ptr<RenderingContext>  renderingContext, uint32_t capacity,
-                                             const XrSwapchainCreateInfo &swapchainCreateInfo) :
-renderingContext_(renderingContext),
-swapchainExtent_({swapchainCreateInfo.width, swapchainCreateInfo.height}),
+SwapchainImageContext::SwapchainImageContext(const std::shared_ptr<RenderingContext>& renderingContext,
+                                             uint32_t capacity, const XrSwapchainCreateInfo &swapchainCreateInfo) :
+renderingContext_(renderingContext), swapchainExtent_({swapchainCreateInfo.width, swapchainCreateInfo.height}),
 sampleCount_(swapchainCreateInfo.sampleCount) {
     cmdBuffer_ = std::make_unique<CommandBuffer>(renderingContext_->GetDevice(),
                                                  renderingContext->GetGraphicsPool());
@@ -76,24 +75,6 @@ void SwapchainImageContext::Draw(uint32_t imageIdx, uint32_t idxCount, const std
     vkCmdBindIndexBuffer(cmdBuffer_->GetBuffer(), drawBuffer_.idxBuf, 0, VK_INDEX_TYPE_UINT16);
     VkDeviceSize offset = 0;
     vkCmdBindVertexBuffers(cmdBuffer_->GetBuffer(), 0, 1, &drawBuffer_.vtxBuf, &offset);
-
-//    // Compute the view-projection transform.
-//    // Note all matrices (including OpenXR) are column-major, right-handed.
-//    const auto &pose = layerView.pose;
-//
-//    glm::mat4 projectionMatrix = math::matrix::CreateProjectionFromXrFOV(layerView.fov, 0.05f, 100.0f);
-//    glm::mat4 poseMatrix = math::Pose(pose).ToMat4();
-//    glm::mat4 viewMatrix = glm::affineInverse(poseMatrix);
-//    glm::mat4 viewProjection = projectionMatrix * viewMatrix;
-//
-//    // Render each cube
-//    for (const math::Transform &cube : cubes) {
-//        glm::mat4 modelMatrix = cube.ToMat4();
-//        glm::mat4 mvp = viewProjection * modelMatrix;
-//        vkCmdPushConstants(cmdBuffer_.buf, pipelineLayout_.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(mvp),
-//                           glm::value_ptr(mvp));
-//        vkCmdDrawIndexed(cmdBuffer_.buf, drawBuffer_.count.idx, 1, 0, 0, 0);
-//    }
 
     vkCmdEndRenderPass(cmdBuffer_->GetBuffer());
 

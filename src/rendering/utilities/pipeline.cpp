@@ -36,7 +36,8 @@ void PipelineLayout::Create(VkDevice device) {
                                        &layout));
 }
 
-Pipeline::Pipeline(std::shared_ptr<RenderingContext>& context, ShaderProgram& shaderProgram, DrawBuffer& drawBuffer) {
+Pipeline::Pipeline(std::shared_ptr<RenderingContext>& context, ShaderProgram& shaderProgram,
+                   const std::shared_ptr<DrawBuffer>& drawBuffer) {
     device_ = context->GetDevice();
     pipelineLayout_.Create(device_);
 

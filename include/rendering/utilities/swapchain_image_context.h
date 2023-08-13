@@ -32,7 +32,7 @@ private:
     uint32_t sampleCount_;
 
 public:
-    SwapchainImageContext(std::shared_ptr<RenderingContext> renderingContext, uint32_t capacity,
+    SwapchainImageContext(const std::shared_ptr<RenderingContext>& renderingContext, uint32_t capacity,
                           const XrSwapchainCreateInfo &swapchainCreateInfo);
     void Draw(uint32_t imageIndex, uint32_t indexCount, const std::shared_ptr<Pipeline>& pipeline,
               const std::vector<math::Transform> &transforms);

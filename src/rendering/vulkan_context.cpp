@@ -77,16 +77,13 @@ void VulkanContext::InitializeResources() {
     shaderProgram_.Init(device_);
     shaderProgram_.LoadVertexShader(vertexSPIRV);
     shaderProgram_.LoadFragmentShader(fragmentSPIRV);
-
-    static_assert(sizeof(Geometry::Vertex) == 24, "Unexpected Vertex size");
-    drawBuffer_.Init(device_,
-                     {{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Geometry::Vertex, Position)},
-                      {1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Geometry::Vertex, Color)}});
-    uint32_t numCubeIndices = sizeof(Geometry::c_cubeIndices) / sizeof(Geometry::c_cubeIndices[0]);
-    uint32_t numCubeVertices = sizeof(Geometry::c_cubeVertices) / sizeof(Geometry::c_cubeVertices[0]);
-    drawBuffer_.Create<Geometry::Vertex>(physicalDevice_, numCubeIndices, numCubeVertices);
-    drawBuffer_.UpdateIndices(Geometry::c_cubeIndices, numCubeIndices, 0);
-    drawBuffer_.UpdateVertices(Geometry::c_cubeVertices, numCubeVertices, 0);
+    drawBuffer_ = std::make_shared<DrawBuffer>(renderingContext_,
+                                               sizeof(Geometry::c_cubeIndices[0]),
+                                               sizeof(Geometry::c_cubeIndices),
+                                               sizeof(Geometry::c_cubeVertices[0]),
+                                               sizeof(Geometry::c_cubeVertices));
+    drawBuffer_->UpdateIndices(Geometry::c_cubeIndices);
+    drawBuffer_->UpdateVertices(Geometry::c_cubeVertices);
     pipeline_ = std::make_shared<Pipeline>(renderingContext_, shaderProgram_, drawBuffer_);
 }
 

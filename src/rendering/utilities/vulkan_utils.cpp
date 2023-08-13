@@ -4,6 +4,54 @@
 #include <pch.h>
 
 namespace rvr {
+VkFormat GetVkFormat(DataType type, uint32_t count) {
+    switch (type) {
+        case DataType::U8:
+            switch (count) {
+                case 1: return VK_FORMAT_R8_UNORM;
+                case 2: return VK_FORMAT_R8G8_UNORM;
+                case 3: return VK_FORMAT_R8G8B8_UNORM;
+                case 4: return VK_FORMAT_R8G8B8A8_UNORM;
+                default: THROW("Unsupported count");
+            }
+        case DataType::U16:
+            switch (count) {
+                case 1:return VK_FORMAT_R16_UINT;
+                case 2:return VK_FORMAT_R16G16_UINT;
+                case 3: return VK_FORMAT_R16G16B16_UINT;
+                case 4: return VK_FORMAT_R16G16B16A16_UINT;
+                default: THROW("unsupported count");
+            }
+        case DataType::U32:
+            switch (count) {
+                case 1:return VK_FORMAT_R32_UINT;
+                case 2:return VK_FORMAT_R32G32_UINT;
+                case 3: return VK_FORMAT_R32G32B32_UINT;
+                case 4: return VK_FORMAT_R32G32B32A32_UINT;
+                default: THROW("unsupported count");
+            }
+        case DataType::F32:
+            switch (count) {
+                case 1:return VK_FORMAT_R32_SFLOAT;
+                case 2:return VK_FORMAT_R32G32_SFLOAT;
+                case 3: return VK_FORMAT_R32G32B32_SFLOAT;
+                case 4: return VK_FORMAT_R32G32B32A32_SFLOAT;
+                default: THROW("unsupported count");
+            }
+        default: THROW("unsupported enum");
+    }
+}
+
+size_t DataTypeSize(DataType type) {
+    switch(type) {
+        case DataType::U8:  return 8;
+        case DataType::U16: return 16;
+        case DataType::U32:
+        case DataType::F32: return 32;
+        default: THROW("Unsupported data type");
+    }
+}
+
 VkResult CreateDebugReportCallbackEXT(VkInstance instance, VkDebugReportCallbackCreateInfoEXT* createInfo,
                                       const VkAllocationCallbacks* pAllocator, VkDebugReportCallbackEXT* callback) {
     auto func = (PFN_vkCreateDebugReportCallbackEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT");

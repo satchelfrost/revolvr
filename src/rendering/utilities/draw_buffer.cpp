@@ -8,21 +8,12 @@
 #include <rendering/utilities/vulkan_utils.h>
 
 namespace rvr {
-void DrawBuffer::Init(const std::shared_ptr<RenderingContext>& context,
-                      const std::vector<VkVertexInputAttributeDescription> &attr) {
-    attrDesc = attr;
-    device_ = renderingContext_->GetDevice();
-    renderingContext_ = context;
-}
-
-void DrawBuffer::CreateVertexBuffer(size_t sizeInBytes) {
-    vertexBuffer_ = std::make_unique<VulkanBuffer>(renderingContext_, sizeInBytes,
-                                                   VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
-}
-
-void DrawBuffer::CreateIndexBuffer(size_t sizeInBytes) {
-    indexBuffer_ = std::make_unique<VulkanBuffer>(renderingContext_, sizeInBytes,
+DrawBuffer::DrawBuffer(const std::shared_ptr<RenderingContext>& context, size_t sizeOfIndex, size_t sizeOfIndices,
+                       size_t sizeOfVertex, size_t sizeOfVertices) {
+    indexBuffer_ = std::make_unique<VulkanBuffer>(context, sizeOfIndex, sizeOfIndices,
                                                   VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+    vertexBuffer_ = std::make_unique<VulkanBuffer>(context, sizeOfVertex, sizeOfVertices,
+                                                   VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
 }
 
 void DrawBuffer::UpdateIndices(const void *data) {

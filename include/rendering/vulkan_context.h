@@ -38,7 +38,8 @@ private:
     XrGraphicsBindingVulkan2KHR graphicsBinding_{XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR};
     ShaderProgram shaderProgram_{};
     std::shared_ptr<Pipeline> pipeline_;
-    std::shared_ptr<RenderingContext> renderingContext_ = nullptr;
+    std::shared_ptr<RenderingContext> renderingContext_;
+    std::shared_ptr<DrawBuffer> drawBuffer_;
     QueueFamilyIndices queueFamilyIndices_;
 
 

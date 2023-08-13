@@ -7,6 +7,15 @@ struct QueueFamilyIndices {
     bool isComplete() {return graphicsFamily.has_value();}
 };
 
+enum class DataType {
+    U8,
+    U16,
+    U32,
+    F32
+};
+
+VkFormat GetVkFormat(DataType type, uint32_t count);
+size_t DataTypeSize(DataType type);
 VkResult CreateDebugReportCallbackEXT(VkInstance instance, VkDebugReportCallbackCreateInfoEXT* createInfo,
                                       const VkAllocationCallbacks* pAllocator,
                                       VkDebugReportCallbackEXT* callback);
