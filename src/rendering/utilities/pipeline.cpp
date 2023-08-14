@@ -43,6 +43,8 @@ Pipeline::Pipeline(std::shared_ptr<RenderingContext>& context, ShaderProgram& sh
 drawBuffer_(std::move(drawBuffer)) {
     pipelineLayout_.Create(device_);
 
+    Dynamic(VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT);
+    Dynamic(VkDynamicState::VK_DYNAMIC_STATE_SCISSOR);
     VkPipelineDynamicStateCreateInfo dynamicState{VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO};
     dynamicState.dynamicStateCount = (uint32_t) dynamicStateEnables_.size();
     dynamicState.pDynamicStates = dynamicStateEnables_.data();

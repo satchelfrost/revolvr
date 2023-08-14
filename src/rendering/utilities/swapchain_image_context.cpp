@@ -68,6 +68,8 @@ void SwapchainImageContext::Draw(uint32_t imageIdx, const std::shared_ptr<Pipeli
                          VK_SUBPASS_CONTENTS_INLINE);
 
     pipeline->BindPipeline(cmdBuffer_->GetBuffer());
+    vkCmdSetViewport(cmdBuffer_->GetBuffer(), 0, 1, &viewport_);
+    vkCmdSetScissor(cmdBuffer_->GetBuffer(), 0, 1, &scissor_);
     for (const auto& transform : transforms) {
         vkCmdPushConstants(cmdBuffer_->GetBuffer(), pipeline->GetPipelineLayout(),
                            VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(transform), &transform);

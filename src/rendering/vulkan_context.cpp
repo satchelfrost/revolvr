@@ -90,6 +90,8 @@ void VulkanContext::InitializeResources() {
     drawBuffer_->UpdateIndices(Geometry::c_cubeIndices);
     drawBuffer_->UpdateVertices(Geometry::c_cubeVertices);
     pipeline_ = std::make_shared<Pipeline>(renderingContext_, shaderProgram_, drawBuffer_);
+//    pipeline_->Dynamic(VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT);
+//    pipeline_->Dynamic(VkDynamicState::VK_DYNAMIC_STATE_SCISSOR);
 }
 
 XrSwapchainImageBaseHeader* VulkanContext::AllocateSwapchainImageStructs(

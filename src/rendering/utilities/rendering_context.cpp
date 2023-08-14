@@ -57,7 +57,7 @@ void RenderingContext::AllocateBufferMemory(VkBuffer buffer, VkDeviceMemory *mem
     VkMemoryRequirements memReq = {};
     vkGetBufferMemoryRequirements(device_, buffer, &memReq);
     uint32_t memIdx = FindMemoryType(physicalDevice_, memReq.memoryTypeBits,
-                                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+                                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
     VkMemoryAllocateInfo allocInfo{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
     allocInfo.allocationSize = memReq.size;
     allocInfo.memoryTypeIndex = memIdx;
@@ -113,7 +113,7 @@ void RenderingContext::CreateImageView(VkImage image, VkFormat format, VkImageAs
     VkImageViewCreateInfo colorViewInfo{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
     colorViewInfo.image = image;
     colorViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    colorViewInfo.format = colorFormat_;
+    colorViewInfo.format = format;
     colorViewInfo.components.r = VK_COMPONENT_SWIZZLE_R;
     colorViewInfo.components.g = VK_COMPONENT_SWIZZLE_G;
     colorViewInfo.components.b = VK_COMPONENT_SWIZZLE_B;

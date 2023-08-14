@@ -16,7 +16,7 @@ vertexBufferLayout_(std::move(vbl)) {
     indexBuffer_ = std::make_unique<VulkanBuffer>(context, sizeOfIndex, sizeOfIndices,
                                                   VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
     vertexBuffer_ = std::make_unique<VulkanBuffer>(context, sizeOfVertex, sizeOfVertices,
-                                                   VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+                                                   VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
 }
 
 void DrawBuffer::UpdateIndices(const void *data) {
