@@ -12,6 +12,7 @@
 #include <ecs/system/spatial_system.h>
 #include <math/linear_math.h>
 #include <rendering/utilities/vulkan_utils.h>
+#include <rendering/utilities/vertex_buffer_layout.h>
 
 namespace rvr {
 void VulkanContext::InitDevice(XrInstance xrInstance, XrSystemId systemId) {
@@ -77,11 +78,15 @@ void VulkanContext::InitializeResources() {
     shaderProgram_.Init(device_);
     shaderProgram_.LoadVertexShader(vertexSPIRV);
     shaderProgram_.LoadFragmentShader(fragmentSPIRV);
+    VertexBufferLayout vertexBufferLayout;
+    vertexBufferLayout.Push({0, DataType::F32, 3}); // position
+    vertexBufferLayout.Push({1, DataType::F32, 3}); // color
     drawBuffer_ = std::make_shared<DrawBuffer>(renderingContext_,
                                                sizeof(Geometry::c_cubeIndices[0]),
                                                sizeof(Geometry::c_cubeIndices),
                                                sizeof(Geometry::c_cubeVertices[0]),
-                                               sizeof(Geometry::c_cubeVertices));
+                                               sizeof(Geometry::c_cubeVertices),
+                                               vertexBufferLayout);
     drawBuffer_->UpdateIndices(Geometry::c_cubeIndices);
     drawBuffer_->UpdateVertices(Geometry::c_cubeVertices);
     pipeline_ = std::make_shared<Pipeline>(renderingContext_, shaderProgram_, drawBuffer_);
@@ -116,8 +121,7 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
     }
 
     auto swapchainContext = imageToSwapchainContext_[swapchainImage];
-    // TODO: index count parameter is incorrect
-    swapchainContext->Draw(imageIndex, models.size(), pipeline_, models);
+    swapchainContext->Draw(imageIndex, pipeline_, models);
 }
 
 void VulkanContext::Render() {

@@ -10,6 +10,8 @@
 #include <rendering/utilities/draw_buffer.h>
 #include <rendering//utilities/vulkan_results.h>
 
+#include <utility>
+
 namespace rvr {
 PipelineLayout::~PipelineLayout() {
     if (device_ != nullptr) {
@@ -37,8 +39,8 @@ void PipelineLayout::Create(VkDevice device) {
 }
 
 Pipeline::Pipeline(std::shared_ptr<RenderingContext>& context, ShaderProgram& shaderProgram,
-                   const std::shared_ptr<DrawBuffer>& drawBuffer) {
-    device_ = context->GetDevice();
+                   std::shared_ptr<DrawBuffer>  drawBuffer) : device_(context->GetDevice()),
+drawBuffer_(std::move(drawBuffer)) {
     pipelineLayout_.Create(device_);
 
     VkPipelineDynamicStateCreateInfo dynamicState{VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO};
@@ -47,9 +49,11 @@ Pipeline::Pipeline(std::shared_ptr<RenderingContext>& context, ShaderProgram& sh
 
     VkPipelineVertexInputStateCreateInfo vi{VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO};
     vi.vertexBindingDescriptionCount = 1;
-    vi.pVertexBindingDescriptions = &drawBuffer.bindDesc;
-    vi.vertexAttributeDescriptionCount = (uint32_t) drawBuffer.attrDesc.size();
-    vi.pVertexAttributeDescriptions = drawBuffer.attrDesc.data();
+    VkVertexInputBindingDescription vertexInputBindingDescription = drawBuffer_->GetVertexInputBindingDesc();
+    vi.pVertexBindingDescriptions = &vertexInputBindingDescription;
+    std::vector<VkVertexInputAttributeDescription> attrDescriptions =  drawBuffer_->GetVtxAttrDescriptions();
+    vi.vertexAttributeDescriptionCount = (uint32_t) attrDescriptions.size();
+    vi.pVertexAttributeDescriptions = attrDescriptions.data();
 
     VkPipelineInputAssemblyStateCreateInfo ia{VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO};
     ia.primitiveRestartEnable = VK_FALSE;
@@ -146,5 +150,21 @@ void Pipeline::Release() {
 
 VkPipeline Pipeline::GetPipeline() {
     return pipeline_;
+}
+
+void Pipeline::BindPipeline(VkCommandBuffer cmdBuffer) {
+    vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_);
+    vkCmdBindIndexBuffer(cmdBuffer, drawBuffer_->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT16);
+    VkDeviceSize offset = 0;
+    VkBuffer vertexBuffer = drawBuffer_->GetVertexBuffer();
+    vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &vertexBuffer, &offset);
+}
+
+VkPipelineLayout Pipeline::GetPipelineLayout() const {
+    return pipelineLayout_.layout;
+}
+
+uint32_t Pipeline::GetIndexCount() {
+    return drawBuffer_->GetIndexCount();
 }
 }

@@ -11,8 +11,7 @@
 namespace rvr {
 SwapchainImageContext::SwapchainImageContext(const std::shared_ptr<RenderingContext>& renderingContext,
                                              uint32_t capacity, const XrSwapchainCreateInfo &swapchainCreateInfo) :
-renderingContext_(renderingContext), swapchainExtent_({swapchainCreateInfo.width, swapchainCreateInfo.height}),
-sampleCount_(swapchainCreateInfo.sampleCount) {
+renderingContext_(renderingContext), swapchainExtent_({swapchainCreateInfo.width, swapchainCreateInfo.height}) {
     cmdBuffer_ = std::make_unique<CommandBuffer>(renderingContext_->GetDevice(),
                                                  renderingContext->GetGraphicsPool());
     swapchainImages_.resize(capacity);
@@ -45,7 +44,7 @@ XrSwapchainImageBaseHeader *SwapchainImageContext::GetFirstImagePointer() {
     return reinterpret_cast<XrSwapchainImageBaseHeader*>(&swapchainImages_[0]);
 }
 
-void SwapchainImageContext::Draw(uint32_t imageIdx, uint32_t idxCount, const std::shared_ptr<Pipeline>& pipeline,
+void SwapchainImageContext::Draw(uint32_t imageIdx, const std::shared_ptr<Pipeline>& pipeline,
                                  const std::vector<math::Transform> &transforms) {
     cmdBuffer_->Reset();
     cmdBuffer_->Begin();
@@ -68,28 +67,18 @@ void SwapchainImageContext::Draw(uint32_t imageIdx, uint32_t idxCount, const std
     vkCmdBeginRenderPass(cmdBuffer_->GetBuffer(), &renderPassBeginInfo,
                          VK_SUBPASS_CONTENTS_INLINE);
 
-    vkCmdBindPipeline(cmdBuffer_->GetBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS,
-                      pipeline->GetPipeline());
-
-    // Bind index and vertex buffers
-    vkCmdBindIndexBuffer(cmdBuffer_->GetBuffer(), drawBuffer_.idxBuf, 0, VK_INDEX_TYPE_UINT16);
-    VkDeviceSize offset = 0;
-    vkCmdBindVertexBuffers(cmdBuffer_->GetBuffer(), 0, 1, &drawBuffer_.vtxBuf, &offset);
+    pipeline->BindPipeline(cmdBuffer_->GetBuffer());
+    for (const auto& transform : transforms) {
+        vkCmdPushConstants(cmdBuffer_->GetBuffer(), pipeline->GetPipelineLayout(),
+                           VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(transform), &transform);
+        vkCmdDrawIndexed(cmdBuffer_->GetBuffer(), pipeline->GetIndexCount(),
+                         1, 0, 0, 0);
+    }
 
     vkCmdEndRenderPass(cmdBuffer_->GetBuffer());
-
     cmdBuffer_->End();
     cmdBuffer_->Exec(renderingContext_->GetGraphicsQueue());
     cmdBuffer_->Wait();
-}
-
-
-VkExtent2D SwapchainImageContext::GetSwapchainExtent() {
-    return swapchainExtent_;
-}
-
-VkSampleCountFlagBits SwapchainImageContext::GetSampleFlagBits() const {
-    return static_cast<VkSampleCountFlagBits>(sampleCount_);
 }
 
 void SwapchainImageContext::InitRenderTargets() {

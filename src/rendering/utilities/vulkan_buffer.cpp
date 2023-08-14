@@ -25,10 +25,6 @@ VkBuffer VulkanBuffer::GetBuffer() const {
     return buffer_;
 }
 
-size_t VulkanBuffer::GetSizeInBytes() const {
-    return sizeInBytes_;
-}
-
 VulkanBuffer::~VulkanBuffer() {
     vkDestroyBuffer(device_, buffer_, nullptr);
     vkFreeMemory(device_, memory_, nullptr);

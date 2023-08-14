@@ -42,8 +42,11 @@ private:
 public:
     void Dynamic(VkDynamicState state);
     Pipeline(std::shared_ptr<RenderingContext>& context, ShaderProgram& shaderProgram,
-             const std::shared_ptr<DrawBuffer>& drawBuffer);
+             std::shared_ptr<DrawBuffer>  drawBuffer);
+    void BindPipeline(VkCommandBuffer cmdBuffer);
     VkPipeline GetPipeline();
+    VkPipelineLayout GetPipelineLayout() const;
+    uint32_t GetIndexCount();
     void Release();
     Pipeline() = default;
 };
