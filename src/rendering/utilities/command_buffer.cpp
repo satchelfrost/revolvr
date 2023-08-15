@@ -21,6 +21,7 @@ CommandBuffer::CommandBuffer(VkDevice device, VkCommandPool pool) : device_(devi
 }
 
 CommandBuffer::~CommandBuffer() {
+    Wait();
     if (device_ != nullptr) {
         if (commandBuffer_ != VK_NULL_HANDLE) {
             vkFreeCommandBuffers(device_, pool_, 1, &commandBuffer_);

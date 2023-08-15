@@ -110,6 +110,7 @@ void RenderingContext::AllocateImageMemory(VkImage image, VkDeviceMemory *memory
 
 void RenderingContext::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlagBits aspectMask,
                                        VkImageView *imageView) {
+    // TODO: Possibly check for image being VK_NULL_HANDLE
     VkImageViewCreateInfo colorViewInfo{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
     colorViewInfo.image = image;
     colorViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
@@ -129,8 +130,8 @@ void RenderingContext::CreateImageView(VkImage image, VkFormat format, VkImageAs
 
 void RenderingContext::CreateTransitionLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout) {
     VkImageMemoryBarrier barrier{VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER};
-    barrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-    barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+//    barrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+//    barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
     barrier.oldLayout = oldLayout;
     barrier.newLayout = newLayout;
     barrier.image = image;
@@ -144,6 +145,8 @@ void RenderingContext::CreateTransitionLayout(VkImage image, VkImageLayout oldLa
     PopulateTransitionLayoutInfo(barrier, srcStage, dstStage, oldLayout, newLayout);
 
     CommandBuffer commandBuffer(device_, graphicsPool_);
+    commandBuffer.Wait();
+    commandBuffer.Reset();
     commandBuffer.Begin();
     vkCmdPipelineBarrier(commandBuffer.GetBuffer(), srcStage, dstStage,
                          0, 0, nullptr,0,

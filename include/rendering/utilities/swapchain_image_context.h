@@ -26,7 +26,6 @@ private:
 
     std::vector <std::unique_ptr<RenderTarget>> renderTargets_;
     std::unique_ptr<CommandBuffer> cmdBuffer_;
-//    std::unique_ptr<VulkanImage> colorImage_;
 
 public:
     SwapchainImageContext(const std::shared_ptr<RenderingContext>& renderingContext, uint32_t capacity,

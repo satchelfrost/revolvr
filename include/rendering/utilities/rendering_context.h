@@ -27,7 +27,6 @@ public:
     void CreateImageView(VkImage image, VkFormat format, VkImageAspectFlagBits aspectMask, VkImageView *imageView);
     void CreateTransitionLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout);
 
-//    uint32_t GetGraphicsQueueFamilyIndex();
     VkDevice GetDevice();
     VkPhysicalDevice GetPhysicalDevice();
     VkQueue GetGraphicsQueue();

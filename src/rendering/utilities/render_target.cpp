@@ -16,6 +16,9 @@ RenderTarget::RenderTarget(const std::shared_ptr<RenderingContext>& context, VkI
     depthImage_ = new VulkanImage(context, VulkanImage::Depth, extent);
     depthView_ = new VulkanView(context, VulkanView::Depth, depthImage_->GetImage());
 
+    context->CreateTransitionLayout(depthImage_->GetImage(), VK_IMAGE_LAYOUT_UNDEFINED,
+                                    VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+
     std::array<VkImageView, 2> attachments{colorView_->GetImageView(), depthView_->GetImageView()};
     VkFramebufferCreateInfo fbInfo{VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO};
     fbInfo.renderPass = context->GetRenderPass();

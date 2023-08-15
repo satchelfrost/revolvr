@@ -346,18 +346,17 @@ void VulkanContext::CreateCommandPool() {
 }
 
 void VulkanContext::StoreGraphicsBinding() {
-    QueueFamilyIndices indices = FindQueueFamilies(physicalDevice_);
     graphicsBinding_.type = XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR;
     graphicsBinding_.instance = instance_;
     graphicsBinding_.physicalDevice = physicalDevice_;
     graphicsBinding_.device = device_;
-    graphicsBinding_.queueFamilyIndex = indices.graphicsFamily.value();
+    graphicsBinding_.queueFamilyIndex = queueFamilyIndices_.graphicsFamily.value();
     graphicsBinding_.queueIndex = 0;
 }
 
 void VulkanContext::RetrieveQueues() {
-    vkGetDeviceQueue(device_, queueFamilyIndices_.graphicsFamily.value(),
-                     0, &graphicsQueue_);
+    vkGetDeviceQueue(device_, queueFamilyIndices_.graphicsFamily.value(), 0,
+                     &graphicsQueue_);
 }
 
 void VulkanContext::SwapchainImagesReady(XrSwapchainImageBaseHeader *images) {
