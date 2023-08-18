@@ -35,6 +35,8 @@ renderingContext_(renderingContext), swapchainExtent_({swapchainCreateInfo.width
 }
 
 void SwapchainImageContext::BindRenderTarget(uint32_t index, VkRenderPassBeginInfo *renderPassBeginInfo) {
+    if (renderTargets_[index]->GetFramebuffer() == VK_NULL_HANDLE)
+        PrintError("Frame buffer was VK_NULL_HANDLE");
     renderPassBeginInfo->renderPass = renderingContext_->GetRenderPass();
     renderPassBeginInfo->framebuffer = renderTargets_[index]->GetFramebuffer();
     renderPassBeginInfo->renderArea.offset = {0, 0};
@@ -46,7 +48,7 @@ XrSwapchainImageBaseHeader *SwapchainImageContext::GetFirstImagePointer() {
 }
 
 void SwapchainImageContext::Draw(uint32_t imageIdx, const std::shared_ptr<Pipeline>& pipeline,
-                                 const std::vector<math::Transform> &transforms) {
+                                 const std::vector<glm::mat4> &transforms) {
     cmdBuffer_->Wait();
     cmdBuffer_->Reset();
     cmdBuffer_->Begin();
@@ -73,8 +75,10 @@ void SwapchainImageContext::Draw(uint32_t imageIdx, const std::shared_ptr<Pipeli
     vkCmdSetViewport(cmdBuffer_->GetBuffer(), 0, 1, &viewport_);
     vkCmdSetScissor(cmdBuffer_->GetBuffer(), 0, 1, &scissor_);
     for (const auto& transform : transforms) {
+//        vkCmdPushConstants(cmdBuffer_->GetBuffer(), pipeline->GetPipelineLayout(),
+//                           VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(transform), &transform);
         vkCmdPushConstants(cmdBuffer_->GetBuffer(), pipeline->GetPipelineLayout(),
-                           VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(transform), &transform);
+                           VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(transform), glm::value_ptr(transform));
         vkCmdDrawIndexed(cmdBuffer_->GetBuffer(), pipeline->GetIndexCount(),
                          1, 0, 0, 0);
     }

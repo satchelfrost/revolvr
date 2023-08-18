@@ -72,7 +72,7 @@ private:
     void StoreGraphicsBinding();
     void DrawGrid();
     void RenderView(const XrCompositionLayerProjectionView& layerView, const XrSwapchainImageBaseHeader* swapchainImage,
-                    const uint32_t imageIndex, std::vector<math::Transform>& cubes);
+                    const uint32_t imageIndex, const std::vector<math::Transform>& cubes);
     bool RenderLayer(std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
                      XrCompositionLayerProjection& layer, XrContext* xrContext);
     void RetrieveQueues();

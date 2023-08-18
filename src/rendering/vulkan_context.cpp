@@ -105,25 +105,25 @@ XrSwapchainImageBaseHeader* VulkanContext::AllocateSwapchainImageStructs(
 
 void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView,
                                const XrSwapchainImageBaseHeader *swapchainImage,
-                               uint32_t imageIndex, std::vector<math::Transform> &models) {
+                               uint32_t imageIndex, const std::vector<math::Transform> &models) {
     CHECK(layerView.subImage.imageArrayIndex == 0);  // Texture arrays not supported.
     // Compute the view-projection transform.
     // Note all matrices (including OpenXR) are column-major, right-handed.
-//    const auto &pose = layerView.pose;
+    const auto &pose = layerView.pose;
 
     glm::mat4 projectionMatrix = math::matrix::CreateProjectionFromXrFOV(layerView.fov, 0.05f, 100.0f);
-    glm::mat4 poseMatrix = math::Pose(layerView.pose).ToMat4();
+    glm::mat4 poseMatrix = math::Pose(pose).ToMat4();
     glm::mat4 viewMatrix = glm::affineInverse(poseMatrix);
     glm::mat4 viewProjection = projectionMatrix * viewMatrix;
-    for (math::Transform &model : models) {
-        model = viewProjection * model.ToMat4();
-//        glm::mat4 modelMatrix = transform.ToMat4();
-//        glm::mat4 mvp = viewProjection * modelMatrix;
-//        transform = math::Transform(mvp);
+    std::vector<glm::mat4> mvps;
+    for (const math::Transform &model : models) {
+        glm::mat4 modelMatrix = model.ToMat4();
+        glm::mat4 mvp = viewProjection * modelMatrix;
+        mvps.push_back(mvp);
     }
 
     auto swapchainContext = imageToSwapchainContext_[swapchainImage];
-    swapchainContext->Draw(imageIndex, pipeline_, models);
+    swapchainContext->Draw(imageIndex, pipeline_, mvps);
 }
 
 void VulkanContext::Render() {
