@@ -44,10 +44,10 @@ VkFormat GetVkFormat(DataType type, uint32_t count) {
 
 size_t DataTypeSize(DataType type) {
     switch(type) {
-        case DataType::U8:  return 8;
-        case DataType::U16: return 16;
+        case DataType::U8:  return 1;
+        case DataType::U16: return 2;
         case DataType::U32:
-        case DataType::F32: return 32;
+        case DataType::F32: return 4;
         default: THROW("Unsupported data type");
     }
 }
@@ -221,16 +221,22 @@ QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice physicalDevice) {
 
     // Here we want the queue family to support graphics
     int i = 0;
+    bool found = false;
     for (const auto& queueFamily : queueFamilies) {
         if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
             indices.graphicsFamily = i;
 
-        if (indices.isComplete())
+        if (indices.isComplete()) {
+            found = true;
             break;
+        }
 
         i++;
     }
-    return indices;
+    if (found)
+        return indices;
+    else
+        THROW("Now suitable graphics queue family");
 }
 
 uint32_t FindMemoryType(VkPhysicalDevice physicalDevice, uint32_t filter, VkMemoryPropertyFlags flags) {

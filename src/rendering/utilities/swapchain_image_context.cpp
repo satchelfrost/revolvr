@@ -18,9 +18,9 @@ renderingContext_(renderingContext), swapchainExtent_({swapchainCreateInfo.width
 
     cmdBuffer_ = std::make_unique<CommandBuffer>(renderingContext_->GetDevice(),
                                                  renderingContext->GetGraphicsPool());
-
     viewport_.x = 0.0f;
-    viewport_.y = static_cast<float>(swapchainExtent_.height);
+//    viewport_.y = static_cast<float>(swapchainExtent_.height);
+    viewport_.y = 0.0f;
     viewport_.width = static_cast<float>(swapchainExtent_.width);
     viewport_.height = static_cast<float>(swapchainExtent_.height);
     viewport_.minDepth = 0.0f;
