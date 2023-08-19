@@ -75,9 +75,7 @@ void VulkanContext::InitializeResources() {
     if (vertexSPIRV.empty()) THROW("Failed to compile vertex shader");
     if (fragmentSPIRV.empty()) THROW("Failed to compile fragment shader");
 
-    shaderProgram_.Init(device_);
-    shaderProgram_.LoadVertexShader(vertexSPIRV);
-    shaderProgram_.LoadFragmentShader(fragmentSPIRV);
+    shaderProgram_ = std::make_unique<ShaderProgram>(device_, vertexSPIRV, fragmentSPIRV);
     VertexBufferLayout vertexBufferLayout;
     vertexBufferLayout.Push({0, DataType::F32, 3}); // position
     vertexBufferLayout.Push({1, DataType::F32, 3}); // color
@@ -89,9 +87,7 @@ void VulkanContext::InitializeResources() {
                                                vertexBufferLayout);
     drawBuffer_->UpdateIndices(Geometry::c_cubeIndices);
     drawBuffer_->UpdateVertices(Geometry::c_cubeVertices);
-    pipeline_ = std::make_shared<Pipeline>(renderingContext_, shaderProgram_, drawBuffer_);
-//    pipeline_->Dynamic(VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT);
-//    pipeline_->Dynamic(VkDynamicState::VK_DYNAMIC_STATE_SCISSOR);
+    pipeline_ = std::make_unique<Pipeline>(renderingContext_, shaderProgram_, drawBuffer_);
 }
 
 XrSwapchainImageBaseHeader* VulkanContext::AllocateSwapchainImageStructs(
@@ -104,19 +100,19 @@ XrSwapchainImageBaseHeader* VulkanContext::AllocateSwapchainImageStructs(
 }
 
 void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView,
-                               const XrSwapchainImageBaseHeader *swapchainImage,
-                               uint32_t imageIndex, const std::vector<math::Transform> &models) {
-    CHECK(layerView.subImage.imageArrayIndex == 0);  // Texture arrays not supported.
+                               const XrSwapchainImageBaseHeader *swapchainImage, uint32_t imageIndex) {
+    // Texture arrays not supported.
+    CHECK(layerView.subImage.imageArrayIndex == 0);
     // Compute the view-projection transform.
     // Note all matrices (including OpenXR) are column-major, right-handed.
-    const auto &pose = layerView.pose;
-
     glm::mat4 projectionMatrix = math::matrix::CreateProjectionFromXrFOV(layerView.fov, 0.05f, 100.0f);
-    glm::mat4 poseMatrix = math::Pose(pose).ToMat4();
+    glm::mat4 poseMatrix = math::Pose(layerView.pose).ToMat4();
     glm::mat4 viewMatrix = glm::affineInverse(poseMatrix);
     glm::mat4 viewProjection = projectionMatrix * viewMatrix;
     std::vector<glm::mat4> mvps;
-    for (const math::Transform &model : models) {
+    renderBuffer_.clear();
+    system::render::PopulateRenderTransformBuffer(renderBuffer_);
+    for (const math::Transform &model : renderBuffer_) {
         glm::mat4 modelMatrix = model.ToMat4();
         glm::mat4 mvp = viewProjection * modelMatrix;
         mvps.push_back(mvp);
@@ -124,116 +120,6 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
 
     auto swapchainContext = imageToSwapchainContext_[swapchainImage];
     swapchainContext->Draw(imageIndex, pipeline_, mvps);
-}
-
-void VulkanContext::Render() {
-    XrContext* xrContext = GlobalContext::Inst()->GetXrContext();
-    if (xrContext->frameState.shouldRender == XR_TRUE) {
-        if (RenderLayer(xrContext->projectionLayerViews, xrContext->mainLayer, xrContext)) {
-            xrContext->AddMainLayer();
-        }
-    }
-}
-
-bool VulkanContext::RenderLayer(std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
-                                XrCompositionLayerProjection& layer, XrContext* xrContext) {
-    XrViewState viewState{XR_TYPE_VIEW_STATE};
-    auto viewCapacityInput = (uint32_t)xrContext->views.size();
-    uint32_t viewCountOutput;
-
-    XrViewLocateInfo viewLocateInfo{XR_TYPE_VIEW_LOCATE_INFO};
-    viewLocateInfo.viewConfigurationType = xrContext->viewConfigType;
-    viewLocateInfo.displayTime = xrContext->frameState.predictedDisplayTime;
-    viewLocateInfo.space = xrContext->appSpace;
-
-    XrResult res = xrLocateViews(xrContext->session, &viewLocateInfo, &viewState, viewCapacityInput,
-                                 &viewCountOutput, xrContext->views.data());
-    CHECK_XRRESULT(res, "xrLocateViews");
-    if ((viewState.viewStateFlags & XR_VIEW_STATE_POSITION_VALID_BIT) == 0 ||
-        (viewState.viewStateFlags & XR_VIEW_STATE_ORIENTATION_VALID_BIT) == 0) {
-        return false;  // There is no valid tracking poses for the views.
-    }
-
-    CHECK(viewCountOutput == viewCapacityInput);
-    CHECK(viewCountOutput == xrContext->configViews.size());
-    CHECK(viewCountOutput == xrContext->swapchains.size());
-
-    projectionLayerViews.resize(viewCountOutput);
-
-    // Convert renderable to a cube for now
-    for (auto spatial : system::render::GetRenderSpatials()) {
-        math::Transform cube{};
-        cube = system::spatial::GetPlayerRelativeTransform(spatial);
-        renderBuffer_.push_back(cube);
-    }
-
-    // Draw a simple grid
-    DrawGrid();
-
-    // Render view to the appropriate part of the swapchain image.
-    for (uint32_t i = 0; i < viewCountOutput; i++) {
-        // Each view has a separate swapchain which is acquired, rendered to, and released.
-        const Swapchain viewSwapchain = xrContext->swapchains[i];
-
-        XrSwapchainImageAcquireInfo acquireInfo{XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO};
-
-        uint32_t swapchainImageIndex;
-        CHECK_XRCMD(xrAcquireSwapchainImage(viewSwapchain.handle, &acquireInfo, &swapchainImageIndex));
-
-        XrSwapchainImageWaitInfo waitInfo{XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO};
-        waitInfo.timeout = XR_INFINITE_DURATION;
-        CHECK_XRCMD(xrWaitSwapchainImage(viewSwapchain.handle, &waitInfo));
-
-        projectionLayerViews[i] = {XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW};
-        projectionLayerViews[i].pose = xrContext->views[i].pose;
-        projectionLayerViews[i].fov = xrContext->views[i].fov;
-        projectionLayerViews[i].subImage.swapchain = viewSwapchain.handle;
-        projectionLayerViews[i].subImage.imageRect.offset = {0, 0};
-        projectionLayerViews[i].subImage.imageRect.extent = {viewSwapchain.width, viewSwapchain.height};
-
-        const XrSwapchainImageBaseHeader* const swapchainImage = xrContext->swapchainImages_[viewSwapchain.handle];
-        RenderView(projectionLayerViews[i], swapchainImage, swapchainImageIndex, renderBuffer_);
-
-        XrSwapchainImageReleaseInfo releaseInfo{XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO};
-        CHECK_XRCMD(xrReleaseSwapchainImage(viewSwapchain.handle, &releaseInfo));
-    }
-
-    // Clear the renderBuffer for the next frame
-    renderBuffer_.clear();
-
-    layer.space = xrContext->appSpace;
-    layer.viewCount = (uint32_t)projectionLayerViews.size();
-    layer.views = projectionLayerViews.data();
-    return true;
-}
-
-void VulkanContext::DrawGrid() {
-    // Get the player and spatial world transforms
-    auto player = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(GlobalContext::Inst()->PLAYER_ID);
-    CHECK_MSG(player, "Player spatial does not exist inside of GetPlayerRelativeTransform()");
-    math::Transform playerWorld = player->GetWorld();
-    auto invOrientation = glm::inverse(playerWorld.GetOrientation());
-
-    // Draw the horizontal lines
-    for (int i = -5; i <= 5; i ++) {
-        math::Transform cube;
-        glm::vec3 position(0, 0, (float)i * 2.0f);
-        auto relativePosition = position - playerWorld.GetPosition();
-        cube.SetPosition(invOrientation * relativePosition);
-        cube.SetOrientation(invOrientation);
-        cube.SetScale(20.0f, 0.1f, 0.1f);
-        renderBuffer_.push_back(cube);
-    }
-    // Draw the vertical lines
-    for (int i = -5; i <= 5; i ++) {
-        math::Transform cube;
-        glm::vec3 position((float)i * 2.0f, 0, 0);
-        auto relativePosition = position - playerWorld.GetPosition();
-        cube.SetPosition(invOrientation * relativePosition);
-        cube.SetOrientation(invOrientation);
-        cube.SetScale(0.1f, 0.1f, 20.0f);
-        renderBuffer_.push_back(cube);
-    }
 }
 
 std::vector<std::string> VulkanContext::GetInstanceExtensions() {

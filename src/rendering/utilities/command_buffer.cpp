@@ -17,7 +17,7 @@ CommandBuffer::CommandBuffer(VkDevice device, VkCommandPool pool) : device_(devi
 
     VkFenceCreateInfo fenceInfo{VK_STRUCTURE_TYPE_FENCE_CREATE_INFO};
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-    CHECK_VKCMD(vkCreateFence(device_, &fenceInfo, nullptr, &execFence));
+    CHECK_VKCMD(vkCreateFence(device_, &fenceInfo, nullptr, &fence_));
 }
 
 CommandBuffer::~CommandBuffer() {
@@ -26,12 +26,12 @@ CommandBuffer::~CommandBuffer() {
         if (commandBuffer_ != VK_NULL_HANDLE) {
             vkFreeCommandBuffers(device_, pool_, 1, &commandBuffer_);
         }
-        if (execFence != VK_NULL_HANDLE) {
-            vkDestroyFence(device_, execFence, nullptr);
+        if (fence_ != VK_NULL_HANDLE) {
+            vkDestroyFence(device_, fence_, nullptr);
         }
     }
     commandBuffer_ = VK_NULL_HANDLE;
-    execFence = VK_NULL_HANDLE;
+    fence_ = VK_NULL_HANDLE;
     device_ = nullptr;
 }
 
@@ -49,13 +49,13 @@ void CommandBuffer::Exec(VkQueue queue) {
     VkSubmitInfo submitInfo{VK_STRUCTURE_TYPE_SUBMIT_INFO};
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &commandBuffer_;
-    CHECK_VKCMD(vkQueueSubmit(queue, 1, &submitInfo, execFence));
+    CHECK_VKCMD(vkQueueSubmit(queue, 1, &submitInfo, fence_));
 }
 
 void CommandBuffer::Wait() {
     const uint32_t timeoutNs = 1 * 1000 * 1000 * 1000;
     for (int i = 0; i < 5; ++i) {
-        VkResult result = vkWaitForFences(device_, 1, &execFence,
+        VkResult result = vkWaitForFences(device_, 1, &fence_,
                                           VK_TRUE, timeoutNs);
         if (result == VK_SUCCESS)
             return;
@@ -64,7 +64,7 @@ void CommandBuffer::Wait() {
 }
 
 void CommandBuffer::Reset() {
-    CHECK_VKCMD(vkResetFences(device_, 1, &execFence));
+    CHECK_VKCMD(vkResetFences(device_, 1, &fence_));
     CHECK_VKCMD(vkResetCommandBuffer(commandBuffer_, 0));
 }
 

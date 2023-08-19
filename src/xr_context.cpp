@@ -5,6 +5,7 @@
 /***************************************************************************/
 
 #include "xr_context.h"
+#include "ecs/system/spatial_system.h"
 #include <global_context.h>
 #include <instance_extension_manager.h>
 #include <rendering/utilities/vulkan_utils.h>
@@ -19,28 +20,28 @@ XrContext::XrContext() {
     InitializeSession();
     InitializeReferenceSpaces();
     InitializeActions();
-    actionManager.CreateActionSpaces(session);
-    handTrackerLeft_.Init(xrInstance_, session, HandTracker::Hand::Left);
-    handTrackerRight_.Init(xrInstance_, session, HandTracker::Hand::Right);
+    actionManager.CreateActionSpaces(session_);
+    handTrackerLeft_.Init(xrInstance_, session_, HandTracker::Hand::Left);
+    handTrackerRight_.Init(xrInstance_, session_, HandTracker::Hand::Right);
     CreateSwapchains();
 }
 
 XrContext::~XrContext() {
-    for (Swapchain swapchain : swapchains)
+    for (Swapchain swapchain : swapchains_)
         xrDestroySwapchain(swapchain.handle);
 
     for (auto referenceSpace : initializedRefSpaces_)
         xrDestroySpace(referenceSpace.second);
 
-    if (appSpace != XR_NULL_HANDLE)
-        xrDestroySpace(appSpace);
+    if (appSpace_ != XR_NULL_HANDLE)
+        xrDestroySpace(appSpace_);
 
     handTrackerLeft_.EndSession();
     handTrackerRight_.EndSession();
     actionManager.EndSession();
 
-    if (session != XR_NULL_HANDLE)
-        xrDestroySession(session);
+    if (session_ != XR_NULL_HANDLE)
+        xrDestroySession(session_);
 
     if (xrInstance_ != XR_NULL_HANDLE)
         xrDestroyInstance(xrInstance_);
@@ -100,25 +101,24 @@ void XrContext::InitializeSystem() {
 
 void XrContext::InitializeSession() {
     CHECK(xrInstance_ != XR_NULL_HANDLE);
-    CHECK(session == XR_NULL_HANDLE);
+    CHECK(session_ == XR_NULL_HANDLE);
 
     XrSessionCreateInfo createInfo{XR_TYPE_SESSION_CREATE_INFO};
     createInfo.next = vulkanContext_->GetGraphicsBinding();
     createInfo.systemId = xrSystemId_;
-    CHECK_XRCMD(xrCreateSession(xrInstance_, &createInfo, &session));
+    CHECK_XRCMD(xrCreateSession(xrInstance_, &createInfo, &session_));
 }
 
 void XrContext::InitializeActions() {
-    // Todo: put this inside of actionManager.Init()
     actionManager.Init(xrInstance_);
     XrSessionActionSetsAttachInfo attachInfo{XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO};
     attachInfo.countActionSets = 1;
     attachInfo.actionSets = &actionManager.actionSet;
-    CHECK_XRCMD(xrAttachSessionActionSets(session, &attachInfo));
+    CHECK_XRCMD(xrAttachSessionActionSets(session_, &attachInfo));
 }
 
 void XrContext::InitializeReferenceSpaces() {
-    CHECK(session != XR_NULL_HANDLE);
+    CHECK(session_ != XR_NULL_HANDLE);
     RVRReferenceSpace referenceSpaces[] = {
             RVRReferenceSpace::Hud,
             RVRReferenceSpace::TrackedOrigin,
@@ -128,7 +128,7 @@ void XrContext::InitializeReferenceSpaces() {
     for (const auto& referenceSpace : referenceSpaces) {
         XrReferenceSpaceCreateInfo referenceSpaceCreateInfo = GetXrReferenceSpaceCreateInfo(referenceSpace);
         XrSpace space;
-        XrResult res = xrCreateReferenceSpace(session, &referenceSpaceCreateInfo, &space);
+        XrResult res = xrCreateReferenceSpace(session_, &referenceSpaceCreateInfo, &space);
         if (XR_SUCCEEDED(res))
             initializedRefSpaces_[referenceSpace] = space;
         else
@@ -137,13 +137,13 @@ void XrContext::InitializeReferenceSpaces() {
     }
 
     // Save the app space
-    appSpace = initializedRefSpaces_[RVRReferenceSpace::TrackedOrigin];
+    appSpace_ = initializedRefSpaces_[RVRReferenceSpace::TrackedOrigin];
 }
 
 void XrContext::CreateSwapchains() {
-    CHECK(session != XR_NULL_HANDLE);
-    CHECK(swapchains.empty());
-    CHECK(configViews.empty());
+    CHECK(session_ != XR_NULL_HANDLE);
+    CHECK(swapchains_.empty());
+    CHECK(configViews_.empty());
 
     // Read graphics properties for preferred swapchain length and logging.
     XrSystemProperties systemProperties{XR_TYPE_SYSTEM_PROPERTIES};
@@ -152,33 +152,33 @@ void XrContext::CreateSwapchains() {
     // Query and cache view configuration views.
     uint32_t viewCount;
     CHECK_XRCMD(xrEnumerateViewConfigurationViews(xrInstance_, xrSystemId_,
-                                                  viewConfigType, 0,
+                                                  viewConfigType_, 0,
                                                   &viewCount, nullptr));
-    configViews.resize(viewCount, {XR_TYPE_VIEW_CONFIGURATION_VIEW});
+    configViews_.resize(viewCount, {XR_TYPE_VIEW_CONFIGURATION_VIEW});
     CHECK_XRCMD(xrEnumerateViewConfigurationViews(xrInstance_, xrSystemId_,
-                                                  viewConfigType, viewCount,
-                                                  &viewCount, configViews.data()));
+                                                  viewConfigType_, viewCount,
+                                                  &viewCount, configViews_.data()));
 
     // Create and cache view buffer for xrLocateViews later.
-    views.resize(viewCount, {XR_TYPE_VIEW});
+    views_.resize(viewCount, {XR_TYPE_VIEW});
 
     // Create the swapchain and get the images.
     if (viewCount > 0) {
         // Select a swapchain format.
         uint32_t swapchainFormatCount;
-        CHECK_XRCMD(xrEnumerateSwapchainFormats(session, 0, &swapchainFormatCount,
+        CHECK_XRCMD(xrEnumerateSwapchainFormats(session_, 0, &swapchainFormatCount,
                                                 nullptr));
         std::vector<int64_t> swapchainFormats(swapchainFormatCount);
-        CHECK_XRCMD(xrEnumerateSwapchainFormats(session, (uint32_t)swapchainFormats.size(),
+        CHECK_XRCMD(xrEnumerateSwapchainFormats(session_, (uint32_t)swapchainFormats.size(),
                                                 &swapchainFormatCount,
                                                 swapchainFormats.data()));
         CHECK(swapchainFormatCount == swapchainFormats.size());
-        colorSwapchainFormat = SelectColorSwapchainFormat(swapchainFormats);
+        auto colorSwapchainFormat = SelectColorSwapchainFormat(swapchainFormats);
         vulkanContext_->InitRenderingContext(static_cast<VkFormat>(colorSwapchainFormat));
 
         // Create a swapchain for each view.
         for (uint32_t i = 0; i < viewCount; i++) {
-            const XrViewConfigurationView& vp = configViews[i];
+            const XrViewConfigurationView& vp = configViews_[i];
 
             // Create the swapchain.
             XrSwapchainCreateInfo swapchainCreateInfo{XR_TYPE_SWAPCHAIN_CREATE_INFO};
@@ -190,12 +190,12 @@ void XrContext::CreateSwapchains() {
             swapchainCreateInfo.faceCount = 1;
             swapchainCreateInfo.sampleCount = VulkanContext::GetSupportedSwapchainSampleCount(vp);
             swapchainCreateInfo.usageFlags = XR_SWAPCHAIN_USAGE_SAMPLED_BIT | XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT;
-            Swapchain swapchain;
+            Swapchain swapchain{};
             swapchain.width = (int32_t)swapchainCreateInfo.width;
             swapchain.height = (int32_t)swapchainCreateInfo.height;
-            CHECK_XRCMD(xrCreateSwapchain(session, &swapchainCreateInfo, &swapchain.handle));
+            CHECK_XRCMD(xrCreateSwapchain(session_, &swapchainCreateInfo, &swapchain.handle));
 
-            swapchains.push_back(swapchain);
+            swapchains_.push_back(swapchain);
 
             uint32_t imageCount;
             CHECK_XRCMD(xrEnumerateSwapchainImages(swapchain.handle, 0,
@@ -264,9 +264,9 @@ void XrContext::PollXrEvents(bool* exitRenderLoop, bool* requestRestart) {
 }
 
 void XrContext::Update() {
-    actionManager.Update(session);
-    handTrackerLeft_.Update(frameState.predictedDisplayTime, appSpace);
-    handTrackerRight_.Update(frameState.predictedDisplayTime, appSpace);
+    actionManager.Update(session_);
+    handTrackerLeft_.Update(frameState_.predictedDisplayTime, appSpace_);
+    handTrackerRight_.Update(frameState_.predictedDisplayTime, appSpace_);
 }
 
 void XrContext::HandleSessionStateChangedEvent(const XrEventDataSessionStateChanged& stateChangedEvent,
@@ -276,24 +276,24 @@ void XrContext::HandleSessionStateChangedEvent(const XrEventDataSessionStateChan
     xrSessionState_ = stateChangedEvent.state;
     PrintInfo(Fmt("%s -> %s", to_string(oldState), to_string(xrSessionState_)));
 
-    if ((stateChangedEvent.session != XR_NULL_HANDLE) && (stateChangedEvent.session != session)) {
+    if ((stateChangedEvent.session != XR_NULL_HANDLE) && (stateChangedEvent.session != session_)) {
         PrintInfo("XrEventDataSessionStateChanged for unknown session");
         return;
     }
 
     switch (xrSessionState_) {
         case XR_SESSION_STATE_READY: {
-            CHECK(session != XR_NULL_HANDLE);
+            CHECK(session_ != XR_NULL_HANDLE);
             XrSessionBeginInfo sessionBeginInfo{XR_TYPE_SESSION_BEGIN_INFO};
-            sessionBeginInfo.primaryViewConfigurationType = viewConfigType;
-            CHECK_XRCMD(xrBeginSession(session, &sessionBeginInfo));
+            sessionBeginInfo.primaryViewConfigurationType = viewConfigType_;
+            CHECK_XRCMD(xrBeginSession(session_, &sessionBeginInfo));
             xrSessionRunning_ = true;
             break;
         }
         case XR_SESSION_STATE_STOPPING: {
-            CHECK(session != XR_NULL_HANDLE);
+            CHECK(session_ != XR_NULL_HANDLE);
             xrSessionRunning_ = false;
-            CHECK_XRCMD(xrEndSession(session))
+            CHECK_XRCMD(xrEndSession(session_))
             break;
         }
         case XR_SESSION_STATE_EXITING: {
@@ -325,9 +325,9 @@ void XrContext::LogActionSourceName(Action* action) const {
     XrBoundSourcesForActionEnumerateInfo getInfo = {XR_TYPE_BOUND_SOURCES_FOR_ACTION_ENUMERATE_INFO};
     getInfo.action = action->GetAction();
     uint32_t pathCount = 0;
-    CHECK_XRCMD(xrEnumerateBoundSourcesForAction(session, &getInfo, 0, &pathCount, nullptr));
+    CHECK_XRCMD(xrEnumerateBoundSourcesForAction(session_, &getInfo, 0, &pathCount, nullptr));
     std::vector<XrPath> paths(pathCount);
-    CHECK_XRCMD(xrEnumerateBoundSourcesForAction(session, &getInfo, uint32_t(paths.size()), &pathCount, paths.data()));
+    CHECK_XRCMD(xrEnumerateBoundSourcesForAction(session_, &getInfo, uint32_t(paths.size()), &pathCount, paths.data()));
 
     std::string sourceName;
     for (auto& path : paths) {
@@ -340,12 +340,12 @@ void XrContext::LogActionSourceName(Action* action) const {
         nameInfo.whichComponents = all;
 
         uint32_t size = 0;
-        CHECK_XRCMD(xrGetInputSourceLocalizedName(session, &nameInfo, 0, &size, nullptr));
+        CHECK_XRCMD(xrGetInputSourceLocalizedName(session_, &nameInfo, 0, &size, nullptr));
         if (size < 1) {
             continue;
         }
         std::vector<char> grabSource(size);
-        CHECK_XRCMD(xrGetInputSourceLocalizedName(session, &nameInfo, uint32_t(grabSource.size()), &size, grabSource.data()));
+        CHECK_XRCMD(xrGetInputSourceLocalizedName(session_, &nameInfo, uint32_t(grabSource.size()), &size, grabSource.data()));
         if (!sourceName.empty()) {
             sourceName += " and ";
         }
@@ -366,32 +366,32 @@ void XrContext::RefreshTrackedSpaceLocations() {
         switch(trackedSpaceLocation) {
             case TrackedSpaceLocations::LeftHand:
                 res = xrLocateSpace(pose->GetHandSpace(Hand::Left),
-                                    appSpace,
-                                    frameState.predictedDisplayTime,
+                                    appSpace_,
+                                    frameState_.predictedDisplayTime,
                                     &spaceLocation);
                 if (TrackedSpaceLocations::ValidityCheck(res, spaceLocation))
                     trackedSpaceLocations.leftHand = spaceLocation;
                 break;
             case TrackedSpaceLocations::RightHand:
                 res = xrLocateSpace(pose->GetHandSpace(Hand::Right),
-                                    appSpace,
-                                    frameState.predictedDisplayTime,
+                                    appSpace_,
+                                    frameState_.predictedDisplayTime,
                                     &spaceLocation);
                 if (TrackedSpaceLocations::ValidityCheck(res, spaceLocation))
                     trackedSpaceLocations.rightHand = spaceLocation;
                 break;
             case TrackedSpaceLocations::VrOrigin:
                 res = xrLocateSpace(initializedRefSpaces_[RVRReferenceSpace::TrackedOrigin],
-                                    appSpace,
-                                    frameState.predictedDisplayTime,
+                                    appSpace_,
+                                    frameState_.predictedDisplayTime,
                                     &spaceLocation);
                 if (TrackedSpaceLocations::ValidityCheck(res, spaceLocation))
                     trackedSpaceLocations.vrOrigin = spaceLocation;
                 break;
             case TrackedSpaceLocations::Head:
                 res = xrLocateSpace(initializedRefSpaces_[RVRReferenceSpace::Head],
-                                    appSpace,
-                                    frameState.predictedDisplayTime,
+                                    appSpace_,
+                                    frameState_.predictedDisplayTime,
                                     &spaceLocation);
                 if (TrackedSpaceLocations::ValidityCheck(res, spaceLocation))
                     trackedSpaceLocations.head = spaceLocation;
@@ -400,27 +400,95 @@ void XrContext::RefreshTrackedSpaceLocations() {
     }
 }
 
-void XrContext::AddMainLayer() {
-    layers_.push_back(reinterpret_cast<XrCompositionLayerBaseHeader*>(&mainLayer));
-}
-
 void XrContext::BeginFrame() {
-    CHECK(session != XR_NULL_HANDLE);
+    CHECK(session_ != XR_NULL_HANDLE);
 
     XrFrameWaitInfo frameWaitInfo{XR_TYPE_FRAME_WAIT_INFO};
-    CHECK_XRCMD(xrWaitFrame(session, &frameWaitInfo, &frameState));
+    CHECK_XRCMD(xrWaitFrame(session_, &frameWaitInfo, &frameState_));
 
     XrFrameBeginInfo frameBeginInfo{XR_TYPE_FRAME_BEGIN_INFO};
-    CHECK_XRCMD(xrBeginFrame(session, &frameBeginInfo));
+    CHECK_XRCMD(xrBeginFrame(session_, &frameBeginInfo));
 }
 
 void XrContext::EndFrame() {
     XrFrameEndInfo frameEndInfo{XR_TYPE_FRAME_END_INFO};
-    frameEndInfo.displayTime = frameState.predictedDisplayTime;
+    frameEndInfo.displayTime = frameState_.predictedDisplayTime;
     frameEndInfo.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
     frameEndInfo.layerCount = (uint32_t)layers_.size();
     frameEndInfo.layers = layers_.data();
-    CHECK_XRCMD(xrEndFrame(session, &frameEndInfo));
+    CHECK_XRCMD(xrEndFrame(session_, &frameEndInfo));
     layers_.clear();
+}
+
+void XrContext::Render() {
+    if (frameState_.shouldRender == XR_TRUE) {
+        if (RenderLayer(projectionLayerViews_, layer_)) {
+            layers_.push_back(reinterpret_cast<XrCompositionLayerBaseHeader*>(&layer_));
+        }
+    }
+}
+
+bool XrContext::RenderLayer(std::vector<XrCompositionLayerProjectionView> &projectionLayerViews,
+                            XrCompositionLayerProjection &layer) {
+    XrViewState viewState{XR_TYPE_VIEW_STATE};
+    auto viewCapacityInput = (uint32_t)views_.size();
+    uint32_t viewCountOutput;
+
+    XrViewLocateInfo viewLocateInfo{XR_TYPE_VIEW_LOCATE_INFO};
+    viewLocateInfo.viewConfigurationType = viewConfigType_;
+    viewLocateInfo.displayTime = frameState_.predictedDisplayTime;
+    viewLocateInfo.space = appSpace_;
+
+    XrResult res = xrLocateViews(session_, &viewLocateInfo, &viewState, viewCapacityInput,
+                                 &viewCountOutput, views_.data());
+    CHECK_XRRESULT(res, "xrLocateViews");
+    if ((viewState.viewStateFlags & XR_VIEW_STATE_POSITION_VALID_BIT) == 0 ||
+        (viewState.viewStateFlags & XR_VIEW_STATE_ORIENTATION_VALID_BIT) == 0) {
+        return false;  // There is no valid tracking poses for the views.
+    }
+
+    CHECK(viewCountOutput == viewCapacityInput);
+    CHECK(viewCountOutput == configViews_.size());
+    CHECK(viewCountOutput == swapchains_.size());
+
+    projectionLayerViews.resize(viewCountOutput);
+
+    // Render view to the appropriate part of the swapchain image.
+    for (uint32_t i = 0; i < viewCountOutput; i++) {
+        // Each view has a separate swapchain which is acquired, rendered to, and released.
+        const Swapchain viewSwapchain = swapchains_[i];
+
+        XrSwapchainImageAcquireInfo acquireInfo{XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO};
+
+        uint32_t swapchainImageIndex;
+        CHECK_XRCMD(xrAcquireSwapchainImage(viewSwapchain.handle, &acquireInfo, &swapchainImageIndex));
+
+        XrSwapchainImageWaitInfo waitInfo{XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO};
+        waitInfo.timeout = XR_INFINITE_DURATION;
+        CHECK_XRCMD(xrWaitSwapchainImage(viewSwapchain.handle, &waitInfo));
+
+        projectionLayerViews[i] = {XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW};
+        projectionLayerViews[i].pose = views_[i].pose;
+        projectionLayerViews[i].fov = views_[i].fov;
+        projectionLayerViews[i].subImage.swapchain = viewSwapchain.handle;
+        projectionLayerViews[i].subImage.imageRect.offset = {0, 0};
+        projectionLayerViews[i].subImage.imageRect.extent = {viewSwapchain.width, viewSwapchain.height};
+
+        const XrSwapchainImageBaseHeader* const swapchainImage = swapchainImages_[viewSwapchain.handle];
+        vulkanContext_->RenderView(projectionLayerViews[i], swapchainImage, swapchainImageIndex);
+
+        XrSwapchainImageReleaseInfo releaseInfo{XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO};
+        CHECK_XRCMD(xrReleaseSwapchainImage(viewSwapchain.handle, &releaseInfo));
+    }
+
+    layer.space = appSpace_;
+    layer.viewCount = (uint32_t)projectionLayerViews.size();
+    layer.views = projectionLayerViews.data();
+    return true;
+}
+
+void XrContext::RequestExit() {
+    XrResult result = xrRequestExitSession(session_);
+    CHECK_XRCMD(result);
 }
 }

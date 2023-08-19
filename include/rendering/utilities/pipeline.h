@@ -17,17 +17,12 @@ namespace rvr {
 class PipelineLayout {
 private:
     VkDevice device_{VK_NULL_HANDLE};
+    VkPipelineLayout layout_{VK_NULL_HANDLE};
 
 public:
-    VkPipelineLayout layout{VK_NULL_HANDLE};
-
     void Create(VkDevice device);
+    VkPipelineLayout GetLayout();
     ~PipelineLayout();
-    PipelineLayout() = default;
-    PipelineLayout(const PipelineLayout &) = delete;
-    PipelineLayout &operator=(const PipelineLayout &) = delete;
-    PipelineLayout(PipelineLayout &&) = delete;
-    PipelineLayout &operator=(PipelineLayout &&) = delete;
 };
 
 class Pipeline {
@@ -36,18 +31,14 @@ private:
     PipelineLayout pipelineLayout_{};
     VkPipeline pipeline_{VK_NULL_HANDLE};
     VkPrimitiveTopology topology_{VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST};
-    std::vector <VkDynamicState> dynamicStateEnables_;
     std::shared_ptr<DrawBuffer> drawBuffer_;
 
 public:
-    void Dynamic(VkDynamicState state);
-    Pipeline(std::shared_ptr<RenderingContext>& context, ShaderProgram& shaderProgram,
-             std::shared_ptr<DrawBuffer>  drawBuffer);
+    Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique_ptr<ShaderProgram>& shaderProgram,
+             std::shared_ptr<DrawBuffer> drawBuffer);
     void BindPipeline(VkCommandBuffer cmdBuffer);
-    VkPipeline GetPipeline();
-    VkPipelineLayout GetPipelineLayout() const;
+    VkPipelineLayout GetPipelineLayout();
     uint32_t GetIndexCount();
     void Release();
-    Pipeline() = default;
 };
 }

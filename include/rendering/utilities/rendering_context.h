@@ -11,8 +11,8 @@ private:
     VkQueue graphicsQueue_{VK_NULL_HANDLE};
     VkCommandPool graphicsPool_;
     VkFormat colorFormat_ = VK_FORMAT_UNDEFINED;
-    VkFormat depthFormat_ = VK_FORMAT_D32_SFLOAT; // TODO: Find format
-    RenderPass renderPass_;
+    VkFormat depthFormat_ = VK_FORMAT_D32_SFLOAT;
+    std::unique_ptr<RenderPass> renderPass_;
 
     void AllocateBufferMemory(VkBuffer buffer, VkDeviceMemory* memory);
     void AllocateImageMemory(VkImage image, VkDeviceMemory* memory);
@@ -28,7 +28,6 @@ public:
     void CreateTransitionLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout);
 
     VkDevice GetDevice();
-    VkPhysicalDevice GetPhysicalDevice();
     VkQueue GetGraphicsQueue();
     VkCommandPool GetGraphicsPool();
     VkFormat GetColorFormat();

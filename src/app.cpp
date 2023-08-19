@@ -27,7 +27,6 @@ void App::Run(struct android_app *app) {
     globalContext_->Init(app);
 
     // Load and Initialize Scene
-    // TODO: scene switcher, for now we are hard coding
 //    scene_.LoadScene("test_scenes/cloning");
 //    scene_.LoadScene("test_scenes/timer");
 //    scene_.LoadScene("test_scenes/hand_collision");
@@ -73,11 +72,10 @@ void App::Run(struct android_app *app) {
             continue;
         }
 
-        // Begin frame sequence
         xrContext->BeginFrame();
         xrContext->Update();
         globalContext_->UpdateSystems(deltaTime_);
-        vulkanRenderer->Render();
+        xrContext->Render();
         xrContext->EndFrame();
     }
 }

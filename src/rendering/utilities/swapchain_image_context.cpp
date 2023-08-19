@@ -13,13 +13,11 @@ SwapchainImageContext::SwapchainImageContext(const std::shared_ptr<RenderingCont
                                              uint32_t capacity, const XrSwapchainCreateInfo &swapchainCreateInfo) :
 renderingContext_(renderingContext), swapchainExtent_({swapchainCreateInfo.width, swapchainCreateInfo.height}) {
     swapchainImages_.resize(capacity);
-    swapChainImageViews_.resize(capacity);
     renderTargets_.resize(capacity);
 
     cmdBuffer_ = std::make_unique<CommandBuffer>(renderingContext_->GetDevice(),
                                                  renderingContext->GetGraphicsPool());
     viewport_.x = 0.0f;
-//    viewport_.y = static_cast<float>(swapchainExtent_.height);
     viewport_.y = 0.0f;
     viewport_.width = static_cast<float>(swapchainExtent_.width);
     viewport_.height = static_cast<float>(swapchainExtent_.height);
@@ -47,7 +45,7 @@ XrSwapchainImageBaseHeader *SwapchainImageContext::GetFirstImagePointer() {
     return reinterpret_cast<XrSwapchainImageBaseHeader*>(&swapchainImages_[0]);
 }
 
-void SwapchainImageContext::Draw(uint32_t imageIdx, const std::shared_ptr<Pipeline>& pipeline,
+void SwapchainImageContext::Draw(uint32_t imageIdx, const std::unique_ptr<Pipeline>& pipeline,
                                  const std::vector<glm::mat4> &transforms) {
     cmdBuffer_->Wait();
     cmdBuffer_->Reset();
@@ -75,10 +73,9 @@ void SwapchainImageContext::Draw(uint32_t imageIdx, const std::shared_ptr<Pipeli
     vkCmdSetViewport(cmdBuffer_->GetBuffer(), 0, 1, &viewport_);
     vkCmdSetScissor(cmdBuffer_->GetBuffer(), 0, 1, &scissor_);
     for (const auto& transform : transforms) {
-//        vkCmdPushConstants(cmdBuffer_->GetBuffer(), pipeline->GetPipelineLayout(),
-//                           VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(transform), &transform);
         vkCmdPushConstants(cmdBuffer_->GetBuffer(), pipeline->GetPipelineLayout(),
-                           VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(transform), glm::value_ptr(transform));
+                           VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(transform),
+                           glm::value_ptr(transform));
         vkCmdDrawIndexed(cmdBuffer_->GetBuffer(), pipeline->GetIndexCount(),
                          1, 0, 0, 0);
     }

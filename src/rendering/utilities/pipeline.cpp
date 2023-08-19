@@ -15,11 +15,11 @@
 namespace rvr {
 PipelineLayout::~PipelineLayout() {
     if (device_ != nullptr) {
-        if (layout != VK_NULL_HANDLE) {
-            vkDestroyPipelineLayout(device_, layout, nullptr);
+        if (layout_ != VK_NULL_HANDLE) {
+            vkDestroyPipelineLayout(device_, layout_, nullptr);
         }
     }
-    layout = VK_NULL_HANDLE;
+    layout_ = VK_NULL_HANDLE;
     device_ = nullptr;
 }
 
@@ -35,19 +35,22 @@ void PipelineLayout::Create(VkDevice device) {
     pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
     pipelineLayoutCreateInfo.pPushConstantRanges = &pcr;
     CHECK_VKCMD(vkCreatePipelineLayout(device_, &pipelineLayoutCreateInfo, nullptr,
-                                       &layout));
+                                       &layout_));
 }
 
-Pipeline::Pipeline(std::shared_ptr<RenderingContext>& context, ShaderProgram& shaderProgram,
-                   std::shared_ptr<DrawBuffer>  drawBuffer) : device_(context->GetDevice()),
+VkPipelineLayout PipelineLayout::GetLayout() {
+    return layout_;
+}
+
+Pipeline::Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique_ptr<ShaderProgram>& shaderProgram,
+                   std::shared_ptr<DrawBuffer> drawBuffer) : device_(context->GetDevice()),
 drawBuffer_(std::move(drawBuffer)) {
     pipelineLayout_.Create(device_);
-
-    Dynamic(VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT);
-    Dynamic(VkDynamicState::VK_DYNAMIC_STATE_SCISSOR);
+    std::vector <VkDynamicState> dynamicStates = {VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT,
+                                                  VkDynamicState::VK_DYNAMIC_STATE_SCISSOR};
     VkPipelineDynamicStateCreateInfo dynamicState{VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO};
-    dynamicState.dynamicStateCount = (uint32_t) dynamicStateEnables_.size();
-    dynamicState.pDynamicStates = dynamicStateEnables_.data();
+    dynamicState.dynamicStateCount = (uint32_t) dynamicStates.size();
+    dynamicState.pDynamicStates = dynamicStates.data();
 
     VkPipelineVertexInputStateCreateInfo vi{VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO};
     vi.vertexBindingDescriptionCount = 1;
@@ -119,8 +122,9 @@ drawBuffer_(std::move(drawBuffer)) {
     ms.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 
     VkGraphicsPipelineCreateInfo pipeInfo{VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO};
-    pipeInfo.stageCount = (uint32_t) shaderProgram.shaderInfo.size();
-    pipeInfo.pStages = shaderProgram.shaderInfo.data();
+    auto shaderInfo = shaderProgram->GetShaderInfo();
+    pipeInfo.stageCount = (uint32_t) shaderInfo.size();
+    pipeInfo.pStages = shaderInfo.data();
     pipeInfo.pVertexInputState = &vi;
     pipeInfo.pInputAssemblyState = &ia;
     pipeInfo.pTessellationState = nullptr;
@@ -131,15 +135,12 @@ drawBuffer_(std::move(drawBuffer)) {
     pipeInfo.pColorBlendState = &cb;
     if (dynamicState.dynamicStateCount > 0)
         pipeInfo.pDynamicState = &dynamicState;
-    pipeInfo.layout = pipelineLayout_.layout;
+    pipeInfo.layout = pipelineLayout_.GetLayout();
     pipeInfo.renderPass = context->GetRenderPass();
     pipeInfo.subpass = 0;
-    CHECK_VKCMD(vkCreateGraphicsPipelines(device_, VK_NULL_HANDLE, 1,
-                                          &pipeInfo, nullptr,&pipeline_));
-}
-
-void Pipeline::Dynamic(VkDynamicState state) {
-    dynamicStateEnables_.emplace_back(state);
+    VkResult result = vkCreateGraphicsPipelines(device_, VK_NULL_HANDLE, 1,
+                                                &pipeInfo, nullptr,&pipeline_);
+    CHECK_VKCMD(result);
 }
 
 void Pipeline::Release() {
@@ -150,10 +151,6 @@ void Pipeline::Release() {
     device_ = nullptr;
 }
 
-VkPipeline Pipeline::GetPipeline() {
-    return pipeline_;
-}
-
 void Pipeline::BindPipeline(VkCommandBuffer cmdBuffer) {
     vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_);
     vkCmdBindIndexBuffer(cmdBuffer, drawBuffer_->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT16);
@@ -162,8 +159,8 @@ void Pipeline::BindPipeline(VkCommandBuffer cmdBuffer) {
     vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &vertexBuffer, &offset);
 }
 
-VkPipelineLayout Pipeline::GetPipelineLayout() const {
-    return pipelineLayout_.layout;
+VkPipelineLayout Pipeline::GetPipelineLayout() {
+    return pipelineLayout_.GetLayout();
 }
 
 uint32_t Pipeline::GetIndexCount() {

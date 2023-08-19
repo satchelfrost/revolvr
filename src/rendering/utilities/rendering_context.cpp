@@ -10,20 +10,11 @@ RenderingContext::RenderingContext(VkPhysicalDevice physicalDevice, VkDevice dev
                                    VkFormat colorFormat, VkCommandPool graphicsPool) :
 physicalDevice_(physicalDevice), device_(device), graphicsQueue_(graphicsQueue), colorFormat_(colorFormat),
 graphicsPool_(graphicsPool) {
-    renderPass_.Create(device, colorFormat, depthFormat_);
+    renderPass_ = std::make_unique<RenderPass>(device, colorFormat, depthFormat_);
 }
-
-//uint32_t RenderingContext::GetGraphicsQueueFamilyIndex() {
-//    QueueFamilyIndices indices = FindQueueFamilies(physicalDevice_);
-//    indices.graphicsFamily.value();
-//}
 
 VkDevice RenderingContext::GetDevice() {
     return device_;
-}
-
-VkPhysicalDevice RenderingContext::GetPhysicalDevice() {
-    return physicalDevice_;
 }
 
 VkQueue RenderingContext::GetGraphicsQueue() {
@@ -38,7 +29,7 @@ VkFormat RenderingContext::GetDepthFormat() {
 }
 
 VkRenderPass RenderingContext::GetRenderPass() const {
-    return renderPass_.pass;
+    return renderPass_->GetRenderPass();
 }
 
 void RenderingContext::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkBuffer *buffer,
@@ -67,7 +58,7 @@ void RenderingContext::AllocateBufferMemory(VkBuffer buffer, VkDeviceMemory *mem
 
 void RenderingContext::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize srcOffset,
                                   VkDeviceSize dstOffset) {
-    // TODO
+    // TODO: implement
 }
 
 VkCommandPool RenderingContext::GetGraphicsPool() {
@@ -110,7 +101,6 @@ void RenderingContext::AllocateImageMemory(VkImage image, VkDeviceMemory *memory
 
 void RenderingContext::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlagBits aspectMask,
                                        VkImageView *imageView) {
-    // TODO: Possibly check for image being VK_NULL_HANDLE
     VkImageViewCreateInfo colorViewInfo{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
     colorViewInfo.image = image;
     colorViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
@@ -152,5 +142,4 @@ void RenderingContext::CreateTransitionLayout(VkImage image, VkImageLayout oldLa
     commandBuffer.End();
     commandBuffer.Exec(graphicsQueue_);
 }
-
 }

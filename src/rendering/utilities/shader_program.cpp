@@ -8,16 +8,22 @@
 #include <rendering//utilities/vulkan_results.h>
 
 namespace rvr {
+ShaderProgram::ShaderProgram(VkDevice device, const std::vector<char> &vertexCode, const std::vector<char> &fragCode) :
+        device_(device){
+    LoadVertexShader(vertexCode);
+    LoadFragmentShader(fragCode);
+}
+
 ShaderProgram::~ShaderProgram() {
     if (device_ != nullptr) {
-        for (auto &si: shaderInfo) {
+        for (auto &si: shaderInfo_) {
             if (si.module != VK_NULL_HANDLE) {
-                vkDestroyShaderModule(device_, shaderInfo[0].module, nullptr);
+                vkDestroyShaderModule(device_, shaderInfo_[0].module, nullptr);
             }
             si.module = VK_NULL_HANDLE;
         }
     }
-    shaderInfo = {};
+    shaderInfo_ = {};
     device_ = nullptr;
 }
 
@@ -29,14 +35,10 @@ void ShaderProgram::LoadFragmentShader(const std::vector<char> &code) {
     Load(1, code);
 }
 
-void ShaderProgram::Init(VkDevice device) {
-    device_ = device;
-}
-
 void ShaderProgram::Load(uint32_t index, const std::vector<char> &code) {
     VkShaderModuleCreateInfo modInfo{VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO};
 
-    auto &si = shaderInfo[index];
+    auto &si = shaderInfo_[index];
     si.pName = "main";
     std::string name;
 
@@ -61,5 +63,9 @@ void ShaderProgram::Load(uint32_t index, const std::vector<char> &code) {
     CHECK_VKCMD(vkCreateShaderModule(device_, &modInfo, nullptr, &si.module));
 
     Log::Write(Log::Level::Info, Fmt("Loaded %s shader", name.c_str()));
+}
+
+std::array<VkPipelineShaderStageCreateInfo, 2> ShaderProgram::GetShaderInfo() {
+    return shaderInfo_;
 }
 }

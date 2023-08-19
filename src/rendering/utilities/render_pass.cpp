@@ -9,10 +9,7 @@
 #include <array>
 
 namespace rvr {
-bool RenderPass::Create(VkDevice device, VkFormat aColorFmt, VkFormat aDepthFmt) {
-    m_vkDevice = device;
-    colorFmt = aColorFmt;
-    depthFmt = aDepthFmt;
+RenderPass::RenderPass(VkDevice device, VkFormat colorFmt, VkFormat depthFmt) : device_(device) {
 
     VkSubpassDescription subpass = {};
     subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -59,18 +56,21 @@ bool RenderPass::Create(VkDevice device, VkFormat aColorFmt, VkFormat aDepthFmt)
         subpass.pDepthStencilAttachment = &depthRef;
     }
 
-    CHECK_VKCMD(vkCreateRenderPass(m_vkDevice, &rpInfo, nullptr, &pass));
-
-    return true;
+    VkResult result = vkCreateRenderPass(device_, &rpInfo, nullptr, &pass_);
+    CHECK_VKCMD(result);
 }
 
 RenderPass::~RenderPass() {
-    if (m_vkDevice != nullptr) {
-        if (pass != VK_NULL_HANDLE) {
-            vkDestroyRenderPass(m_vkDevice, pass, nullptr);
+    if (device_ != nullptr) {
+        if (pass_ != VK_NULL_HANDLE) {
+            vkDestroyRenderPass(device_, pass_, nullptr);
         }
     }
-    pass = VK_NULL_HANDLE;
-    m_vkDevice = nullptr;
+    pass_ = VK_NULL_HANDLE;
+    device_ = nullptr;
+}
+
+VkRenderPass RenderPass::GetRenderPass() {
+    return pass_;
 }
 }

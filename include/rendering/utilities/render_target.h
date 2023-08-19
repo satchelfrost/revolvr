@@ -19,7 +19,7 @@ private:
     VulkanView* colorView_;
     VulkanImage* depthImage_;
     VulkanView* depthView_;
-    VkFramebuffer framebuffer_{VK_NULL_HANDLE}; // TODO: probably create a VulkanFramebuffer class
+    VkFramebuffer framebuffer_{VK_NULL_HANDLE};
     VkDevice device_{VK_NULL_HANDLE};
 public:
     RenderTarget(const std::shared_ptr<RenderingContext>& context, VkImage colorImage, VkExtent2D extent);

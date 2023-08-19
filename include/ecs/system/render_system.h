@@ -10,5 +10,6 @@
 #include "ecs/component/types/spatial.h"
 
 namespace rvr::system::render{
-std::vector<Spatial*> GetRenderSpatials();
+void PopulateRenderTransformBuffer(std::vector<math::Transform>& buffer);
+void DrawGrid(std::vector<math::Transform>& buffer);
 }

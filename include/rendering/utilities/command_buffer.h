@@ -14,7 +14,7 @@ namespace rvr {
 class CommandBuffer {
 private:
     VkCommandBuffer commandBuffer_{VK_NULL_HANDLE};
-    VkFence execFence{VK_NULL_HANDLE};
+    VkFence fence_{VK_NULL_HANDLE};
     VkCommandPool pool_{VK_NULL_HANDLE};
     VkDevice device_{VK_NULL_HANDLE};
 

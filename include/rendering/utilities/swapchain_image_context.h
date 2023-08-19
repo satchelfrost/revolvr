@@ -18,7 +18,6 @@ class SwapchainImageContext {
 private:
     std::shared_ptr<RenderingContext> renderingContext_;
     std::vector <XrSwapchainImageVulkan2KHR> swapchainImages_;
-    std::vector<VkImageView> swapChainImageViews_;
 
     VkExtent2D swapchainExtent_;
     VkViewport viewport_{};
@@ -30,7 +29,7 @@ private:
 public:
     SwapchainImageContext(const std::shared_ptr<RenderingContext>& renderingContext, uint32_t capacity,
                           const XrSwapchainCreateInfo &swapchainCreateInfo);
-    void Draw(uint32_t imageIndex, const std::shared_ptr<Pipeline>& pipeline,
+    void Draw(uint32_t imageIndex, const std::unique_ptr<Pipeline>& pipeline,
               const std::vector<glm::mat4> &transforms);
     void BindRenderTarget(uint32_t index, VkRenderPassBeginInfo *renderPassBeginInfo);
     XrSwapchainImageBaseHeader* GetFirstImagePointer();

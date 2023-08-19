@@ -36,10 +36,10 @@ private:
     std::map<const XrSwapchainImageBaseHeader*, std::shared_ptr<SwapchainImageContext>> imageToSwapchainContext_;
     std::vector<math::Transform> renderBuffer_;
     XrGraphicsBindingVulkan2KHR graphicsBinding_{XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR};
-    ShaderProgram shaderProgram_{};
-    std::shared_ptr<Pipeline> pipeline_;
-    std::shared_ptr<RenderingContext> renderingContext_;
+    std::unique_ptr<ShaderProgram> shaderProgram_;
     std::shared_ptr<DrawBuffer> drawBuffer_;
+    std::unique_ptr<Pipeline> pipeline_;
+    std::shared_ptr<RenderingContext> renderingContext_;
     QueueFamilyIndices queueFamilyIndices_;
 
 
@@ -57,10 +57,11 @@ public:
     static std::vector<std::string> GetInstanceExtensions();
     static uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView& view);
     const XrBaseInStructure* GetGraphicsBinding() const;
-    void Render();
     void InitializeResources();
     void InitRenderingContext(VkFormat colorFormat);
     void SwapchainImagesReady(XrSwapchainImageBaseHeader* images);
+    void RenderView(const XrCompositionLayerProjectionView& layerView, const XrSwapchainImageBaseHeader* swapchainImage,
+                    const uint32_t imageIndex);
 
 private:
     void CreateVulkanInstance(XrInstance xrInstance, XrSystemId systemId);
@@ -70,11 +71,6 @@ private:
     void CreateLogicalDevice(XrInstance xrInstance, XrSystemId systemId);
     void CreateCommandPool();
     void StoreGraphicsBinding();
-    void DrawGrid();
-    void RenderView(const XrCompositionLayerProjectionView& layerView, const XrSwapchainImageBaseHeader* swapchainImage,
-                    const uint32_t imageIndex, const std::vector<math::Transform>& cubes);
-    bool RenderLayer(std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
-                     XrCompositionLayerProjection& layer, XrContext* xrContext);
     void RetrieveQueues();
 };
 }

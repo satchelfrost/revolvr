@@ -153,16 +153,14 @@ void CheckForQuit() {
     auto action = GlobalContext::Inst()->GetXrContext()->actionManager.GetAction(ActionType::Menu);
     auto menu = dynamic_cast<BoolAction*>(action);
     XrActionStateBoolean quitValue = menu->CurrHandState(Hand::Left);
-    auto session = GlobalContext::Inst()->GetXrContext()->session;
     if ((quitValue.isActive == XR_TRUE) && (quitValue.changedSinceLastSync == XR_TRUE) &&
         (quitValue.currentState == XR_TRUE))
-        CHECK_XRCMD(xrRequestExitSession(session));
+        GlobalContext::Inst()->GetXrContext()->RequestExit();
 }
 
 void Vibrate(Hand hand, float amplitude, float frequency, XrDuration duration) {
     auto action = GlobalContext::Inst()->GetXrContext()->actionManager.GetAction(ActionType::Vibrate);
     auto vibrate = dynamic_cast<HapticAction*>(action);
-    auto session = GlobalContext::Inst()->GetXrContext()->session;
-    vibrate->ApplyVibration(session, hand, amplitude, frequency, duration);
+    vibrate->ApplyVibration(hand, amplitude, frequency, duration);
 }
 }
