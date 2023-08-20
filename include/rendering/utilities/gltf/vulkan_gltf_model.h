@@ -3,6 +3,7 @@
 #include <pch.h>
 #include <tiny_gltf.h>
 #include <rendering/utilities/gltf/gltf_data.h>
+#include "rendering/utilities/rendering_context.h"
 
 namespace rvr {
 class VulkanGLTFModel {
@@ -16,6 +17,7 @@ public:
     std::vector<gltf::Texture> textures_;
     std::vector<gltf::Material> materials_;
     std::vector<gltf::Node*> nodes_;
+    std::shared_ptr<RenderingContext> renderingContext_;
 
     ~VulkanGLTFModel();
     void LoadImages(tinygltf::Model& input);
@@ -23,7 +25,6 @@ public:
     void LoadMaterials(tinygltf::Model& input);
     void LoadNode(const tinygltf::Node& inputNode, const tinygltf::Model& input, gltf::Node* parent,
                   std::vector<uint32_t>& indexBuffer, std::vector<gltf::Vertex>& vertexBuffer);
-
     void DrawNode(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, gltf::Node* node);
     void Draw(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout);
 };
