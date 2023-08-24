@@ -79,12 +79,12 @@ void VulkanContext::InitializeResources() {
     VertexBufferLayout vertexBufferLayout;
     vertexBufferLayout.Push({0, DataType::F32, 3}); // position
     vertexBufferLayout.Push({1, DataType::F32, 3}); // color
-    drawBuffer_ = std::make_shared<DrawBuffer>(renderingContext_,
-                                               sizeof(Geometry::c_cubeIndices[0]),
-                                               sizeof(Geometry::c_cubeIndices),
-                                               sizeof(Geometry::c_cubeVertices[0]),
-                                               sizeof(Geometry::c_cubeVertices),
-                                               vertexBufferLayout);
+    size_t sizeOfIndex = sizeof(Geometry::c_cubeIndices[0]);
+    size_t sizeOfVertex = sizeof(Geometry::c_cubeVertices[0]);
+    size_t indexCount = sizeof(Geometry::c_cubeIndices) / sizeOfIndex;
+    size_t vertexCount = sizeof(Geometry::c_cubeVertices) / sizeOfVertex;
+    drawBuffer_ = std::make_shared<DrawBuffer>(renderingContext_, sizeOfIndex, indexCount, sizeOfVertex,
+                                               vertexCount, vertexBufferLayout);
     drawBuffer_->UpdateIndices(Geometry::c_cubeIndices);
     drawBuffer_->UpdateVertices(Geometry::c_cubeVertices);
     pipeline_ = std::make_unique<Pipeline>(renderingContext_, shaderProgram_, drawBuffer_);
@@ -255,5 +255,9 @@ void VulkanContext::InitRenderingContext(VkFormat colorFormat) {
                                                            graphicsQueue_, colorFormat,
                                                            graphicsPool_);
     InitializeResources();
+}
+
+std::shared_ptr<RenderingContext> VulkanContext::GetRenderingContext() {
+    return renderingContext_;
 }
 }

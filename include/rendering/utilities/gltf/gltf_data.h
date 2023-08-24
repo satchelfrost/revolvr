@@ -65,7 +65,7 @@ struct Material {
 // Contains the texture for a single glTF image
 // Images may be reused by texture objects and are as such separated
 struct Image {
-    Texture texture;
+    VulkanTexture texture;
     // We also store (and create) a descriptor set that's used to access this texture from the fragment shader
     VkDescriptorSet descriptorSet;
 };

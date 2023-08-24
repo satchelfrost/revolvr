@@ -3,8 +3,8 @@
 
 namespace rvr {
 VulkanBuffer::VulkanBuffer(const std::shared_ptr<RenderingContext> &context, size_t sizeOfElement,
-                           size_t sizeOfContainer, VkBufferUsageFlags usage) : rendering_context_(context),
-count_(sizeOfContainer / sizeOfElement), sizeInBytes_(sizeOfContainer), device_(context->GetDevice()) {
+                           size_t count, VkBufferUsageFlags usage) : rendering_context_(context),
+count_(count), sizeInBytes_(count * sizeOfElement), device_(context->GetDevice()) {
     context->CreateBuffer(sizeInBytes_, usage, &buffer_, &memory_);
 }
 
@@ -32,5 +32,9 @@ VulkanBuffer::~VulkanBuffer() {
 
 uint32_t VulkanBuffer::GetCount() const {
     return count_;
+}
+
+size_t VulkanBuffer::GetSizeInBytes() const {
+    return sizeInBytes_;
 }
 }

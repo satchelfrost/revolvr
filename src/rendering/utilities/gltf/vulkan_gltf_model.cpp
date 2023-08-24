@@ -46,8 +46,10 @@ void VulkanGLTFModel::LoadImages(tinygltf::Model& input) {
             bufferSize = glTFImage.image.size();
         }
         // Load texture from image buffer
-        images_[i].texture.FromBuffer(buffer, bufferSize, VK_FORMAT_R8G8B8A8_UNORM, glTFImage.width,
-                                     glTFImage.height, renderingContext_);
+//        images_[i].texture.FromBuffer(buffer, bufferSize, VK_FORMAT_R8G8B8A8_UNORM, glTFImage.width,
+//                                     glTFImage.height, renderingContext_);
+        images_[i].texture.FromBuffer(buffer, bufferSize, glTFImage.width,
+                                      glTFImage.height, renderingContext_);
         if (deleteBuffer) {
             delete[] buffer;
         }

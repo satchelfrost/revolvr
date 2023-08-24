@@ -19,8 +19,8 @@ private:
     VertexBufferLayout vertexBufferLayout_;
 
 public:
-    DrawBuffer(const std::shared_ptr<RenderingContext>& context, size_t sizeOfIndex, size_t sizeOfIndices,
-               size_t sizeOfVertex, size_t sizeOfVertices, VertexBufferLayout vbl);
+    DrawBuffer(const std::shared_ptr<RenderingContext>& context, size_t sizeOfIndex, size_t indexCount,
+               size_t sizeOfVertex, size_t vertexCount, VertexBufferLayout vbl);
     void UpdateIndices(const void *data);
     void UpdateVertices(const void *data);
     VkBuffer GetIndexBuffer();

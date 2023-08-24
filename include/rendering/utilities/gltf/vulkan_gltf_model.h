@@ -1,6 +1,7 @@
 #pragma once
 
 #include <pch.h>
+#define TINYGLTF_ANDROID_LOAD_FROM_ASSETS
 #include <tiny_gltf.h>
 #include <rendering/utilities/gltf/gltf_data.h>
 #include "rendering/utilities/rendering_context.h"

@@ -58,7 +58,20 @@ void RenderingContext::AllocateBufferMemory(VkBuffer buffer, VkDeviceMemory *mem
 
 void RenderingContext::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize srcOffset,
                                   VkDeviceSize dstOffset) {
-    // TODO: implement
+    CommandBuffer commandBuffer(device_, graphicsPool_);
+    commandBuffer.Wait();
+    commandBuffer.Reset();
+    commandBuffer.Begin();
+
+    VkBufferCopy copyRegion = {};
+    copyRegion.size = size;
+    copyRegion.srcOffset = srcOffset;
+    copyRegion.dstOffset = dstOffset;
+    vkCmdCopyBuffer(commandBuffer.GetBuffer(), srcBuffer, dstBuffer,
+                    1, &copyRegion);
+
+    commandBuffer.End();
+    commandBuffer.Exec(graphicsQueue_);
 }
 
 VkCommandPool RenderingContext::GetGraphicsPool() {

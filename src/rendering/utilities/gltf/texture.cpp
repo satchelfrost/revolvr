@@ -4,24 +4,25 @@
 #include "rendering/utilities/vulkan_results.h"
 
 namespace rvr {
-void Texture::UpdateDescriptor() {
+void VulkanTexture::UpdateDescriptor() {
     descriptor.sampler = sampler;
     descriptor.imageView = view_->GetImageView();
     descriptor.imageLayout = imageLayout_;
 }
 
-void Texture::Destroy() {
+void VulkanTexture::Destroy() {
     if (sampler)
-        vkDestroySampler(device, sampler, nullptr);
-    vkFreeMemory(device, deviceMemory, nullptr);
+        vkDestroySampler(device_, sampler, nullptr);
+    vkFreeMemory(device_, deviceMemory, nullptr);
 }
 
-void Texture::FromBuffer(void* buffer, VkDeviceSize bufferSize, VkFormat format, uint32_t texWidth, uint32_t texHeight,
-                         const std::shared_ptr<RenderingContext>& renderingContext, VkFilter filter,
-                         VkImageUsageFlags imageUsageFlags, VkImageLayout imageLayout) {
+// TODO: may have to put back VkFormat parameter
+void VulkanTexture::FromBuffer(void* buffer, VkDeviceSize bufferSize, uint32_t texWidth,
+uint32_t texHeight, const std::shared_ptr<RenderingContext>& renderingContext, VkFilter filter,
+VkImageLayout imageLayout) {
     assert(buffer);
 
-    this->device = renderingContext->GetDevice();
+    device_ = renderingContext->GetDevice();
     width = texWidth;
     height = texHeight;
     mipLevels = 1;
@@ -47,6 +48,7 @@ void Texture::FromBuffer(void* buffer, VkDeviceSize bufferSize, VkFormat format,
     bufferCopyRegion.bufferOffset = 0;
 
     VkExtent2D extent = {width, height};
+    // TODO: may have to expose usage to set VK_IMAGE_USAGE_SAMPLED_BIT here
     image_ = std::make_unique<VulkanImage>(renderingContext, VulkanImage::Depth, extent);
 //    VkImageSubresourceRange subresourceRange = {};
 //    subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -63,6 +65,7 @@ void Texture::FromBuffer(void* buffer, VkDeviceSize bufferSize, VkFormat format,
     copyCmdBuffer.End();
     copyCmdBuffer.Exec(renderingContext->GetGraphicsQueue());
 
+    // TODO: may want to create a sampler class
     // Create sampler
     VkSamplerCreateInfo samplerCreateInfo = {};
     samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -77,7 +80,7 @@ void Texture::FromBuffer(void* buffer, VkDeviceSize bufferSize, VkFormat format,
     samplerCreateInfo.minLod = 0.0f;
     samplerCreateInfo.maxLod = 0.0f;
     samplerCreateInfo.maxAnisotropy = 1.0f;
-    VkResult result = vkCreateSampler(device, &samplerCreateInfo, nullptr, &sampler);
+    VkResult result = vkCreateSampler(device_, &samplerCreateInfo, nullptr, &sampler);
     CHECK_VKCMD(result);
 
     view_ = std::make_unique<VulkanView>(renderingContext, VulkanView::Color, image_->GetImage());

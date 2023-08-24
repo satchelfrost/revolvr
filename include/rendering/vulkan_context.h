@@ -57,6 +57,7 @@ public:
     static std::vector<std::string> GetInstanceExtensions();
     static uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView& view);
     const XrBaseInStructure* GetGraphicsBinding() const;
+    std::shared_ptr<RenderingContext> GetRenderingContext();
     void InitializeResources();
     void InitRenderingContext(VkFormat colorFormat);
     void SwapchainImagesReady(XrSwapchainImageBaseHeader* images);

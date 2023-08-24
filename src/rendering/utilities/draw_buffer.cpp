@@ -10,12 +10,12 @@
 #include <utility>
 
 namespace rvr {
-DrawBuffer::DrawBuffer(const std::shared_ptr<RenderingContext>& context, size_t sizeOfIndex, size_t sizeOfIndices,
-                       size_t sizeOfVertex, size_t sizeOfVertices, VertexBufferLayout vbl) :
+DrawBuffer::DrawBuffer(const std::shared_ptr<RenderingContext>& context, size_t sizeOfIndex, size_t indexCount,
+                       size_t sizeOfVertex, size_t vertexCount, VertexBufferLayout vbl) :
 vertexBufferLayout_(std::move(vbl)) {
-    indexBuffer_ = std::make_unique<VulkanBuffer>(context, sizeOfIndex, sizeOfIndices,
+    indexBuffer_ = std::make_unique<VulkanBuffer>(context, sizeOfIndex, indexCount,
                                                   VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
-    vertexBuffer_ = std::make_unique<VulkanBuffer>(context, sizeOfVertex, sizeOfVertices,
+    vertexBuffer_ = std::make_unique<VulkanBuffer>(context, sizeOfVertex, vertexCount,
                                                    VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
 }
 
