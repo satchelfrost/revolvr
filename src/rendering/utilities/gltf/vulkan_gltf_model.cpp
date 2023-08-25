@@ -1,21 +1,15 @@
 #include "rendering/utilities/gltf/vulkan_gltf_model.h"
 
 namespace rvr {
+VulkanGLTFModel::VulkanGLTFModel(std::shared_ptr<RenderingContext> renderingContext, std::string fileName) :
+renderingContext_(renderingContext) {
+    // TODO:
+
+}
+
 VulkanGLTFModel::~VulkanGLTFModel() {
     for (auto node : nodes_)
         delete node;
-
-    // Release all Vulkan resources allocated for the model
-    vkDestroyBuffer(device_, vertices_.buffer, nullptr);
-    vkFreeMemory(device_, vertices_.memory, nullptr);
-    vkDestroyBuffer(device_, indices_.buffer, nullptr);
-    vkFreeMemory(device_, indices_.memory, nullptr);
-    for (const gltf::Image& image : images_) {
-        vkDestroyImageView(device_, image.texture.view_->GetImageView(), nullptr);
-        vkDestroyImage(device_, image.texture.image_->GetImage(), nullptr);
-        vkDestroySampler(device_, image.texture.sampler, nullptr);
-        vkFreeMemory(device_, image.texture.deviceMemory, nullptr);
-    }
 }
 
 void VulkanGLTFModel::LoadImages(tinygltf::Model& input) {
@@ -237,11 +231,13 @@ void VulkanGLTFModel::DrawNode(VkCommandBuffer commandBuffer, VkPipelineLayout p
 void VulkanGLTFModel::Draw(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout) {
     // All vertices and indices are stored in single buffers, so we only need to bind once
     VkDeviceSize offsets[1] = { 0 };
-    vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertices_.buffer, offsets);
-    vkCmdBindIndexBuffer(commandBuffer, indices_.buffer, 0, VK_INDEX_TYPE_UINT32);
+    auto vtxBuffer = vertexBuffer_->GetBuffer();
+    vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vtxBuffer, offsets);
+    vkCmdBindIndexBuffer(commandBuffer, indexBuffer_->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
     // Render all nodes at top-level
     for (auto& node : nodes_)
         DrawNode(commandBuffer, pipelineLayout, node);
 }
+
 }

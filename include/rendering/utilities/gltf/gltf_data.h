@@ -14,23 +14,6 @@ struct Vertex {
     glm::vec3 color;
 };
 
-// Single vertex buffer for all primitives
-struct Vertices {
-    VkBuffer buffer;
-    VkDeviceMemory memory;
-};
-
-// Single index buffer for all primitives
-struct Indices {
-    int count;
-    VkBuffer buffer;
-    VkDeviceMemory memory;
-};
-
-// The following structures roughly represent the glTF scene structure
-// To keep things simple, they only contain those properties that are required for this sample
-//    struct Node;
-
 // A primitive contains the data for a single draw call
 struct Primitive {
     uint32_t firstIndex;

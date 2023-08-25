@@ -14,9 +14,11 @@ DrawBuffer::DrawBuffer(const std::shared_ptr<RenderingContext>& context, size_t 
                        size_t sizeOfVertex, size_t vertexCount, VertexBufferLayout vbl) :
 vertexBufferLayout_(std::move(vbl)) {
     indexBuffer_ = std::make_unique<VulkanBuffer>(context, sizeOfIndex, indexCount,
-                                                  VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+                                                  VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                                                  MemoryType::DeviceLocal);
     vertexBuffer_ = std::make_unique<VulkanBuffer>(context, sizeOfVertex, vertexCount,
-                                                   VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+                                                   VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                                                   MemoryType::DeviceLocal);
 }
 
 void DrawBuffer::UpdateIndices(const void *data) {

@@ -14,16 +14,20 @@ private:
     VkFormat depthFormat_ = VK_FORMAT_D32_SFLOAT;
     std::unique_ptr<RenderPass> renderPass_;
 
-    void AllocateBufferMemory(VkBuffer buffer, VkDeviceMemory* memory);
-    void AllocateImageMemory(VkImage image, VkDeviceMemory* memory);
+    void AllocateBufferMemory(VkBuffer buffer, VkDeviceMemory* memory, VkMemoryPropertyFlags memoryPropertyFlags);
+    void AllocateImageMemory(VkImage image, VkDeviceMemory* memory, VkMemoryPropertyFlags memoryPropertyFlags);
+    void AllocateMemory(VkDeviceMemory* memory, VkMemoryPropertyFlags memoryPropertyFlags,
+                        VkMemoryRequirements memoryRequirements);
 public:
     RenderingContext(VkPhysicalDevice physicalDevice, VkDevice device, VkQueue graphicsQueue, VkFormat colorFormat,
                      VkCommandPool graphicsPool);
-    void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkBuffer* buffer, VkDeviceMemory* bufferMemory);
+    void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryPropertyFlags,
+                      VkBuffer* buffer, VkDeviceMemory* bufferMemory);
     void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize srcOffset,
                     VkDeviceSize dstOffset);
     void CreateImage(VkExtent2D extent, VkFormat format, VkImageUsageFlags usage, VkImage* image,
-                     VkDeviceMemory* imageMemory);
+                     VkDeviceMemory* imageMemory,
+                     VkMemoryPropertyFlags memoryPropertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     void CreateImageView(VkImage image, VkFormat format, VkImageAspectFlagBits aspectMask, VkImageView *imageView);
     void CreateTransitionLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout);
 

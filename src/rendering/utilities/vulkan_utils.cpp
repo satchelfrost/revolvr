@@ -248,13 +248,6 @@ uint32_t FindMemoryType(VkPhysicalDevice physicalDevice, uint32_t filter, VkMemo
     THROW("Failed to find suitable memory type");
 }
 
-VkMemoryAllocateInfo CreateMemAllocInfo(VkDeviceSize size, uint32_t memIdx) {
-    VkMemoryAllocateInfo info{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
-    info.allocationSize = size;
-    info.memoryTypeIndex = memIdx;
-    return info;
-}
-
 void PopulateTransitionLayoutInfo(VkImageMemoryBarrier &barrier, VkPipelineStageFlags& srcStage,
                                   VkPipelineStageFlags& dstStage, VkImageLayout oldLayout, VkImageLayout newLayout) {
     if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED) {
@@ -295,6 +288,14 @@ void PopulateTransitionLayoutInfo(VkImageMemoryBarrier &barrier, VkPipelineStage
     }
     else {
         THROW("Unsupported layout transition");
+    }
+}
+
+VkMemoryPropertyFlags VulkanBuffer::GetMemoryPropertyFlags(VulkanBuffer::MemoryType memType) {
+    switch (memType) {
+        case MemoryType::DeviceLocal: return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+        case MemoryType::HostVisible: return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+        default: THROW("Unknown memory type");
     }
 }
 }

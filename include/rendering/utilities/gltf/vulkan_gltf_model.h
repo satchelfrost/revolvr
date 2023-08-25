@@ -5,21 +5,21 @@
 #include <tiny_gltf.h>
 #include <rendering/utilities/gltf/gltf_data.h>
 #include "rendering/utilities/rendering_context.h"
+#include "rendering/utilities/draw_buffer.h"
 
 namespace rvr {
 class VulkanGLTFModel {
-public:
-    VkDevice device_;
-    VkQueue copyQueue_;
-
-    gltf::Vertices vertices_;
-    gltf::Indices indices_;
+private:
+    std::unique_ptr<VulkanBuffer> vertexBuffer_ = nullptr;
+    std::unique_ptr<VulkanBuffer> indexBuffer_ = nullptr;
     std::vector<gltf::Image> images_;
     std::vector<gltf::Texture> textures_;
     std::vector<gltf::Material> materials_;
     std::vector<gltf::Node*> nodes_;
     std::shared_ptr<RenderingContext> renderingContext_;
 
+public:
+    VulkanGLTFModel(std::shared_ptr<RenderingContext> renderingContext, std::string fileName);
     ~VulkanGLTFModel();
     void LoadImages(tinygltf::Model& input);
     void LoadTextures(tinygltf::Model& input);

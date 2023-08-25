@@ -26,10 +26,9 @@ void loadGLTFFile(const std::string fileName, VulkanGLTFModel& gltfModel) {
         gltfModel.LoadMaterials(gltfInput);
         gltfModel.LoadTextures(gltfInput);
         const tinygltf::Scene& scene = gltfInput.scenes[0];
-        for (size_t i = 0; i < scene.nodes.size(); i++) {
-            const tinygltf::Node node = gltfInput.nodes[scene.nodes[i]];
-            gltfModel.LoadNode(node, gltfInput, nullptr, indexBuffer,
-                               vertexBuffer);
+        for (int sceneNode : scene.nodes) {
+            const tinygltf::Node node = gltfInput.nodes[sceneNode];
+            gltfModel.LoadNode(node, gltfInput, nullptr, indexBuffer, vertexBuffer);
         }
     }
     else {
@@ -37,18 +36,22 @@ void loadGLTFFile(const std::string fileName, VulkanGLTFModel& gltfModel) {
     }
     auto renderingContext = GlobalContext::Inst()->GetVulkanContext()->GetRenderingContext();
     auto vertexStagingBuffer = VulkanBuffer(renderingContext, sizeof(gltf::Vertex),
-                                            vertexBuffer.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+                                            vertexBuffer.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                            MemoryType::HostVisible);
     auto indexStagingBuffer = VulkanBuffer(renderingContext, sizeof(uint32_t),
-                                           indexBuffer.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+                                           indexBuffer.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                           MemoryType::HostVisible);
     vertexStagingBuffer.Update(vertexBuffer.data());
     indexStagingBuffer.Update(indexBuffer.data());
-    auto targetVertexBuffer = VulkanBuffer(renderingContext, sizeof(gltf::Vertex),
+    gltfModel.vertexBuffer_ = std::make_unique<VulkanBuffer>(renderingContext, sizeof(gltf::Vertex),
                                             vertexBuffer.size(),
-                                            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
-    auto targetIndexBuffer = VulkanBuffer(renderingContext, sizeof(uint32_t),
+                                            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                                            MemoryType::DeviceLocal);
+    gltfModel.indexBuffer_ = VulkanBuffer(renderingContext, sizeof(uint32_t),
                                            indexBuffer.size(),
-                                          VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
-    renderingContext->CopyBuffer(vertexStagingBuffer.GetBuffer(), targetVertexBuffer.GetBuffer(),
-                                 vertexStagingBuffer.GetSizeInBytes(), )
+                                          VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                                          MemoryType::DeviceLocal);
+//    renderingContext->CopyBuffer(vertexStagingBuffer.GetBuffer(), targetVertexBuffer.GetBuffer(),
+//                                 vertexStagingBuffer.GetSizeInBytes(), )
 }
 }

@@ -32,28 +32,24 @@ VkRenderPass RenderingContext::GetRenderPass() const {
     return renderPass_->GetRenderPass();
 }
 
-void RenderingContext::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkBuffer *buffer,
+void RenderingContext::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
+                                    VkMemoryPropertyFlags memoryPropertyFlags, VkBuffer *buffer,
                                     VkDeviceMemory *memory) {
     VkBufferCreateInfo bufInfo{VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO};
     bufInfo.usage = usage;
     bufInfo.size = size;
     VkResult result = vkCreateBuffer(device_, &bufInfo, nullptr, buffer);
     CHECK_VKCMD(result);
-    AllocateBufferMemory(*buffer, memory);
+    AllocateBufferMemory(*buffer, memory, memoryPropertyFlags);
     result = vkBindBufferMemory(device_, *buffer, *memory, 0);
     CHECK_VKCMD(result);
 }
 
-void RenderingContext::AllocateBufferMemory(VkBuffer buffer, VkDeviceMemory *memory) {
+void RenderingContext::AllocateBufferMemory(VkBuffer buffer, VkDeviceMemory *memory,
+                                            VkMemoryPropertyFlags memoryPropertyFlags) {
     VkMemoryRequirements memReq = {};
     vkGetBufferMemoryRequirements(device_, buffer, &memReq);
-    uint32_t memIdx = FindMemoryType(physicalDevice_, memReq.memoryTypeBits,
-                                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-    VkMemoryAllocateInfo allocInfo{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
-    allocInfo.allocationSize = memReq.size;
-    allocInfo.memoryTypeIndex = memIdx;
-    VkResult result = vkAllocateMemory(device_, &allocInfo, nullptr, memory);
-    CHECK_VKCMD(result);
+    AllocateMemory(memory, memoryPropertyFlags, memReq);
 }
 
 void RenderingContext::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize srcOffset,
@@ -79,7 +75,7 @@ VkCommandPool RenderingContext::GetGraphicsPool() {
 }
 
 void RenderingContext::CreateImage(VkExtent2D extent, VkFormat format, VkImageUsageFlags usage, VkImage *image,
-                                   VkDeviceMemory *imageMemory) {
+                                   VkDeviceMemory *imageMemory, VkMemoryPropertyFlags memoryPropertyFlags) {
     VkImageCreateInfo imageInfo{VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
     imageInfo.imageType = VK_IMAGE_TYPE_2D;
     imageInfo.extent.width = extent.width;
@@ -96,20 +92,16 @@ void RenderingContext::CreateImage(VkExtent2D extent, VkFormat format, VkImageUs
 
     VkResult result = vkCreateImage(device_, &imageInfo, nullptr, image);
     CHECK_VKCMD(result);
-    AllocateImageMemory(*image, imageMemory);
+    AllocateImageMemory(*image, imageMemory, memoryPropertyFlags);
     result = vkBindImageMemory(device_, *image, *imageMemory, 0);
     CHECK_VKCMD(result);
 }
 
-void RenderingContext::AllocateImageMemory(VkImage image, VkDeviceMemory *memory) {
-    VkMemoryRequirements memRequirements{};
-    vkGetImageMemoryRequirements(device_, image, &memRequirements);
-    uint32_t memoryIdx = FindMemoryType(physicalDevice_,memRequirements.memoryTypeBits,
-                                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-    VkMemoryAllocateInfo allocInfo = CreateMemAllocInfo(memRequirements.size, memoryIdx);
-
-    VkResult result = vkAllocateMemory(device_, &allocInfo, nullptr, memory);
-    CHECK_VKCMD(result);
+void RenderingContext::AllocateImageMemory(VkImage image, VkDeviceMemory *memory,
+                                           VkMemoryPropertyFlags memoryPropertyFlags) {
+    VkMemoryRequirements memoryRequirements{};
+    vkGetImageMemoryRequirements(device_, image, &memoryRequirements);
+    AllocateMemory(memory, memoryPropertyFlags, memoryRequirements);
 }
 
 void RenderingContext::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlagBits aspectMask,
@@ -154,5 +146,16 @@ void RenderingContext::CreateTransitionLayout(VkImage image, VkImageLayout oldLa
                          nullptr, 1, &barrier);
     commandBuffer.End();
     commandBuffer.Exec(graphicsQueue_);
+}
+
+void RenderingContext::AllocateMemory(VkDeviceMemory *memory, VkMemoryPropertyFlags memoryPropertyFlags,
+                                      VkMemoryRequirements memoryRequirements) {
+    uint32_t memIdx = FindMemoryType(physicalDevice_, memoryRequirements.memoryTypeBits,
+                                     memoryPropertyFlags);
+    VkMemoryAllocateInfo allocInfo{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
+    allocInfo.allocationSize = memoryRequirements.size;
+    allocInfo.memoryTypeIndex = memIdx;
+    VkResult result = vkAllocateMemory(device_, &allocInfo, nullptr, memory);
+    CHECK_VKCMD(result);
 }
 }

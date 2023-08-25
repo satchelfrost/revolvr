@@ -34,7 +34,7 @@ VkImageLayout imageLayout) {
     copyCmdBuffer.Begin();
 
     VulkanBuffer stagingBuffer = VulkanBuffer(renderingContext, 1, bufferSize,
-                                              VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+                                              VK_BUFFER_USAGE_TRANSFER_SRC_BIT, MemoryType::DeviceLocal);
     stagingBuffer.Update(buffer);
 
     VkBufferImageCopy bufferCopyRegion = {};

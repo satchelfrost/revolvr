@@ -2,6 +2,7 @@
 #include <pch.h>
 
 namespace rvr {
+// TODO: move some of these enums and structs to vulkan data types
 struct QueueFamilyIndices {
     std::optional<uint32_t> graphicsFamily;
     bool isComplete() {return graphicsFamily.has_value();}
@@ -12,6 +13,11 @@ enum class DataType {
     U16,
     U32,
     F32
+};
+
+enum class MemoryType {
+    DeviceLocal,
+    HostVisible
 };
 
 VkFormat GetVkFormat(DataType type, uint32_t count);
@@ -39,7 +45,7 @@ XrResult GetVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystemId syste
 void CheckVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystemId systemId);
 QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice physicalDevice);
 uint32_t FindMemoryType(VkPhysicalDevice physicalDevice, uint32_t filter, VkMemoryPropertyFlags flags);
-VkMemoryAllocateInfo CreateMemAllocInfo(VkDeviceSize size, uint32_t memIdx);
 void PopulateTransitionLayoutInfo(VkImageMemoryBarrier& barrier, VkPipelineStageFlags& srcStage,
                                   VkPipelineStageFlags& dstStage, VkImageLayout oldLayout, VkImageLayout newLayout);
+VkMemoryPropertyFlags GetMemoryPropertyFlags(MemoryType memType);
 }

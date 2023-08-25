@@ -17,6 +17,7 @@ private:
     VkDevice device_;
 
 public:
+    // TODO: definitely need to expose usage
     VulkanImage(const std::shared_ptr<RenderingContext>& context, ImageType imageType, VkExtent2D extent);
     VkImage GetImage();
     ~VulkanImage();
