@@ -1,10 +1,62 @@
 #include "rendering/utilities/gltf/vulkan_gltf_model.h"
+#include <global_context.h>
+#include <utility>
 
 namespace rvr {
-VulkanGLTFModel::VulkanGLTFModel(std::shared_ptr<RenderingContext> renderingContext, std::string fileName) :
-renderingContext_(renderingContext) {
-    // TODO:
+VulkanGLTFModel::VulkanGLTFModel(std::shared_ptr<RenderingContext> renderingContext, const std::string& fileName) :
+renderingContext_(std::move(renderingContext)) {
+    LoadGLTFFile(fileName);
+}
 
+void VulkanGLTFModel::LoadGLTFFile(const std::string& fileName) {
+    tinygltf::asset_manager = GlobalContext::Inst()->GetAndroidContext()->GetAndroidAssetManager();
+    tinygltf::Model gltfInput;
+    tinygltf::TinyGLTF gltfContext;
+    std::string error{}, warning{};
+
+    bool fileLoaded = gltfContext.LoadASCIIFromFile(&gltfInput, &error,
+                                                    &warning, fileName);
+    if (!error.empty())
+        PrintError(error);
+    if (!warning.empty())
+        PrintWarning(warning);
+
+    std::vector<uint32_t> indexBuffer;
+    std::vector<gltf::Vertex> vertexBuffer;
+    if (fileLoaded) {
+        LoadImages(gltfInput);
+        LoadMaterials(gltfInput);
+        LoadTextures(gltfInput);
+        const tinygltf::Scene& scene = gltfInput.scenes[0];
+        for (int sceneNode : scene.nodes) {
+            const tinygltf::Node node = gltfInput.nodes[sceneNode];
+            LoadNode(node, gltfInput, nullptr, indexBuffer, vertexBuffer);
+        }
+    }
+    else {
+        THROW("Failed to open gltf file " + fileName);
+    }
+
+    auto vertexStagingBuffer = VulkanBuffer(renderingContext_, sizeof(gltf::Vertex),
+                                            vertexBuffer.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                            MemoryType::HostVisible);
+    auto indexStagingBuffer = VulkanBuffer(renderingContext_, sizeof(uint32_t),
+                                           indexBuffer.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                           MemoryType::HostVisible);
+    vertexStagingBuffer.Update(vertexBuffer.data());
+    indexStagingBuffer.Update(indexBuffer.data());
+    vertexBuffer_ = std::make_unique<VulkanBuffer>(renderingContext_, sizeof(gltf::Vertex),
+                                                   vertexBuffer.size(),
+                                                   VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
+                                                   VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                                                   MemoryType::DeviceLocal);
+    indexBuffer_ = std::make_unique<VulkanBuffer>(renderingContext_, sizeof(uint32_t),
+                                                  indexBuffer.size(),
+                                                  VK_BUFFER_USAGE_INDEX_BUFFER_BIT |
+                                                  VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                                                  MemoryType::DeviceLocal);
+    renderingContext_->CopyBuffer(vertexStagingBuffer.GetBuffer(), vertexBuffer_->GetBuffer(),
+                                 vertexStagingBuffer.GetSizeInBytes(), 0, 0);
 }
 
 VulkanGLTFModel::~VulkanGLTFModel() {

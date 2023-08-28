@@ -291,7 +291,7 @@ void PopulateTransitionLayoutInfo(VkImageMemoryBarrier &barrier, VkPipelineStage
     }
 }
 
-VkMemoryPropertyFlags VulkanBuffer::GetMemoryPropertyFlags(VulkanBuffer::MemoryType memType) {
+VkMemoryPropertyFlags GetMemoryPropertyFlags(MemoryType memType) {
     switch (memType) {
         case MemoryType::DeviceLocal: return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
         case MemoryType::HostVisible: return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
