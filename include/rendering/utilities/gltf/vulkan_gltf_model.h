@@ -8,7 +8,8 @@
 // TODO: may want to define things elsewhere
 #define TINYGLTF_ANDROID_LOAD_FROM_ASSETS
 #define TINYGLTF_IMPLEMENTATION
-//#define STB_IMAGE_IMPLEMENTATION
+#define TINYGLTF_NO_STB_IMAGE_WRITE
+#define STB_IMAGE_IMPLEMENTATION
 #include "tiny_gltf.h"
 
 namespace rvr {
