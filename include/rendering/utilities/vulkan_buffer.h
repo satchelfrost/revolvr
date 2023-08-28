@@ -9,8 +9,8 @@ class VulkanBuffer {
 private:
     std::shared_ptr<RenderingContext> rendering_context_;
     size_t sizeInBytes_;
-    VkBuffer* buffer_;
-    VkDeviceMemory* memory_;
+    VkBuffer buffer_;
+    VkDeviceMemory memory_;
     VkDevice device_;
     uint32_t count_;
 
