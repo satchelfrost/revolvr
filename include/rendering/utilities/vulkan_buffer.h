@@ -13,6 +13,9 @@ private:
     VkDeviceMemory memory_;
     VkDevice device_;
     uint32_t count_;
+    // TODO: allow persistent mapping, make mappedData_ private member.
+    // TODO: perhaps have an UpdatePersistent in addition to regular update
+    // TODO: add a VkDescriptorBufferInfo
 
 public:
     VulkanBuffer(const std::shared_ptr<RenderingContext> &context, size_t sizeOfElement, size_t count,
