@@ -13,6 +13,7 @@
 #include <math/linear_math.h>
 #include <rendering/utilities/vulkan_utils.h>
 #include <rendering/utilities/vertex_buffer_layout.h>
+#include <rendering/utilities/gltf/vulkan_gltf_model.h>
 
 namespace rvr {
 void VulkanContext::InitDevice(XrInstance xrInstance, XrSystemId systemId) {
@@ -69,25 +70,8 @@ void VulkanContext::CreateVulkanInstance(XrInstance xrInstance, XrSystemId syste
 }
 
 void VulkanContext::InitializeResources() {
-    auto fragmentSPIRV = CreateSPIRVVector("shaders/basic.frag.spv");
-    auto vertexSPIRV = CreateSPIRVVector("shaders/basic.vert.spv");
-
-    if (vertexSPIRV.empty()) THROW("Failed to compile vertex shader");
-    if (fragmentSPIRV.empty()) THROW("Failed to compile fragment shader");
-
-    shaderProgram_ = std::make_unique<ShaderProgram>(device_, vertexSPIRV, fragmentSPIRV);
-    VertexBufferLayout vertexBufferLayout;
-    vertexBufferLayout.Push({0, DataType::F32, 3}); // position
-    vertexBufferLayout.Push({1, DataType::F32, 3}); // color
-    size_t sizeOfIndex = sizeof(Geometry::c_cubeIndices[0]);
-    size_t sizeOfVertex = sizeof(Geometry::c_cubeVertices[0]);
-    size_t indexCount = sizeof(Geometry::c_cubeIndices) / sizeOfIndex;
-    size_t vertexCount = sizeof(Geometry::c_cubeVertices) / sizeOfVertex;
-    drawBuffer_ = std::make_shared<DrawBuffer>(renderingContext_, sizeOfIndex, indexCount, sizeOfVertex,
-                                               vertexCount, vertexBufferLayout);
-    drawBuffer_->UpdateIndices(Geometry::c_cubeIndices);
-    drawBuffer_->UpdateVertices(Geometry::c_cubeVertices);
-    pipeline_ = std::make_unique<Pipeline>(renderingContext_, shaderProgram_, drawBuffer_);
+    InitCubeResources();
+    InitGltfResources();
 }
 
 XrSwapchainImageBaseHeader* VulkanContext::AllocateSwapchainImageStructs(
@@ -119,7 +103,14 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
     }
 
     auto swapchainContext = imageToSwapchainContext_[swapchainImage];
-    swapchainContext->Draw(imageIndex, pipeline_, mvps);
+    swapchainContext->Draw(imageIndex, pipeline_, drawBuffer_, mvps);
+
+    // Update uniform buffers
+    cameraValues.projection = projectionMatrix;
+    cameraValues.model = viewMatrix;
+    auto position = math::Pose(layerView.pose).GetPosition();
+    cameraValues.viewPos = glm::vec4(position, 0.0f) * glm::vec4(-1.0f, 1.0f, -1.0f, 1.0f);
+    uniformBuffer_->UpdatePersistent(&cameraValues);
 }
 
 std::vector<std::string> VulkanContext::GetInstanceExtensions() {
@@ -259,5 +250,48 @@ void VulkanContext::InitRenderingContext(VkFormat colorFormat) {
 
 std::shared_ptr<RenderingContext> VulkanContext::GetRenderingContext() {
     return renderingContext_;
+}
+
+void VulkanContext::InitCubeResources() {
+    auto fragmentSPIRV = CreateSPIRVVector("shaders/basic.frag.spv");
+    auto vertexSPIRV = CreateSPIRVVector("shaders/basic.vert.spv");
+
+    if (vertexSPIRV.empty()) THROW("Failed to compile vertex shader");
+    if (fragmentSPIRV.empty()) THROW("Failed to compile fragment shader");
+
+    shaderProgram_ = std::make_unique<ShaderProgram>(device_, vertexSPIRV, fragmentSPIRV);
+    VertexBufferLayout vertexBufferLayout;
+    vertexBufferLayout.Push({0, DataType::F32, 3, "Position"});
+    vertexBufferLayout.Push({1, DataType::F32, 3, "Color"});
+    size_t sizeOfIndex = sizeof(Geometry::c_cubeIndices[0]);
+    size_t sizeOfVertex = sizeof(Geometry::c_cubeVertices[0]);
+    size_t indexCount = sizeof(Geometry::c_cubeIndices) / sizeOfIndex;
+    size_t vertexCount = sizeof(Geometry::c_cubeVertices) / sizeOfVertex;
+    auto indexBuffer = std::make_unique<VulkanBuffer>(renderingContext_,
+                                                      sizeOfIndex, indexCount,
+                                                  VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                                                  MemoryType::DeviceLocal);
+    auto vertexBuffer = std::make_unique<VulkanBuffer>(renderingContext_,
+                                                       sizeOfVertex, vertexCount,
+                                                   VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                                                   MemoryType::DeviceLocal);
+    drawBuffer_ = std::make_unique<DrawBuffer>(std::move(indexBuffer),
+                                               std::move(vertexBuffer));
+    drawBuffer_->UpdateIndices(Geometry::c_cubeIndices);
+    drawBuffer_->UpdateVertices(Geometry::c_cubeVertices);
+    pipeline_ = std::make_unique<Pipeline>(renderingContext_, shaderProgram_, vertexBufferLayout);
+}
+
+void VulkanContext::InitGltfResources() {
+    auto frag = CreateSPIRVVector("shaders/basic_gltf.frag.spv");
+    auto vert = CreateSPIRVVector("shaders/basic_gltf.vert.spv");
+    if (vert.empty()) THROW("Failed to compile gltf vertex shader");
+    if (frag.empty()) THROW("Failed to compile gltf fragment shader");
+
+//    model_ = std::make_unique<VulkanGLTFModel>(renderingContext_, "RoundedCubeBase.gltf");
+    uniformBuffer_ = std::make_unique<VulkanBuffer>(renderingContext_, sizeof(cameraValues),
+                                                    1, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                                                    MemoryType::HostVisible);
+    uniformBuffer_->UpdatePersistent(&cameraValues);
 }
 }

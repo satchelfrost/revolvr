@@ -14,7 +14,7 @@
 #include "rendering/utilities/vulkan_utils.h"
 #include <rendering/utilities/geometry.h>
 #include <rendering/utilities/swapchain_image_context.h>
-//#include "rendering/utilities/gltf/vulkan_gltf_model.h"
+//#include <rendering/utilities/gltf/vulkan_gltf_model.h>
 
 #include <rendering/utilities/rendering_context.h>
 
@@ -36,12 +36,25 @@ private:
     std::map<const XrSwapchainImageBaseHeader*, std::shared_ptr<SwapchainImageContext>> imageToSwapchainContext_;
     std::vector<math::Transform> renderBuffer_;
     XrGraphicsBindingVulkan2KHR graphicsBinding_{XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR};
-    std::unique_ptr<ShaderProgram> shaderProgram_;
-    std::shared_ptr<DrawBuffer> drawBuffer_;
-    std::unique_ptr<Pipeline> pipeline_;
     std::shared_ptr<RenderingContext> renderingContext_;
     QueueFamilyIndices queueFamilyIndices_;
 
+    // Cube stuff
+    std::unique_ptr<ShaderProgram> shaderProgram_;
+    std::unique_ptr<DrawBuffer> drawBuffer_;
+    std::unique_ptr<Pipeline> pipeline_;
+
+    // For now just one gltf model to test
+    std::unique_ptr<ShaderProgram> gltfShader_;
+    std::unique_ptr<Pipeline> gltfPipeline_;
+//    std::unique_ptr<VulkanGLTFModel> model_;
+    std::unique_ptr<VulkanBuffer> uniformBuffer_;
+    struct CameraValues {
+        glm::mat4 projection;
+        glm::mat4 model;
+        glm::vec4 lightPos = glm::vec4(5.0f, 5.0f, 5.0f, 1.0f);
+        glm::vec4 viewPos;
+    } cameraValues;
 
 #if !defined(NDEBUG)
         const bool enableValidationLayers_ = true;
@@ -65,6 +78,8 @@ public:
                     const uint32_t imageIndex);
 
 private:
+    void InitCubeResources();
+    void InitGltfResources();
     void CreateVulkanInstance(XrInstance xrInstance, XrSystemId systemId);
     bool CheckValidationLayerSupport();
     void SetupReportCallback();

@@ -11,12 +11,24 @@ VulkanBuffer::VulkanBuffer(const std::shared_ptr<RenderingContext> &context, siz
 }
 
 void VulkanBuffer::Update(const void *data) {
-    void* mappedData = nullptr;
-    VkResult result = vkMapMemory(device_, memory_, 0, sizeInBytes_, 0,
-                                  &mappedData);
-    CHECK_VKCMD(result);
-    memcpy(mappedData, data, sizeInBytes_);
+    if (!mappedData_) {
+        VkResult result = vkMapMemory(device_, memory_, 0, sizeInBytes_, 0,
+                                      &mappedData_);
+        CHECK_VKCMD(result);
+    }
+    memcpy(mappedData_, data, sizeInBytes_);
     vkUnmapMemory(device_, memory_);
+    mappedData_ = nullptr;
+}
+
+void VulkanBuffer::UpdatePersistent(const void *data) {
+    if (!mappedData_) {
+        PrintInfo("Mapping data");
+        VkResult result = vkMapMemory(device_, memory_, 0, sizeInBytes_, 0,
+                                      &mappedData_);
+        CHECK_VKCMD(result);
+    }
+    memcpy(mappedData_, data, sizeInBytes_);
 }
 
 void VulkanBuffer::CopyFrom(const std::shared_ptr<VulkanBuffer>& src, size_t size, size_t srcOffset, size_t dstOffset) {
@@ -28,6 +40,8 @@ VkBuffer VulkanBuffer::GetBuffer() const {
 }
 
 VulkanBuffer::~VulkanBuffer() {
+    if (mappedData_)
+        vkUnmapMemory(device_, memory_);
     vkDestroyBuffer(device_, buffer_, nullptr);
     vkFreeMemory(device_, memory_, nullptr);
 }

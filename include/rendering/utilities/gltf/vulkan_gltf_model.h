@@ -5,18 +5,17 @@
 #include "rendering/utilities/rendering_context.h"
 #include "rendering/utilities/draw_buffer.h"
 
-// TODO: may want to define things elsewhere
-#define TINYGLTF_ANDROID_LOAD_FROM_ASSETS
+#define TINYGLTF_NO_FS
 #define TINYGLTF_IMPLEMENTATION
-#define TINYGLTF_NO_STB_IMAGE_WRITE
-#define STB_IMAGE_IMPLEMENTATION
-#include "tiny_gltf.h"
+//#define STB_IMAGE_IMPLEMENTATION
+//#define TINYGLTF_NO_STB_IMAGE_WRITE
+#define TINYGLTF_ANDROID_LOAD_FROM_ASSETS
+#include <tiny_gltf.h>
 
 namespace rvr {
 class VulkanGLTFModel {
 private:
-    std::unique_ptr<VulkanBuffer> vertexBuffer_ = nullptr;
-    std::unique_ptr<VulkanBuffer> indexBuffer_ = nullptr;
+    std::unique_ptr<DrawBuffer> drawBuffer_ = nullptr;
     std::vector<gltf::Image> images_;
     std::vector<gltf::Texture> textures_;
     std::vector<gltf::Material> materials_;

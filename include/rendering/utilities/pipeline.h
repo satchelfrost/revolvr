@@ -31,14 +31,16 @@ private:
     PipelineLayout pipelineLayout_{};
     VkPipeline pipeline_{VK_NULL_HANDLE};
     VkPrimitiveTopology topology_{VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST};
-    std::shared_ptr<DrawBuffer> drawBuffer_;
+//    std::shared_ptr<DrawBuffer> drawBuffer_;
 
 public:
+//    Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique_ptr<ShaderProgram>& shaderProgram,
+//             std::unique_ptr<DrawBuffer> drawBuffer);
     Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique_ptr<ShaderProgram>& shaderProgram,
-             std::shared_ptr<DrawBuffer> drawBuffer);
+             VertexBufferLayout vertexBufferLayout);
     void BindPipeline(VkCommandBuffer cmdBuffer);
     VkPipelineLayout GetPipelineLayout();
-    uint32_t GetIndexCount();
+//    uint32_t GetIndexCount();
     void Release();
 };
 }

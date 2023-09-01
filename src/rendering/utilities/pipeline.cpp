@@ -43,8 +43,7 @@ VkPipelineLayout PipelineLayout::GetLayout() {
 }
 
 Pipeline::Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique_ptr<ShaderProgram>& shaderProgram,
-                   std::shared_ptr<DrawBuffer> drawBuffer) : device_(context->GetDevice()),
-drawBuffer_(std::move(drawBuffer)) {
+                   VertexBufferLayout vertexBufferLayout) : device_(context->GetDevice()){
     pipelineLayout_.Create(device_);
     std::vector <VkDynamicState> dynamicStates = {VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT,
                                                   VkDynamicState::VK_DYNAMIC_STATE_SCISSOR};
@@ -54,9 +53,9 @@ drawBuffer_(std::move(drawBuffer)) {
 
     VkPipelineVertexInputStateCreateInfo vi{VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO};
     vi.vertexBindingDescriptionCount = 1;
-    VkVertexInputBindingDescription vertexInputBindingDescription = drawBuffer_->GetVertexInputBindingDesc();
+    VkVertexInputBindingDescription vertexInputBindingDescription = vertexBufferLayout.GetVertexInputBindingDesc();
     vi.pVertexBindingDescriptions = &vertexInputBindingDescription;
-    std::vector<VkVertexInputAttributeDescription> attrDescriptions =  drawBuffer_->GetVtxAttrDescriptions();
+    std::vector<VkVertexInputAttributeDescription> attrDescriptions =  vertexBufferLayout.GetVtxAttrDescriptions();
     vi.vertexAttributeDescriptionCount = (uint32_t) attrDescriptions.size();
     vi.pVertexAttributeDescriptions = attrDescriptions.data();
 
@@ -153,17 +152,17 @@ void Pipeline::Release() {
 
 void Pipeline::BindPipeline(VkCommandBuffer cmdBuffer) {
     vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_);
-    vkCmdBindIndexBuffer(cmdBuffer, drawBuffer_->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT16);
-    VkDeviceSize offset = 0;
-    VkBuffer vertexBuffer = drawBuffer_->GetVertexBuffer();
-    vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &vertexBuffer, &offset);
+//    vkCmdBindIndexBuffer(cmdBuffer, drawBuffer_->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT16);
+//    VkDeviceSize offset = 0;
+//    VkBuffer vertexBuffer = drawBuffer_->GetVertexBuffer();
+//    vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &vertexBuffer, &offset);
 }
 
 VkPipelineLayout Pipeline::GetPipelineLayout() {
     return pipelineLayout_.GetLayout();
 }
 
-uint32_t Pipeline::GetIndexCount() {
-    return drawBuffer_->GetIndexCount();
-}
+//uint32_t Pipeline::GetIndexCount() {
+//    return drawBuffer_->GetIndexCount();
+//}
 }

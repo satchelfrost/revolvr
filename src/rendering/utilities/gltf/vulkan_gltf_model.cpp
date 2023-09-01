@@ -21,8 +21,8 @@ void VulkanGLTFModel::LoadGLTFFile(const std::string& fileName) {
     if (!warning.empty())
         PrintWarning(warning);
 
-    std::vector<uint32_t> indexBuffer;
-    std::vector<gltf::Vertex> vertexBuffer;
+    std::vector<uint32_t> gltfIndexBuffer;
+    std::vector<gltf::Vertex> gltfVertexBuffer;
     if (fileLoaded) {
         LoadImages(gltfInput);
         LoadMaterials(gltfInput);
@@ -30,7 +30,7 @@ void VulkanGLTFModel::LoadGLTFFile(const std::string& fileName) {
         const tinygltf::Scene& scene = gltfInput.scenes[0];
         for (int sceneNode : scene.nodes) {
             const tinygltf::Node node = gltfInput.nodes[sceneNode];
-            LoadNode(node, gltfInput, nullptr, indexBuffer, vertexBuffer);
+            LoadNode(node, gltfInput, nullptr, gltfIndexBuffer, gltfVertexBuffer);
         }
     }
     else {
@@ -38,25 +38,31 @@ void VulkanGLTFModel::LoadGLTFFile(const std::string& fileName) {
     }
 
     auto vertexStagingBuffer = VulkanBuffer(renderingContext_, sizeof(gltf::Vertex),
-                                            vertexBuffer.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                            gltfVertexBuffer.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                                             MemoryType::HostVisible);
     auto indexStagingBuffer = VulkanBuffer(renderingContext_, sizeof(uint32_t),
-                                           indexBuffer.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                           gltfIndexBuffer.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                                            MemoryType::HostVisible);
-    vertexStagingBuffer.Update(vertexBuffer.data());
-    indexStagingBuffer.Update(indexBuffer.data());
-    vertexBuffer_ = std::make_unique<VulkanBuffer>(renderingContext_, sizeof(gltf::Vertex),
-                                                   vertexBuffer.size(),
+    vertexStagingBuffer.Update(gltfVertexBuffer.data());
+    indexStagingBuffer.Update(gltfIndexBuffer.data());
+    auto vertexBuffer = std::make_unique<VulkanBuffer>(renderingContext_, sizeof(gltf::Vertex),
+                                                   gltfVertexBuffer.size(),
                                                    VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
                                                    VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                                                    MemoryType::DeviceLocal);
-    indexBuffer_ = std::make_unique<VulkanBuffer>(renderingContext_, sizeof(uint32_t),
-                                                  indexBuffer.size(),
+    auto indexBuffer = std::make_unique<VulkanBuffer>(renderingContext_, sizeof(uint32_t),
+                                                  gltfIndexBuffer.size(),
                                                   VK_BUFFER_USAGE_INDEX_BUFFER_BIT |
                                                   VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                                                   MemoryType::DeviceLocal);
-    renderingContext_->CopyBuffer(vertexStagingBuffer.GetBuffer(), vertexBuffer_->GetBuffer(),
+    renderingContext_->CopyBuffer(vertexStagingBuffer.GetBuffer(), vertexBuffer->GetBuffer(),
                                  vertexStagingBuffer.GetSizeInBytes(), 0, 0);
+    VertexBufferLayout vertexBufferLayout;
+    vertexBufferLayout.Push({0, DataType::F32, 3, "Position"});
+    vertexBufferLayout.Push({1, DataType::F32, 3, "Normal"});
+    vertexBufferLayout.Push({2, DataType::F32, 2, "UV"});
+    vertexBufferLayout.Push({3, DataType::F32, 3, "Color"});
+    drawBuffer_ = std::make_unique<DrawBuffer>(std::move(indexBuffer), std::move(vertexBuffer));
 }
 
 VulkanGLTFModel::~VulkanGLTFModel() {
@@ -283,13 +289,12 @@ void VulkanGLTFModel::DrawNode(VkCommandBuffer commandBuffer, VkPipelineLayout p
 void VulkanGLTFModel::Draw(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout) {
     // All vertices and indices are stored in single buffers, so we only need to bind once
     VkDeviceSize offsets[1] = { 0 };
-    auto vtxBuffer = vertexBuffer_->GetBuffer();
-    vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vtxBuffer, offsets);
-    vkCmdBindIndexBuffer(commandBuffer, indexBuffer_->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+    VkBuffer vertexBuffer = drawBuffer_->GetVertexBuffer();
+    vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer, offsets);
+    vkCmdBindIndexBuffer(commandBuffer, drawBuffer_->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
     // Render all nodes at top-level
     for (auto& node : nodes_)
         DrawNode(commandBuffer, pipelineLayout, node);
 }
-
 }

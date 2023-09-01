@@ -10,16 +10,8 @@
 #include <utility>
 
 namespace rvr {
-DrawBuffer::DrawBuffer(const std::shared_ptr<RenderingContext>& context, size_t sizeOfIndex, size_t indexCount,
-                       size_t sizeOfVertex, size_t vertexCount, VertexBufferLayout vbl) :
-vertexBufferLayout_(std::move(vbl)) {
-    indexBuffer_ = std::make_unique<VulkanBuffer>(context, sizeOfIndex, indexCount,
-                                                  VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                                                  MemoryType::DeviceLocal);
-    vertexBuffer_ = std::make_unique<VulkanBuffer>(context, sizeOfVertex, vertexCount,
-                                                   VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                                                   MemoryType::DeviceLocal);
-}
+DrawBuffer::DrawBuffer(std::unique_ptr<VulkanBuffer> indexBuffer, std::unique_ptr<VulkanBuffer> vertexBuffer) :
+indexBuffer_(std::move(indexBuffer)), vertexBuffer_(std::move(vertexBuffer)) {}
 
 void DrawBuffer::UpdateIndices(const void *data) {
     indexBuffer_->Update(data);
@@ -27,14 +19,6 @@ void DrawBuffer::UpdateIndices(const void *data) {
 
 void DrawBuffer::UpdateVertices(const void *data) {
     vertexBuffer_->Update(data);
-}
-
-VkVertexInputBindingDescription DrawBuffer::GetVertexInputBindingDesc() {
-    return vertexBufferLayout_.GetVertexInputBindingDesc();
-}
-
-std::vector<VkVertexInputAttributeDescription> DrawBuffer::GetVtxAttrDescriptions() {
-    return vertexBufferLayout_.GetVtxAttrDescriptions();
 }
 
 VkBuffer DrawBuffer::GetIndexBuffer() {

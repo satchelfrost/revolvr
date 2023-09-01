@@ -46,6 +46,7 @@ XrSwapchainImageBaseHeader *SwapchainImageContext::GetFirstImagePointer() {
 }
 
 void SwapchainImageContext::Draw(uint32_t imageIdx, const std::unique_ptr<Pipeline>& pipeline,
+                                 const std::unique_ptr<DrawBuffer>& drawBuffer,
                                  const std::vector<glm::mat4> &transforms) {
     cmdBuffer_->Wait();
     cmdBuffer_->Reset();
@@ -70,13 +71,19 @@ void SwapchainImageContext::Draw(uint32_t imageIdx, const std::unique_ptr<Pipeli
                          VK_SUBPASS_CONTENTS_INLINE);
 
     pipeline->BindPipeline(cmdBuffer_->GetBuffer());
+    vkCmdBindIndexBuffer(cmdBuffer_->GetBuffer(), drawBuffer->GetIndexBuffer(),
+                         0, VK_INDEX_TYPE_UINT16);
+    VkDeviceSize offset = 0;
+    VkBuffer vertexBuffer = drawBuffer->GetVertexBuffer();
+    vkCmdBindVertexBuffers(cmdBuffer_->GetBuffer(), 0, 1, &vertexBuffer,
+                           &offset);
     vkCmdSetViewport(cmdBuffer_->GetBuffer(), 0, 1, &viewport_);
     vkCmdSetScissor(cmdBuffer_->GetBuffer(), 0, 1, &scissor_);
     for (const auto& transform : transforms) {
         vkCmdPushConstants(cmdBuffer_->GetBuffer(), pipeline->GetPipelineLayout(),
                            VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(transform),
                            glm::value_ptr(transform));
-        vkCmdDrawIndexed(cmdBuffer_->GetBuffer(), pipeline->GetIndexCount(),
+        vkCmdDrawIndexed(cmdBuffer_->GetBuffer(), drawBuffer->GetIndexCount(),
                          1, 0, 0, 0);
     }
 

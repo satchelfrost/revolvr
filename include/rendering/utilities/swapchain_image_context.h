@@ -30,6 +30,7 @@ public:
     SwapchainImageContext(const std::shared_ptr<RenderingContext>& renderingContext, uint32_t capacity,
                           const XrSwapchainCreateInfo &swapchainCreateInfo);
     void Draw(uint32_t imageIndex, const std::unique_ptr<Pipeline>& pipeline,
+              const std::unique_ptr<DrawBuffer>& drawBuffer,
               const std::vector<glm::mat4> &transforms);
     void BindRenderTarget(uint32_t index, VkRenderPassBeginInfo *renderPassBeginInfo);
     XrSwapchainImageBaseHeader* GetFirstImagePointer();

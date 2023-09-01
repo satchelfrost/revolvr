@@ -13,14 +13,21 @@ private:
     VkDeviceMemory memory_;
     VkDevice device_;
     uint32_t count_;
-    // TODO: allow persistent mapping, make mappedData_ private member.
-    // TODO: perhaps have an UpdatePersistent in addition to regular update
+    void* mappedData_ = nullptr;
+
     // TODO: add a VkDescriptorBufferInfo
+    VkDescriptorBufferInfo bufferInfo_;
 
 public:
     VulkanBuffer(const std::shared_ptr<RenderingContext> &context, size_t sizeOfElement, size_t count,
                  VkBufferUsageFlags usage, MemoryType memType);
+
+    // Updates mapped data, and then unmaps the memory with vkUnmapMemory
     void Update(const void *data);
+
+    // Updates mapped data, however does not call vkUnmapMemory
+    void UpdatePersistent(const void *data);
+
     void CopyFrom(const std::shared_ptr<VulkanBuffer>& src, size_t size, size_t srcOffset, size_t dstOffset);
     VkBuffer GetBuffer() const;
     uint32_t GetCount() const;

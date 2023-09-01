@@ -1,13 +1,13 @@
 #include <rendering/utilities/vertex_buffer_layout.h>
 
 namespace rvr {
-void VertexBufferLayout::Push(rvr::VertexAttribute attribute) {
+void VertexBufferLayout::Push(const VertexAttribute& attribute) {
     elements_.push_back(attribute);
 }
 
 size_t VertexBufferLayout::GetStride() const {
     size_t size = 0;
-    for (auto element : elements_)
+    for (const auto& element : elements_)
         size += element.count * DataTypeSize(element.type);
     return size;
 }
@@ -19,7 +19,7 @@ const std::vector<VertexAttribute> &VertexBufferLayout::GetElements() const {
 std::vector<VkVertexInputAttributeDescription> VertexBufferLayout::GetVtxAttrDescriptions() {
    std::vector<VkVertexInputAttributeDescription> attrDescriptions{};
    uint32_t offset = 0;
-   for (auto element : elements_) {
+   for (const auto& element : elements_) {
        VkVertexInputAttributeDescription description{};
        description.location = element.bindingIndex;
        description.binding = 0;
