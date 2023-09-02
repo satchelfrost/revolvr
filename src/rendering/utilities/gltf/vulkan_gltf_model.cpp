@@ -2,11 +2,26 @@
 #include <global_context.h>
 #include <utility>
 
+#define TINYGLTF_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+#define TINYGLTF_NO_STB_IMAGE_WRITE
+#define TINYGLTF_ANDROID_LOAD_FROM_ASSETS
+#include <tiny_gltf.h>
+
 namespace rvr {
 VulkanGLTFModel::VulkanGLTFModel(std::shared_ptr<RenderingContext> renderingContext, const std::string& fileName) :
-renderingContext_(std::move(renderingContext)) {
+        renderingContext_(std::move(renderingContext)) {
     LoadGLTFFile(fileName);
 }
+
+// The following non-class Load* helper functions are defined here to avoid multiple includes of tiny_gltf.h
+void LoadImages(tinygltf::Model& input, std::vector<gltf::Image>& images,
+                const std::shared_ptr<RenderingContext>& renderingContext);
+void LoadTextures(tinygltf::Model& input, std::vector<gltf::Texture>& textures);
+void LoadMaterials(tinygltf::Model& input, std::vector<gltf::Material>& materials);
+void LoadNode(const tinygltf::Node& inputNode, const tinygltf::Model& input, gltf::Node* parent,
+              std::vector<uint32_t>& indexBuffer, std::vector<gltf::Vertex>& vertexBuffer,
+              std::vector<gltf::Node*> storedNodes);
 
 void VulkanGLTFModel::LoadGLTFFile(const std::string& fileName) {
     tinygltf::asset_manager = GlobalContext::Inst()->GetAndroidContext()->GetAndroidAssetManager();
@@ -24,13 +39,13 @@ void VulkanGLTFModel::LoadGLTFFile(const std::string& fileName) {
     std::vector<uint32_t> gltfIndexBuffer;
     std::vector<gltf::Vertex> gltfVertexBuffer;
     if (fileLoaded) {
-        LoadImages(gltfInput);
-        LoadMaterials(gltfInput);
-        LoadTextures(gltfInput);
+        LoadImages(gltfInput, images_, renderingContext_);
+        LoadMaterials(gltfInput, materials_);
+        LoadTextures(gltfInput, textures_);
         const tinygltf::Scene& scene = gltfInput.scenes[0];
         for (int sceneNode : scene.nodes) {
             const tinygltf::Node node = gltfInput.nodes[sceneNode];
-            LoadNode(node, gltfInput, nullptr, gltfIndexBuffer, gltfVertexBuffer);
+            LoadNode(node, gltfInput, nullptr, gltfIndexBuffer, gltfVertexBuffer, nodes_);
         }
     }
     else {
@@ -70,10 +85,11 @@ VulkanGLTFModel::~VulkanGLTFModel() {
         delete node;
 }
 
-void VulkanGLTFModel::LoadImages(tinygltf::Model& input) {
+void LoadImages(tinygltf::Model& input, std::vector<gltf::Image>& images,
+                                 const std::shared_ptr<RenderingContext>& renderingContext) {
     // Images can be stored inside the glTF (which is the case for the sample model), so instead of directly
     // loading them from disk, we fetch them from the glTF loader and upload the buffers
-    images_.resize(input.images.size());
+    images.resize(input.images.size());
     for (size_t i = 0; i < input.images.size(); i++) {
         tinygltf::Image& glTFImage = input.images[i];
         // Get the image data from the glTF loader
@@ -98,42 +114,42 @@ void VulkanGLTFModel::LoadImages(tinygltf::Model& input) {
             bufferSize = glTFImage.image.size();
         }
         // Load texture from image buffer
-//        images_[i].texture.FromBuffer(buffer, bufferSize, VK_FORMAT_R8G8B8A8_UNORM, glTFImage.width,
+//        images[i].texture.FromBuffer(buffer, bufferSize, VK_FORMAT_R8G8B8A8_UNORM, glTFImage.width,
 //                                     glTFImage.height, renderingContext_);
-        images_[i].texture.FromBuffer(buffer, bufferSize, glTFImage.width,
-                                      glTFImage.height, renderingContext_);
+        images[i].texture.FromBuffer(buffer, bufferSize, glTFImage.width,
+                                      glTFImage.height, renderingContext);
         if (deleteBuffer) {
             delete[] buffer;
         }
     }
 }
 
-void VulkanGLTFModel::LoadTextures(tinygltf::Model& input) {
-    textures_.resize(input.textures.size());
+void LoadTextures(tinygltf::Model& input, std::vector<gltf::Texture>& textures) {
+    textures.resize(input.textures.size());
     for (size_t i = 0; i < input.textures.size(); i++) {
-        textures_[i].imageIndex = input.textures[i].source;
+        textures[i].imageIndex = input.textures[i].source;
     }
 }
 
-void VulkanGLTFModel::LoadMaterials(tinygltf::Model& input) {
-    materials_.resize(input.materials.size());
+void LoadMaterials(tinygltf::Model& input, std::vector<gltf::Material>& materials) {
+    materials.resize(input.materials.size());
     for (size_t i = 0; i < input.materials.size(); i++) {
         // We only read the most basic properties required for our sample
         tinygltf::Material glTFMaterial = input.materials[i];
         // Get the base color factor
         if (glTFMaterial.values.find("baseColorFactor") != glTFMaterial.values.end()) {
-            materials_[i].baseColorFactor = glm::make_vec4(glTFMaterial.values["baseColorFactor"].ColorFactor().data());
+            materials[i].baseColorFactor = glm::make_vec4(glTFMaterial.values["baseColorFactor"].ColorFactor().data());
         }
         // Get base color texture index
         if (glTFMaterial.values.find("baseColorTexture") != glTFMaterial.values.end()) {
-            materials_[i].baseColorTextureIndex = glTFMaterial.values["baseColorTexture"].TextureIndex();
+            materials[i].baseColorTextureIndex = glTFMaterial.values["baseColorTexture"].TextureIndex();
         }
     }
 }
 
-void VulkanGLTFModel::LoadNode(const tinygltf::Node& inputNode, const tinygltf::Model& input,
-                               gltf::Node* parent, std::vector<uint32_t>& indexBuffer,
-                               std::vector<gltf::Vertex>& vertexBuffer) {
+void LoadNode(const tinygltf::Node& inputNode, const tinygltf::Model& input, gltf::Node* parent,
+              std::vector<uint32_t>& indexBuffer, std::vector<gltf::Vertex>& vertexBuffer,
+              std::vector<gltf::Node*> storedNodes) {
     auto node = new gltf::Node{};
     node->matrix = glm::mat4(1.0f);
     node->parent = parent;
@@ -158,7 +174,8 @@ void VulkanGLTFModel::LoadNode(const tinygltf::Node& inputNode, const tinygltf::
     // Load node's children
     if (inputNode.children.size() > 0)
         for (size_t i = 0; i < inputNode.children.size(); i++)
-            LoadNode(input.nodes[inputNode.children[i]], input , node, indexBuffer, vertexBuffer);
+            LoadNode(input.nodes[inputNode.children[i]], input , node, indexBuffer, vertexBuffer,
+                     storedNodes);
 
     // If the node contains mesh data, we load vertices and indices from the buffers
     // In glTF this is done via accessors and buffer views
@@ -256,7 +273,7 @@ void VulkanGLTFModel::LoadNode(const tinygltf::Node& inputNode, const tinygltf::
         parent->children.push_back(node);
     }
     else {
-        nodes_.push_back(node);
+        storedNodes.push_back(node);
     }
 }
 

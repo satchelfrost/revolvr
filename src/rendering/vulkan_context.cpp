@@ -13,7 +13,7 @@
 #include <math/linear_math.h>
 #include <rendering/utilities/vulkan_utils.h>
 #include <rendering/utilities/vertex_buffer_layout.h>
-#include <rendering/utilities/gltf/vulkan_gltf_model.h>
+//#include <rendering/utilities/gltf/vulkan_gltf_model.h>
 
 namespace rvr {
 void VulkanContext::InitDevice(XrInstance xrInstance, XrSystemId systemId) {
