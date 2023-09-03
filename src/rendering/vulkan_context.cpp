@@ -330,12 +330,47 @@ void VulkanContext::SetupDescriptors() {
     descriptorSetLayoutInfo.pBindings = &setLayoutBinding;
     descriptorSetLayoutInfo.bindingCount = 1;
     result = vkCreateDescriptorSetLayout(device_, &descriptorSetLayoutInfo, nullptr,
-                                         &descriptorSetLayouts.matrices);
+                                         &descriptorSetLayouts.uboScene);
+    CHECK_VKCMD(result);
     setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     setLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
     result = vkCreateDescriptorSetLayout(device_, &descriptorSetLayoutInfo, nullptr,
                                          &descriptorSetLayouts.textures);
+    CHECK_VKCMD(result);
+
+    // TODO: pass setLayouts to pipeline layout create info
     // set 0 = matrices, set 1 = material in shader
-    std::array<VkDescriptorSetLayout, 2> setLayouts = {descriptorSetLayouts.matrices, descriptorSetLayouts.textures};
+    std::array<VkDescriptorSetLayout, 2> setLayouts = {descriptorSetLayouts.uboScene, descriptorSetLayouts.textures};
+
+    // Allocate and update descriptor sets
+    VkDescriptorSetAllocateInfo allocInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
+    allocInfo.descriptorPool = descriptorPool_;
+    allocInfo.pSetLayouts = &descriptorSetLayouts.uboScene;
+    allocInfo.descriptorSetCount = 1;
+    result = vkAllocateDescriptorSets(device_, &allocInfo, &uboSceneDescriptorSet_);
+    CHECK_VKCMD(result);
+
+    // Descriptor set for uboScene uniform buffer
+    VkWriteDescriptorSet writeDescriptorSet{VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET};
+    writeDescriptorSet.dstSet = uboSceneDescriptorSet_;
+    writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    writeDescriptorSet.dstBinding = 0;
+    VkDescriptorBufferInfo bufferInfo = uniformBuffer_->GetBufferInfo();
+    writeDescriptorSet.pBufferInfo = &bufferInfo;
+    writeDescriptorSet.descriptorCount = 1;
+    vkUpdateDescriptorSets(device_, 1, &writeDescriptorSet,
+                           0, nullptr);
+
+    // Descriptor sets for materials
+    allocInfo.pSetLayouts = &descriptorSetLayouts.textures;
+    writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    for (auto& image : model_->GetImages()) {
+        result = vkAllocateDescriptorSets(device_, &allocInfo, &image.descriptorSet);
+        CHECK_VKCMD(result);
+        writeDescriptorSet.dstSet = image.descriptorSet;
+        writeDescriptorSet.pImageInfo = &image.texture.descriptor;
+        vkUpdateDescriptorSets(device_, 1, &writeDescriptorSet,
+                               0, nullptr);
+    }
 }
 }

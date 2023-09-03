@@ -22,5 +22,6 @@ public:
     void DrawNode(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, gltf::Node* node);
     void Draw(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout);
     uint32_t GetNumImages();
+    std::vector<gltf::Image>& GetImages();
 };
 }

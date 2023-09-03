@@ -58,7 +58,7 @@ private:
         glm::vec4 viewPos;
     } uboScene;
     struct DescriptorSetLayouts {
-        VkDescriptorSetLayout matrices;
+        VkDescriptorSetLayout uboScene;
         VkDescriptorSetLayout textures;
     } descriptorSetLayouts;
 

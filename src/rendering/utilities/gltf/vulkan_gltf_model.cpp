@@ -313,4 +313,8 @@ void VulkanGLTFModel::Draw(VkCommandBuffer commandBuffer, VkPipelineLayout pipel
 uint32_t VulkanGLTFModel::GetNumImages() {
     return static_cast<uint32_t>(images_.size());
 }
+
+std::vector<gltf::Image>& VulkanGLTFModel::GetImages() {
+    return images_;
+}
 }

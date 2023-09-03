@@ -13,6 +13,7 @@
 
 namespace rvr {
 class ShaderProgram {
+    // TODO: probably rename Shaders
 private:
     VkDevice device_{VK_NULL_HANDLE};
     std::array<VkPipelineShaderStageCreateInfo, 2> shaderInfo_{{{VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO},
