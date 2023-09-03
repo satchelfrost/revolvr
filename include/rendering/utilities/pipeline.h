@@ -20,27 +20,25 @@ private:
     VkPipelineLayout layout_{VK_NULL_HANDLE};
 
 public:
-    void Create(VkDevice device);
-    VkPipelineLayout GetLayout();
+    PipelineLayout(VkDevice device, std::vector<VkPushConstantRange> pushConstantRanges);
     ~PipelineLayout();
+    VkPipelineLayout GetLayout();
 };
 
 class Pipeline {
 private:
     VkDevice device_{VK_NULL_HANDLE};
-    PipelineLayout pipelineLayout_{};
     VkPipeline pipeline_{VK_NULL_HANDLE};
     VkPrimitiveTopology topology_{VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST};
-//    std::shared_ptr<DrawBuffer> drawBuffer_;
+    std::unique_ptr<PipelineLayout> pipelineLayout_;
 
 public:
 //    Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique_ptr<ShaderProgram>& shaderProgram,
-//             std::unique_ptr<DrawBuffer> drawBuffer);
+//             VertexBufferLayout vertexBufferLayout, std::vector<VkDescriptorSetLayout> descriptorSetLayouts);
     Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique_ptr<ShaderProgram>& shaderProgram,
              VertexBufferLayout vertexBufferLayout);
+    ~Pipeline();
     void BindPipeline(VkCommandBuffer cmdBuffer);
     VkPipelineLayout GetPipelineLayout();
-//    uint32_t GetIndexCount();
-    void Release();
 };
 }

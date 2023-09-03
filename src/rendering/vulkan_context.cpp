@@ -13,7 +13,7 @@
 #include <math/linear_math.h>
 #include <rendering/utilities/vulkan_utils.h>
 #include <rendering/utilities/vertex_buffer_layout.h>
-//#include <rendering/utilities/gltf/vulkan_gltf_model.h>
+#include <rendering/utilities/vulkan_shader.h>
 
 namespace rvr {
 void VulkanContext::InitDevice(XrInstance xrInstance, XrSystemId systemId) {
@@ -71,7 +71,7 @@ void VulkanContext::CreateVulkanInstance(XrInstance xrInstance, XrSystemId syste
 
 void VulkanContext::InitializeResources() {
     InitCubeResources();
-    InitGltfResources();
+//    InitGltfResources();
 }
 
 XrSwapchainImageBaseHeader* VulkanContext::AllocateSwapchainImageStructs(
@@ -105,12 +105,12 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
     auto swapchainContext = imageToSwapchainContext_[swapchainImage];
     swapchainContext->Draw(imageIndex, pipeline_, drawBuffer_, mvps);
 
-    // Update uniform buffers
-    cameraValues.projection = projectionMatrix;
-    cameraValues.model = viewMatrix;
-    auto position = math::Pose(layerView.pose).GetPosition();
-    cameraValues.viewPos = glm::vec4(position, 0.0f) * glm::vec4(-1.0f, 1.0f, -1.0f, 1.0f);
-    uniformBuffer_->UpdatePersistent(&cameraValues);
+//    // Update uniform buffers
+//    uboScene.projection = projectionMatrix;
+//    uboScene.view = viewMatrix;
+//    auto position = math::Pose(layerView.pose).GetPosition();
+//    uboScene.viewPos = glm::vec4(position, 0.0f) * glm::vec4(-1.0f, 1.0f, -1.0f, 1.0f);
+//    uniformBuffer_->UpdatePersistent(&uboScene);
 }
 
 std::vector<std::string> VulkanContext::GetInstanceExtensions() {
@@ -253,13 +253,15 @@ std::shared_ptr<RenderingContext> VulkanContext::GetRenderingContext() {
 }
 
 void VulkanContext::InitCubeResources() {
-    auto fragmentSPIRV = CreateSPIRVVector("shaders/basic.frag.spv");
-    auto vertexSPIRV = CreateSPIRVVector("shaders/basic.vert.spv");
-
-    if (vertexSPIRV.empty()) THROW("Failed to compile vertex shader");
-    if (fragmentSPIRV.empty()) THROW("Failed to compile fragment shader");
-
-    shaderProgram_ = std::make_unique<ShaderProgram>(device_, vertexSPIRV, fragmentSPIRV);
+    auto vert = std::make_unique<VulkanShader>(device_,
+                                                       "shaders/basic.vert.spv",
+                                                       VulkanShader::Vertex);
+    vert->PushConstant("Model View Projection Matrix", sizeof(glm::mat4));
+    auto frag= std::make_unique<VulkanShader>(device_,
+                                              "shaders/basic.frag.spv",
+                                              VulkanShader::Fragment);
+    shaderProgram_ = std::make_unique<ShaderProgram>(device_, std::move(vert),
+                                                     std::move(frag));
     VertexBufferLayout vertexBufferLayout;
     vertexBufferLayout.Push({0, DataType::F32, 3, "Position"});
     vertexBufferLayout.Push({1, DataType::F32, 3, "Color"});
@@ -270,11 +272,11 @@ void VulkanContext::InitCubeResources() {
     auto indexBuffer = std::make_unique<VulkanBuffer>(renderingContext_,
                                                       sizeOfIndex, indexCount,
                                                   VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                                                  MemoryType::DeviceLocal);
+                                                  MemoryType::HostVisible);
     auto vertexBuffer = std::make_unique<VulkanBuffer>(renderingContext_,
                                                        sizeOfVertex, vertexCount,
                                                    VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                                                   MemoryType::DeviceLocal);
+                                                   MemoryType::HostVisible);
     drawBuffer_ = std::make_unique<DrawBuffer>(std::move(indexBuffer),
                                                std::move(vertexBuffer));
     drawBuffer_->UpdateIndices(Geometry::c_cubeIndices);
@@ -283,15 +285,57 @@ void VulkanContext::InitCubeResources() {
 }
 
 void VulkanContext::InitGltfResources() {
-    auto frag = CreateSPIRVVector("shaders/basic_gltf.frag.spv");
-    auto vert = CreateSPIRVVector("shaders/basic_gltf.vert.spv");
-    if (vert.empty()) THROW("Failed to compile gltf vertex shader");
-    if (frag.empty()) THROW("Failed to compile gltf fragment shader");
-
-//    model_ = std::make_unique<VulkanGLTFModel>(renderingContext_, "RoundedCubeBase.gltf");
-    uniformBuffer_ = std::make_unique<VulkanBuffer>(renderingContext_, sizeof(cameraValues),
+    auto vert = std::make_unique<VulkanShader>(device_, "shaders/basic_gltf.vert.spv",
+                                               VulkanShader::Vertex);
+    vert->PushConstant("Model primitive", sizeof(glm::mat4));
+    auto frag = std::make_unique<VulkanShader>(device_, "shaders/basic_gltf.frag.spv",
+                                               VulkanShader::Fragment);
+    gltfShader_ = std::make_unique<ShaderProgram>(device_, std::move(frag), std::move(vert));
+    model_ = std::make_unique<VulkanGLTFModel>(renderingContext_, "RoundedCubeBase.gltf");
+    uniformBuffer_ = std::make_unique<VulkanBuffer>(renderingContext_, sizeof(uboScene),
                                                     1, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                                                     MemoryType::HostVisible);
-    uniformBuffer_->UpdatePersistent(&cameraValues);
+    uniformBuffer_->UpdatePersistent(&uboScene);
+    VertexBufferLayout vertexBufferLayout;
+    vertexBufferLayout.Push({0, DataType::F32, 3, "Position"});
+    vertexBufferLayout.Push({1, DataType::F32, 3, "Normal"});
+    vertexBufferLayout.Push({2, DataType::F32, 2, "UV"});
+    vertexBufferLayout.Push({3, DataType::F32, 3, "Color"});
+    gltfPipeline_ = std::make_unique<Pipeline>(renderingContext_, gltfShader_, vertexBufferLayout);
+}
+
+void VulkanContext::SetupDescriptors() {
+    // Setup descriptor pool
+    VkDescriptorPoolSize uboDescriptorPoolSize{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER};
+    uboDescriptorPoolSize.descriptorCount = 1;
+    VkDescriptorPoolSize imageTextureDescriptorPoolSize{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER};
+    imageTextureDescriptorPoolSize.descriptorCount = model_->GetNumImages();
+    std::vector<VkDescriptorPoolSize> poolSizes = {
+            uboDescriptorPoolSize,
+            imageTextureDescriptorPoolSize
+    };
+    VkDescriptorPoolCreateInfo descriptorPoolInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO};
+    descriptorPoolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+    descriptorPoolInfo.maxSets = model_->GetNumImages() + 1;
+    VkResult result = vkCreateDescriptorPool(device_, &descriptorPoolInfo, nullptr,
+                                             &descriptorPool_);
+    CHECK_VKCMD(result);
+
+    // Setup descriptor set layouts
+    VkDescriptorSetLayoutBinding setLayoutBinding{};
+    setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    setLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    setLayoutBinding.binding = 0;
+    VkDescriptorSetLayoutCreateInfo descriptorSetLayoutInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO};
+    descriptorSetLayoutInfo.pBindings = &setLayoutBinding;
+    descriptorSetLayoutInfo.bindingCount = 1;
+    result = vkCreateDescriptorSetLayout(device_, &descriptorSetLayoutInfo, nullptr,
+                                         &descriptorSetLayouts.matrices);
+    setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    setLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+    result = vkCreateDescriptorSetLayout(device_, &descriptorSetLayoutInfo, nullptr,
+                                         &descriptorSetLayouts.textures);
+    // set 0 = matrices, set 1 = material in shader
+    std::array<VkDescriptorSetLayout, 2> setLayouts = {descriptorSetLayouts.matrices, descriptorSetLayouts.textures};
 }
 }

@@ -9,19 +9,20 @@
 #include <pch.h>
 #include <common.h>
 #include <array>
+#include "vulkan_shader.h"
 
 namespace rvr {
 class ShaderProgram {
 private:
     VkDevice device_{VK_NULL_HANDLE};
-    void Load(uint32_t index, const std::vector<char> &code);
     std::array<VkPipelineShaderStageCreateInfo, 2> shaderInfo_{{{VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO},
                                                                 {VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO}}};
-    void LoadVertexShader(const std::vector<char> &code);
-    void LoadFragmentShader(const std::vector<char> &code);
+    std::unique_ptr<VulkanShader> vertShader_;
+    std::unique_ptr<VulkanShader> fragShader_;
+
 public:
     std::array<VkPipelineShaderStageCreateInfo, 2> GetShaderInfo();
-    ShaderProgram(VkDevice device, const std::vector<char> &vertexCode, const std::vector<char> &fragCode);
-    ~ShaderProgram();
+    ShaderProgram(VkDevice device, std::unique_ptr<VulkanShader> vertShader, std::unique_ptr<VulkanShader> fragShader);
+    std::vector<VkPushConstantRange> GetPushConstants();
 };
 }

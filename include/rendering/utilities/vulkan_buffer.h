@@ -14,8 +14,6 @@ private:
     VkDevice device_;
     uint32_t count_;
     void* mappedData_ = nullptr;
-
-    // TODO: add a VkDescriptorBufferInfo
     VkDescriptorBufferInfo bufferInfo_;
 
 public:
@@ -32,6 +30,7 @@ public:
     VkBuffer GetBuffer() const;
     uint32_t GetCount() const;
     size_t GetSizeInBytes() const;
+    VkDescriptorBufferInfo GetBufferInfo();
     ~VulkanBuffer();
 };
 }

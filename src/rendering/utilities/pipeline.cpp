@@ -13,29 +13,18 @@
 #include <utility>
 
 namespace rvr {
-PipelineLayout::~PipelineLayout() {
-    if (device_ != nullptr) {
-        if (layout_ != VK_NULL_HANDLE) {
-            vkDestroyPipelineLayout(device_, layout_, nullptr);
-        }
-    }
-    layout_ = VK_NULL_HANDLE;
-    device_ = nullptr;
+PipelineLayout::PipelineLayout(VkDevice device, std::vector<VkPushConstantRange> pushConstantRanges) :
+device_(device) {
+    VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
+    pipelineLayoutCreateInfo.pushConstantRangeCount = pushConstantRanges.size();
+    pipelineLayoutCreateInfo.pPushConstantRanges = pushConstantRanges.data();
+    VkResult result = vkCreatePipelineLayout(device_, &pipelineLayoutCreateInfo, nullptr,
+                                             &layout_);
+    CHECK_VKCMD(result);
 }
 
-void PipelineLayout::Create(VkDevice device) {
-    device_ = device;
-
-    VkPushConstantRange pcr = {};
-    pcr.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-    pcr.offset = 0;
-    pcr.size = 4 * 4 * sizeof(float);
-
-    VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
-    pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
-    pipelineLayoutCreateInfo.pPushConstantRanges = &pcr;
-    CHECK_VKCMD(vkCreatePipelineLayout(device_, &pipelineLayoutCreateInfo, nullptr,
-                                       &layout_));
+PipelineLayout::~PipelineLayout() {
+    vkDestroyPipelineLayout(device_, layout_, nullptr);
 }
 
 VkPipelineLayout PipelineLayout::GetLayout() {
@@ -43,8 +32,10 @@ VkPipelineLayout PipelineLayout::GetLayout() {
 }
 
 Pipeline::Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique_ptr<ShaderProgram>& shaderProgram,
-                   VertexBufferLayout vertexBufferLayout) : device_(context->GetDevice()){
-    pipelineLayout_.Create(device_);
+                   VertexBufferLayout vertexBufferLayout) : device_(context->GetDevice()) {
+    pipelineLayout_ = std::make_unique<PipelineLayout>(device_,
+                                                       shaderProgram->GetPushConstants());
+
     std::vector <VkDynamicState> dynamicStates = {VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT,
                                                   VkDynamicState::VK_DYNAMIC_STATE_SCISSOR};
     VkPipelineDynamicStateCreateInfo dynamicState{VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO};
@@ -134,7 +125,7 @@ Pipeline::Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique
     pipeInfo.pColorBlendState = &cb;
     if (dynamicState.dynamicStateCount > 0)
         pipeInfo.pDynamicState = &dynamicState;
-    pipeInfo.layout = pipelineLayout_.GetLayout();
+    pipeInfo.layout = pipelineLayout_->GetLayout();
     pipeInfo.renderPass = context->GetRenderPass();
     pipeInfo.subpass = 0;
     VkResult result = vkCreateGraphicsPipelines(device_, VK_NULL_HANDLE, 1,
@@ -142,27 +133,16 @@ Pipeline::Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique
     CHECK_VKCMD(result);
 }
 
-void Pipeline::Release() {
+Pipeline::~Pipeline() {
     if (device_ != nullptr && pipeline_ != VK_NULL_HANDLE)
         vkDestroyPipeline(device_, pipeline_, nullptr);
-
-    pipeline_ = VK_NULL_HANDLE;
-    device_ = nullptr;
 }
 
 void Pipeline::BindPipeline(VkCommandBuffer cmdBuffer) {
     vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_);
-//    vkCmdBindIndexBuffer(cmdBuffer, drawBuffer_->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT16);
-//    VkDeviceSize offset = 0;
-//    VkBuffer vertexBuffer = drawBuffer_->GetVertexBuffer();
-//    vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &vertexBuffer, &offset);
 }
 
 VkPipelineLayout Pipeline::GetPipelineLayout() {
-    return pipelineLayout_.GetLayout();
+    return pipelineLayout_->GetLayout();
 }
-
-//uint32_t Pipeline::GetIndexCount() {
-//    return drawBuffer_->GetIndexCount();
-//}
 }

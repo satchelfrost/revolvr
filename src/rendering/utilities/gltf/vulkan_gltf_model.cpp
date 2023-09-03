@@ -72,11 +72,6 @@ void VulkanGLTFModel::LoadGLTFFile(const std::string& fileName) {
                                                   MemoryType::DeviceLocal);
     renderingContext_->CopyBuffer(vertexStagingBuffer.GetBuffer(), vertexBuffer->GetBuffer(),
                                  vertexStagingBuffer.GetSizeInBytes(), 0, 0);
-    VertexBufferLayout vertexBufferLayout;
-    vertexBufferLayout.Push({0, DataType::F32, 3, "Position"});
-    vertexBufferLayout.Push({1, DataType::F32, 3, "Normal"});
-    vertexBufferLayout.Push({2, DataType::F32, 2, "UV"});
-    vertexBufferLayout.Push({3, DataType::F32, 3, "Color"});
     drawBuffer_ = std::make_unique<DrawBuffer>(std::move(indexBuffer), std::move(vertexBuffer));
 }
 
@@ -313,5 +308,9 @@ void VulkanGLTFModel::Draw(VkCommandBuffer commandBuffer, VkPipelineLayout pipel
     // Render all nodes at top-level
     for (auto& node : nodes_)
         DrawNode(commandBuffer, pipelineLayout, node);
+}
+
+uint32_t VulkanGLTFModel::GetNumImages() {
+    return static_cast<uint32_t>(images_.size());
 }
 }

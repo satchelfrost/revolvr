@@ -8,7 +8,7 @@ struct VertexAttribute {
     uint32_t bindingIndex;
     DataType type;
     size_t count;
-    std::string name;
+    std::string debugName;
 };
 
 class VertexBufferLayout {

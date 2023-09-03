@@ -47,14 +47,20 @@ private:
     // For now just one gltf model to test
     std::unique_ptr<ShaderProgram> gltfShader_;
     std::unique_ptr<Pipeline> gltfPipeline_;
-//    std::unique_ptr<VulkanGLTFModel> model_;
+    std::unique_ptr<VulkanGLTFModel> model_; // for now just one
     std::unique_ptr<VulkanBuffer> uniformBuffer_;
-    struct CameraValues {
+    VkDescriptorSet uboSceneDescriptorSet_;
+    VkDescriptorPool descriptorPool_ = VK_NULL_HANDLE;
+    struct UBOScene {
         glm::mat4 projection;
-        glm::mat4 model;
+        glm::mat4 view;
         glm::vec4 lightPos = glm::vec4(5.0f, 5.0f, 5.0f, 1.0f);
         glm::vec4 viewPos;
-    } cameraValues;
+    } uboScene;
+    struct DescriptorSetLayouts {
+        VkDescriptorSetLayout matrices;
+        VkDescriptorSetLayout textures;
+    } descriptorSetLayouts;
 
 #if !defined(NDEBUG)
         const bool enableValidationLayers_ = true;
@@ -78,6 +84,7 @@ public:
                     const uint32_t imageIndex);
 
 private:
+    void SetupDescriptors();
     void InitCubeResources();
     void InitGltfResources();
     void CreateVulkanInstance(XrInstance xrInstance, XrSystemId systemId);

@@ -16,20 +16,13 @@ class DrawBuffer {
 private:
     std::unique_ptr<VulkanBuffer> indexBuffer_;
     std::unique_ptr<VulkanBuffer> vertexBuffer_;
-//    VkVertexInputBindingDescription vertexInputBindingDescription_{};
-//    std::vector<VkVertexInputAttributeDescription> vertexAttrDescriptions_{};
 
 public:
-//    DrawBuffer(std::unique_ptr<VulkanBuffer> indexBuffer, std::unique_ptr<VulkanBuffer> vertexBuffer,
-//               VertexBufferLayout vertexBufferLayout);
     DrawBuffer(std::unique_ptr<VulkanBuffer> indexBuffer, std::unique_ptr<VulkanBuffer> vertexBuffer);
     void UpdateIndices(const void *data);
     void UpdateVertices(const void *data);
     VkBuffer GetIndexBuffer();
     VkBuffer GetVertexBuffer();
     uint32_t GetIndexCount();
-//    VkVertexInputBindingDescription GetVertexInputBindingDesc();
-//    std::vector<VkVertexInputAttributeDescription> GetVtxAttrDescriptions();
-
 };
 }

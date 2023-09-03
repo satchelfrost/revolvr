@@ -8,6 +8,10 @@ VulkanBuffer::VulkanBuffer(const std::shared_ptr<RenderingContext> &context, siz
                            device_(context->GetDevice()), buffer_(nullptr), memory_(nullptr) {
     auto memoryPropertyFlags = GetMemoryPropertyFlags(memType);
     context->CreateBuffer(sizeInBytes_, usage, memoryPropertyFlags, &buffer_, &memory_);
+
+    bufferInfo_.offset = 0;
+    bufferInfo_.buffer = buffer_;
+    bufferInfo_.range = sizeInBytes_;
 }
 
 void VulkanBuffer::Update(const void *data) {
@@ -52,5 +56,9 @@ uint32_t VulkanBuffer::GetCount() const {
 
 size_t VulkanBuffer::GetSizeInBytes() const {
     return sizeInBytes_;
+}
+
+VkDescriptorBufferInfo VulkanBuffer::GetBufferInfo() {
+    return bufferInfo_;
 }
 }
