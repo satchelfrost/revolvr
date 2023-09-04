@@ -71,7 +71,7 @@ void VulkanContext::CreateVulkanInstance(XrInstance xrInstance, XrSystemId syste
 
 void VulkanContext::InitializeResources() {
     InitCubeResources();
-//    InitGltfResources();
+    InitGltfResources();
 }
 
 XrSwapchainImageBaseHeader* VulkanContext::AllocateSwapchainImageStructs(
@@ -290,7 +290,8 @@ void VulkanContext::InitCubeResources() {
 
 void VulkanContext::InitGltfResources() {
     // Setup model and uniform buffer before setting up descriptors
-    model_ = std::make_unique<VulkanGLTFModel>(renderingContext_, "RoundedCubeBase.gltf");
+//    model_ = std::make_unique<VulkanGLTFModel>(renderingContext_, "RoundedCubeBase.gltf");
+    model_ = std::make_unique<VulkanGLTFModel>(renderingContext_, "gltf/shrek/scene.gltf");
     uniformBuffer_ = std::make_unique<VulkanBuffer>(renderingContext_, sizeof(uboScene),
                                                     1, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                                                     MemoryType::HostVisible);
@@ -327,7 +328,7 @@ void VulkanContext::SetupDescriptors() {
     VkDescriptorPoolSize uboDescriptorPoolSize{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER};
     uboDescriptorPoolSize.descriptorCount = 1;
     VkDescriptorPoolSize imageTextureDescriptorPoolSize{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER};
-    imageTextureDescriptorPoolSize.descriptorCount = model_->GetNumImages();
+    imageTextureDescriptorPoolSize.descriptorCount = model_->GetNumImages(); // TODO: deal with models lacking textures
     std::vector<VkDescriptorPoolSize> poolSizes = {
             uboDescriptorPoolSize,
             imageTextureDescriptorPoolSize
@@ -335,6 +336,7 @@ void VulkanContext::SetupDescriptors() {
     VkDescriptorPoolCreateInfo descriptorPoolInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO};
     descriptorPoolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
     descriptorPoolInfo.maxSets = model_->GetNumImages() + 1;
+    descriptorPoolInfo.pPoolSizes = poolSizes.data();
     VkResult result = vkCreateDescriptorPool(device_, &descriptorPoolInfo, nullptr,
                                              &descriptorPool_);
     CHECK_VKCMD(result);

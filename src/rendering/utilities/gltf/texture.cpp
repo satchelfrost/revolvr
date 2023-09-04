@@ -34,7 +34,7 @@ VkImageLayout imageLayout) {
     copyCmdBuffer.Begin();
 
     VulkanBuffer stagingBuffer = VulkanBuffer(renderingContext, 1, bufferSize,
-                                              VK_BUFFER_USAGE_TRANSFER_SRC_BIT, MemoryType::DeviceLocal);
+                                              VK_BUFFER_USAGE_TRANSFER_SRC_BIT, MemoryType::HostVisible);
     stagingBuffer.Update(buffer);
 
     VkBufferImageCopy bufferCopyRegion = {};
@@ -49,6 +49,7 @@ VkImageLayout imageLayout) {
 
     VkExtent2D extent = {width, height};
     // TODO: may have to expose usage to set VK_IMAGE_USAGE_SAMPLED_BIT here
+    // TODO: Definitely not depth format instead VK_FORMAT_R8G8B8A8_UNORM
     image_ = std::make_unique<VulkanImage>(renderingContext, VulkanImage::Depth, extent);
 //    VkImageSubresourceRange subresourceRange = {};
 //    subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;

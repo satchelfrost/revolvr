@@ -47,6 +47,7 @@ void VulkanGLTFModel::LoadGLTFFile(const std::string& fileName) {
             const tinygltf::Node node = gltfInput.nodes[sceneNode];
             LoadNode(node, gltfInput, nullptr, gltfIndexBuffer, gltfVertexBuffer, nodes_);
         }
+        PrintInfo("Model " + fileName + " loaded");
     }
     else {
         THROW("Failed to open gltf file " + fileName);
