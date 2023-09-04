@@ -68,4 +68,12 @@ std::vector<VkPushConstantRange> VulkanShader::GetPushConstants() {
 VulkanShader::~VulkanShader() {
     vkDestroyShaderModule(device_, shaderInfo_.module, nullptr);
 }
+
+void VulkanShader::AddSetLayout(VkDescriptorSetLayout layout) {
+    setLayouts_.push_back(layout);
+}
+
+std::vector<VkDescriptorSetLayout> VulkanShader::GetDescriptorSetLayouts() {
+    return setLayouts_;
+}
 }

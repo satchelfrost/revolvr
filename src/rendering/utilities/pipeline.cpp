@@ -6,18 +6,21 @@
 
 #include <rendering/utilities/pipeline.h>
 #include <rendering/utilities/render_pass.h>
-#include <rendering/utilities/shader_program.h>
+#include <rendering/utilities/shader_stages.h>
 #include <rendering/utilities/draw_buffer.h>
 #include <rendering//utilities/vulkan_results.h>
 
 #include <utility>
 
 namespace rvr {
-PipelineLayout::PipelineLayout(VkDevice device, std::vector<VkPushConstantRange> pushConstantRanges) :
+PipelineLayout::PipelineLayout(VkDevice device, std::vector<VkPushConstantRange> pushConstantRanges,
+                               std::vector<VkDescriptorSetLayout> setLayouts) :
 device_(device) {
     VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
     pipelineLayoutCreateInfo.pushConstantRangeCount = pushConstantRanges.size();
     pipelineLayoutCreateInfo.pPushConstantRanges = pushConstantRanges.data();
+    pipelineLayoutCreateInfo.setLayoutCount = setLayouts.size();
+    pipelineLayoutCreateInfo.pSetLayouts = setLayouts.data();
     VkResult result = vkCreatePipelineLayout(device_, &pipelineLayoutCreateInfo, nullptr,
                                              &layout_);
     CHECK_VKCMD(result);
@@ -31,10 +34,11 @@ VkPipelineLayout PipelineLayout::GetLayout() {
     return layout_;
 }
 
-Pipeline::Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique_ptr<ShaderProgram>& shaderProgram,
+Pipeline::Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique_ptr<ShaderStages>& shaderStages,
                    VertexBufferLayout vertexBufferLayout) : device_(context->GetDevice()) {
     pipelineLayout_ = std::make_unique<PipelineLayout>(device_,
-                                                       shaderProgram->GetPushConstants());
+                                                       shaderStages->GetPushConstants(),
+                                                       shaderStages->GetDescriptorSetLayouts());
 
     std::vector <VkDynamicState> dynamicStates = {VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT,
                                                   VkDynamicState::VK_DYNAMIC_STATE_SCISSOR};
@@ -112,7 +116,7 @@ Pipeline::Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique
     ms.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 
     VkGraphicsPipelineCreateInfo pipeInfo{VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO};
-    auto shaderInfo = shaderProgram->GetShaderInfo();
+    auto shaderInfo = shaderStages->GetShaderInfo();
     pipeInfo.stageCount = (uint32_t) shaderInfo.size();
     pipeInfo.pStages = shaderInfo.data();
     pipeInfo.pVertexInputState = &vi;

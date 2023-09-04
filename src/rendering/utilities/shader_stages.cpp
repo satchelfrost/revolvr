@@ -4,22 +4,22 @@
 /* (http://opensource.org/licenses/MIT)                                    */
 /***************************************************************************/
 
-#include <rendering/utilities/shader_program.h>
+#include <rendering/utilities/shader_stages.h>
 #include <rendering//utilities/vulkan_results.h>
 
 namespace rvr {
-ShaderProgram::ShaderProgram(VkDevice device, std::unique_ptr<VulkanShader> vertShader,
+ShaderStages::ShaderStages(VkDevice device, std::unique_ptr<VulkanShader> vertShader,
                              std::unique_ptr<VulkanShader> fragShader) : vertShader_(std::move(vertShader)),
                              fragShader_(std::move(fragShader)) {
     shaderInfo_[0] = vertShader_->GetShaderStageInfo();
     shaderInfo_[1] = fragShader_->GetShaderStageInfo();
 }
 
-std::array<VkPipelineShaderStageCreateInfo, 2> ShaderProgram::GetShaderInfo() {
+std::array<VkPipelineShaderStageCreateInfo, 2> ShaderStages::GetShaderInfo() {
     return shaderInfo_;
 }
 
-std::vector<VkPushConstantRange> ShaderProgram::GetPushConstants() {
+std::vector<VkPushConstantRange> ShaderStages::GetPushConstants() {
     std::vector<VkPushConstantRange> vertPushConstants = vertShader_->GetPushConstants();
     std::vector<VkPushConstantRange> fragPushConstants = fragShader_->GetPushConstants();
 
@@ -27,5 +27,15 @@ std::vector<VkPushConstantRange> ShaderProgram::GetPushConstants() {
     allPushConstants.insert(allPushConstants.end(), fragPushConstants.begin(),
                             fragPushConstants.end());
     return allPushConstants;
+}
+
+std::vector<VkDescriptorSetLayout> ShaderStages::GetDescriptorSetLayouts() {
+    std::vector<VkDescriptorSetLayout> vertLayouts = vertShader_->GetDescriptorSetLayouts();
+    std::vector<VkDescriptorSetLayout> fragLayouts = fragShader_->GetDescriptorSetLayouts();
+
+    std::vector<VkDescriptorSetLayout> allLayouts = vertLayouts;
+    allLayouts.insert(allLayouts.end(), fragLayouts.begin(),
+                            fragLayouts.end());
+    return allLayouts;
 }
 }

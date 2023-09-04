@@ -18,11 +18,14 @@ private:
     std::vector<NamedPushConstant> namedPushConstants_{};
     uint32_t pushConstantOffset_ = 0;
     VkDevice device_;
+    std::vector<VkDescriptorSetLayout> setLayouts_;
 public:
     VulkanShader(VkDevice device, const std::string& shaderFileName, ShaderType type);
     ~VulkanShader();
     VkPipelineShaderStageCreateInfo GetShaderStageInfo();
     void PushConstant(std::string debugName, size_t sizeInBytes);
     std::vector<VkPushConstantRange> GetPushConstants();
+    void AddSetLayout(VkDescriptorSetLayout layout);
+    std::vector<VkDescriptorSetLayout> GetDescriptorSetLayouts();
 };
 }

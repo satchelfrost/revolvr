@@ -12,6 +12,7 @@
 #include <rendering/utilities/pipeline.h>
 #include <rendering/utilities/render_target.h>
 #include <math/transform.h>
+#include "rendering/utilities/gltf/vulkan_gltf_model.h"
 
 namespace rvr {
 class SwapchainImageContext {
@@ -32,6 +33,8 @@ public:
     void Draw(uint32_t imageIndex, const std::unique_ptr<Pipeline>& pipeline,
               const std::unique_ptr<DrawBuffer>& drawBuffer,
               const std::vector<glm::mat4> &transforms);
+    void DrawGltf(uint32_t imageIndex, const std::unique_ptr<Pipeline>& pipeline,
+                  const std::unique_ptr<VulkanGLTFModel>& model, VkDescriptorSet descriptorSet);
     void BindRenderTarget(uint32_t index, VkRenderPassBeginInfo *renderPassBeginInfo);
     XrSwapchainImageBaseHeader* GetFirstImagePointer();
     void InitRenderTargets();

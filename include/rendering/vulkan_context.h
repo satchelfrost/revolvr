@@ -8,7 +8,7 @@
 
 #include <pch.h>
 
-#include "rendering/utilities/shader_program.h"
+#include "rendering/utilities/shader_stages.h"
 #include "rendering/utilities/draw_buffer.h"
 #include "rendering/utilities/pipeline.h"
 #include "rendering/utilities/vulkan_utils.h"
@@ -40,12 +40,12 @@ private:
     QueueFamilyIndices queueFamilyIndices_;
 
     // Cube stuff
-    std::unique_ptr<ShaderProgram> shaderProgram_;
+    std::unique_ptr<ShaderStages> cubeShaderStages_;
     std::unique_ptr<DrawBuffer> drawBuffer_;
-    std::unique_ptr<Pipeline> pipeline_;
+    std::unique_ptr<Pipeline> cubePipeline_;
 
     // For now just one gltf model to test
-    std::unique_ptr<ShaderProgram> gltfShader_;
+    std::unique_ptr<ShaderStages> gltfShaderStages_;
     std::unique_ptr<Pipeline> gltfPipeline_;
     std::unique_ptr<VulkanGLTFModel> model_; // for now just one
     std::unique_ptr<VulkanBuffer> uniformBuffer_;

@@ -9,7 +9,7 @@
 #include <pch.h>
 #include <common.h>
 #include <rendering/utilities/render_pass.h>
-#include <rendering/utilities/shader_program.h>
+#include <rendering/utilities/shader_stages.h>
 #include <rendering/utilities/draw_buffer.h>
 #include <rendering/utilities/rendering_context.h>
 
@@ -20,7 +20,8 @@ private:
     VkPipelineLayout layout_{VK_NULL_HANDLE};
 
 public:
-    PipelineLayout(VkDevice device, std::vector<VkPushConstantRange> pushConstantRanges);
+    PipelineLayout(VkDevice device, std::vector<VkPushConstantRange> pushConstantRanges,
+                   std::vector<VkDescriptorSetLayout> setLayouts);
     ~PipelineLayout();
     VkPipelineLayout GetLayout();
 };
@@ -33,9 +34,7 @@ private:
     std::unique_ptr<PipelineLayout> pipelineLayout_;
 
 public:
-//    Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique_ptr<ShaderProgram>& shaderProgram,
-//             VertexBufferLayout vertexBufferLayout, std::vector<VkDescriptorSetLayout> descriptorSetLayouts);
-    Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique_ptr<ShaderProgram>& shaderProgram,
+    Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique_ptr<ShaderStages>& shaderStages,
              VertexBufferLayout vertexBufferLayout);
     ~Pipeline();
     void BindPipeline(VkCommandBuffer cmdBuffer);

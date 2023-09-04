@@ -92,6 +92,41 @@ void SwapchainImageContext::Draw(uint32_t imageIdx, const std::unique_ptr<Pipeli
     cmdBuffer_->Exec(renderingContext_->GetGraphicsQueue());
 }
 
+void SwapchainImageContext::DrawGltf(uint32_t imageIdx, const std::unique_ptr<Pipeline>& pipeline,
+                                     const std::unique_ptr<VulkanGLTFModel>& model, VkDescriptorSet descriptorSet) {
+    cmdBuffer_->Wait();
+    cmdBuffer_->Reset();
+    cmdBuffer_->Begin();
+
+    // Bind and clear eye render target
+    static XrColor4f darkSlateGrey = {0.184313729f, 0.309803933f, 0.309803933f, 1.0f};
+    static std::array<VkClearValue, 2> clearValues;
+    clearValues[0].color.float32[0] = darkSlateGrey.r;
+    clearValues[0].color.float32[1] = darkSlateGrey.g;
+    clearValues[0].color.float32[2] = darkSlateGrey.b;
+    clearValues[0].color.float32[3] = darkSlateGrey.a;
+    clearValues[1].depthStencil.depth = 1.0f;
+    clearValues[1].depthStencil.stencil = 0;
+    VkRenderPassBeginInfo renderPassBeginInfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
+    renderPassBeginInfo.clearValueCount = (uint32_t) clearValues.size();
+    renderPassBeginInfo.pClearValues = clearValues.data();
+
+    BindRenderTarget(imageIdx, &renderPassBeginInfo);
+
+    vkCmdBeginRenderPass(cmdBuffer_->GetBuffer(), &renderPassBeginInfo,
+                         VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdSetViewport(cmdBuffer_->GetBuffer(), 0, 1, &viewport_);
+    vkCmdSetScissor(cmdBuffer_->GetBuffer(), 0, 1, &scissor_);
+    vkCmdBindDescriptorSets(cmdBuffer_->GetBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            pipeline->GetPipelineLayout(), 0, 1,
+                            &descriptorSet, 0, nullptr) ;
+    pipeline->BindPipeline(cmdBuffer_->GetBuffer());
+    model->Draw(cmdBuffer_->GetBuffer(), pipeline->GetPipelineLayout());
+    vkCmdEndRenderPass(cmdBuffer_->GetBuffer());
+    cmdBuffer_->End();
+    cmdBuffer_->Exec(renderingContext_->GetGraphicsQueue());
+}
+
 void SwapchainImageContext::InitRenderTargets() {
     for (size_t i = 0; i < swapchainImages_.size(); i++)
         renderTargets_[i] = std::make_unique<RenderTarget>(renderingContext_,

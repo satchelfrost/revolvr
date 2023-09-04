@@ -103,14 +103,18 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
     }
 
     auto swapchainContext = imageToSwapchainContext_[swapchainImage];
-    swapchainContext->Draw(imageIndex, pipeline_, drawBuffer_, mvps);
+    swapchainContext->Draw(imageIndex, cubePipeline_, drawBuffer_, mvps);
 
-//    // Update uniform buffers
-//    uboScene.projection = projectionMatrix;
-//    uboScene.view = viewMatrix;
-//    auto position = math::Pose(layerView.pose).GetPosition();
-//    uboScene.viewPos = glm::vec4(position, 0.0f) * glm::vec4(-1.0f, 1.0f, -1.0f, 1.0f);
-//    uniformBuffer_->UpdatePersistent(&uboScene);
+    // Update uniform buffers
+    if (uniformBuffer_) {
+        uboScene.projection = projectionMatrix;
+        uboScene.view = viewMatrix;
+        auto position = math::Pose(layerView.pose).GetPosition();
+        uboScene.viewPos = glm::vec4(position, 0.0f) * glm::vec4(-1.0f, 1.0f, -1.0f, 1.0f);
+        uniformBuffer_->UpdatePersistent(&uboScene);
+        swapchainContext->DrawGltf(imageIndex, gltfPipeline_, model_, uboSceneDescriptorSet_);
+    }
+
 }
 
 std::vector<std::string> VulkanContext::GetInstanceExtensions() {
@@ -260,7 +264,7 @@ void VulkanContext::InitCubeResources() {
     auto frag= std::make_unique<VulkanShader>(device_,
                                               "shaders/basic.frag.spv",
                                               VulkanShader::Fragment);
-    shaderProgram_ = std::make_unique<ShaderProgram>(device_, std::move(vert),
+    cubeShaderStages_ = std::make_unique<ShaderStages>(device_, std::move(vert),
                                                      std::move(frag));
     VertexBufferLayout vertexBufferLayout;
     vertexBufferLayout.Push({0, DataType::F32, 3, "Position"});
@@ -281,30 +285,44 @@ void VulkanContext::InitCubeResources() {
                                                std::move(vertexBuffer));
     drawBuffer_->UpdateIndices(Geometry::c_cubeIndices);
     drawBuffer_->UpdateVertices(Geometry::c_cubeVertices);
-    pipeline_ = std::make_unique<Pipeline>(renderingContext_, shaderProgram_, vertexBufferLayout);
+    cubePipeline_ = std::make_unique<Pipeline>(renderingContext_, cubeShaderStages_, vertexBufferLayout);
 }
 
 void VulkanContext::InitGltfResources() {
-    auto vert = std::make_unique<VulkanShader>(device_, "shaders/basic_gltf.vert.spv",
-                                               VulkanShader::Vertex);
-    vert->PushConstant("Model primitive", sizeof(glm::mat4));
-    auto frag = std::make_unique<VulkanShader>(device_, "shaders/basic_gltf.frag.spv",
-                                               VulkanShader::Fragment);
-    gltfShader_ = std::make_unique<ShaderProgram>(device_, std::move(frag), std::move(vert));
+    // Setup model and uniform buffer before setting up descriptors
     model_ = std::make_unique<VulkanGLTFModel>(renderingContext_, "RoundedCubeBase.gltf");
     uniformBuffer_ = std::make_unique<VulkanBuffer>(renderingContext_, sizeof(uboScene),
                                                     1, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                                                     MemoryType::HostVisible);
     uniformBuffer_->UpdatePersistent(&uboScene);
+    SetupDescriptors();
+
+    // Create the shader stages, add any push constants and/or descriptor set layouts
+    auto vert = std::make_unique<VulkanShader>(device_,
+                                               "shaders/basic_gltf.vert.spv",
+                                               VulkanShader::Vertex);
+    vert->PushConstant("Model primitive", sizeof(glm::mat4));
+    vert->AddSetLayout(descriptorSetLayouts.uboScene);
+    auto frag = std::make_unique<VulkanShader>(device_,
+                                               "shaders/basic_gltf.frag.spv",
+                                               VulkanShader::Fragment);
+    frag->AddSetLayout(descriptorSetLayouts.textures);
+    gltfShaderStages_ = std::make_unique<ShaderStages>(device_, std::move(frag),
+                                                       std::move(vert));
+
+    // Setup vertex buffer layout, and use that along with shader stages to create a pipeline
     VertexBufferLayout vertexBufferLayout;
     vertexBufferLayout.Push({0, DataType::F32, 3, "Position"});
     vertexBufferLayout.Push({1, DataType::F32, 3, "Normal"});
     vertexBufferLayout.Push({2, DataType::F32, 2, "UV"});
     vertexBufferLayout.Push({3, DataType::F32, 3, "Color"});
-    gltfPipeline_ = std::make_unique<Pipeline>(renderingContext_, gltfShader_, vertexBufferLayout);
+    gltfPipeline_ = std::make_unique<Pipeline>(renderingContext_, gltfShaderStages_, vertexBufferLayout);
 }
 
 void VulkanContext::SetupDescriptors() {
+    if (!model_)
+        THROW("Model not loaded");
+
     // Setup descriptor pool
     VkDescriptorPoolSize uboDescriptorPoolSize{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER};
     uboDescriptorPoolSize.descriptorCount = 1;
@@ -355,6 +373,8 @@ void VulkanContext::SetupDescriptors() {
     writeDescriptorSet.dstSet = uboSceneDescriptorSet_;
     writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     writeDescriptorSet.dstBinding = 0;
+    if (!uniformBuffer_)
+        THROW("Uniform buffer not created")
     VkDescriptorBufferInfo bufferInfo = uniformBuffer_->GetBufferInfo();
     writeDescriptorSet.pBufferInfo = &bufferInfo;
     writeDescriptorSet.descriptorCount = 1;
