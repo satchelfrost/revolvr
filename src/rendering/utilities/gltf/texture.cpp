@@ -16,7 +16,6 @@ void VulkanTexture::Destroy() {
     vkFreeMemory(device_, deviceMemory, nullptr);
 }
 
-// TODO: may have to put back VkFormat parameter
 void VulkanTexture::FromBuffer(void* buffer, VkDeviceSize bufferSize, uint32_t texWidth,
 uint32_t texHeight, const std::shared_ptr<RenderingContext>& renderingContext, VkFilter filter,
 VkImageLayout imageLayout) {
@@ -29,9 +28,9 @@ VkImageLayout imageLayout) {
 
     CommandBuffer copyCmdBuffer = CommandBuffer(renderingContext->GetDevice(),
                                                 renderingContext->GetGraphicsPool());
-    copyCmdBuffer.Wait();
-    copyCmdBuffer.Reset();
-    copyCmdBuffer.Begin();
+//    copyCmdBuffer.Wait();
+//    copyCmdBuffer.Reset();
+//    copyCmdBuffer.Begin();
 
     VulkanBuffer stagingBuffer = VulkanBuffer(renderingContext, 1, bufferSize,
                                               VK_BUFFER_USAGE_TRANSFER_SRC_BIT, MemoryType::HostVisible);
@@ -48,23 +47,25 @@ VkImageLayout imageLayout) {
     bufferCopyRegion.bufferOffset = 0;
 
     VkExtent2D extent = {width, height};
-    // TODO: may have to expose usage to set VK_IMAGE_USAGE_SAMPLED_BIT here
-    // TODO: Definitely not depth format instead VK_FORMAT_R8G8B8A8_UNORM
-    image_ = std::make_unique<VulkanImage>(renderingContext, VulkanImage::Depth, extent);
-//    VkImageSubresourceRange subresourceRange = {};
-//    subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    image_ = std::make_unique<VulkanImage>(renderingContext, VulkanImage::Sample, extent);
+    // TODO: have only one command buffer going at a time
     renderingContext->CreateTransitionLayout(image_->GetImage(), VK_IMAGE_LAYOUT_UNDEFINED,
                                              VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    copyCmdBuffer.Wait();
+    copyCmdBuffer.Reset();
+    copyCmdBuffer.Begin();
     // Copy mip levels from staging buffer
-    VkImage image = image_->GetImage();
-    VkCommandBuffer cmdBuffer = copyCmdBuffer.GetBuffer();
-    vkCmdCopyBufferToImage(cmdBuffer, stagingBuffer.GetBuffer(), image,
-                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &bufferCopyRegion);
+    vkCmdCopyBufferToImage(copyCmdBuffer.GetBuffer(), stagingBuffer.GetBuffer(),
+                           image_->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                           1, &bufferCopyRegion);
+    copyCmdBuffer.End();
+    copyCmdBuffer.Exec(renderingContext->GetGraphicsQueue());
+
     imageLayout_ = imageLayout;
     renderingContext->CreateTransitionLayout(image_->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                              imageLayout);
-    copyCmdBuffer.End();
-    copyCmdBuffer.Exec(renderingContext->GetGraphicsQueue());
+//    copyCmdBuffer.End();
+//    copyCmdBuffer.Exec(renderingContext->GetGraphicsQueue());
 
     // TODO: may want to create a sampler class
     // Create sampler
@@ -84,7 +85,8 @@ VkImageLayout imageLayout) {
     VkResult result = vkCreateSampler(device_, &samplerCreateInfo, nullptr, &sampler);
     CHECK_VKCMD(result);
 
-    view_ = std::make_unique<VulkanView>(renderingContext, VulkanView::Color, image_->GetImage());
+    view_ = std::make_unique<VulkanView>(renderingContext, VulkanView::Sample,
+                                         image_->GetImage());
 
     // Update descriptor image info member that can be used for setting up descriptor sets
     UpdateDescriptor();

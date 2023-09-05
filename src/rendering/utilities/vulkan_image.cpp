@@ -6,16 +6,22 @@ VulkanImage::VulkanImage(const std::shared_ptr<RenderingContext>& context, Vulka
 device_(context->GetDevice()) {
     VkFormat format;
     VkImageUsageFlags usage;
-    if (imageType == ImageType::Depth) {
-        format = context->GetDepthFormat();
-        usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+    switch (imageType) {
+        case Depth:
+            format = context->GetDepthFormat();
+            usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+            break;
+        case Color:
+            format = context->GetColorFormat();
+            usage = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+            break;
+        case Sample:
+            format = VK_FORMAT_R8G8B8A8_UNORM;
+            usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+            break;
+        default:
+            THROW("Image type undefined");
     }
-    else if (imageType == ImageType::Color) {
-        format = context->GetColorFormat();
-        usage = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    }
-    else
-        THROW("Image type undefined");
 
     context->CreateImage(extent, format, usage, &image_, &imageMemory_);
 }

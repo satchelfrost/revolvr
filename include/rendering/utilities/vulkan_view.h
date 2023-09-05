@@ -8,7 +8,8 @@ class VulkanView {
 public:
     enum ViewType {
         Depth,
-        Color
+        Color,
+        Sample
     };
 
 private:

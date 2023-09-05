@@ -8,7 +8,8 @@ class VulkanImage {
 public:
     enum ImageType {
         Depth,
-        Color
+        Color,
+        Sample
     };
 
 private:

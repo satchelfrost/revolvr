@@ -248,6 +248,7 @@ uint32_t FindMemoryType(VkPhysicalDevice physicalDevice, uint32_t filter, VkMemo
     THROW("Failed to find suitable memory type");
 }
 
+// TODO: change this to be more like Vulkan Example
 void PopulateTransitionLayoutInfo(VkImageMemoryBarrier &barrier, VkPipelineStageFlags& srcStage,
                                   VkPipelineStageFlags& dstStage, VkImageLayout oldLayout, VkImageLayout newLayout) {
     if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED) {

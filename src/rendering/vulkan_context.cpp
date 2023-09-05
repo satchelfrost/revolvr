@@ -71,7 +71,7 @@ void VulkanContext::CreateVulkanInstance(XrInstance xrInstance, XrSystemId syste
 
 void VulkanContext::InitializeResources() {
     InitCubeResources();
-    InitGltfResources();
+//    InitGltfResources();
 }
 
 XrSwapchainImageBaseHeader* VulkanContext::AllocateSwapchainImageStructs(
@@ -308,8 +308,8 @@ void VulkanContext::InitGltfResources() {
                                                "shaders/basic_gltf.frag.spv",
                                                VulkanShader::Fragment);
     frag->AddSetLayout(descriptorSetLayouts.textures);
-    gltfShaderStages_ = std::make_unique<ShaderStages>(device_, std::move(frag),
-                                                       std::move(vert));
+    gltfShaderStages_ = std::make_unique<ShaderStages>(device_, std::move(vert),
+                                                       std::move(frag));
 
     // Setup vertex buffer layout, and use that along with shader stages to create a pipeline
     VertexBufferLayout vertexBufferLayout;
@@ -346,6 +346,7 @@ void VulkanContext::SetupDescriptors() {
     setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     setLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
     setLayoutBinding.binding = 0;
+    setLayoutBinding.descriptorCount = 1;
     VkDescriptorSetLayoutCreateInfo descriptorSetLayoutInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO};
     descriptorSetLayoutInfo.pBindings = &setLayoutBinding;
     descriptorSetLayoutInfo.bindingCount = 1;

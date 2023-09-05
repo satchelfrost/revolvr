@@ -13,6 +13,10 @@ ShaderStages::ShaderStages(VkDevice device, std::unique_ptr<VulkanShader> vertSh
                              fragShader_(std::move(fragShader)) {
     shaderInfo_[0] = vertShader_->GetShaderStageInfo();
     shaderInfo_[1] = fragShader_->GetShaderStageInfo();
+    if (shaderInfo_[0].stage != VK_SHADER_STAGE_VERTEX_BIT)
+        THROW("Vertex shader was not set with VK_SHADER_STAGE_VERTEX_BIT.");
+    if (shaderInfo_[1].stage != VK_SHADER_STAGE_FRAGMENT_BIT)
+        THROW("Fragment shader was not set with VK_SHADER_STAGE_FRAGMENT_BIT.");
 }
 
 std::array<VkPipelineShaderStageCreateInfo, 2> ShaderStages::GetShaderInfo() {
