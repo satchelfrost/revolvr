@@ -21,7 +21,7 @@ void LoadTextures(tinygltf::Model& input, std::vector<gltf::Texture>& textures);
 void LoadMaterials(tinygltf::Model& input, std::vector<gltf::Material>& materials);
 void LoadNode(const tinygltf::Node& inputNode, const tinygltf::Model& input, gltf::Node* parent,
               std::vector<uint32_t>& indexBuffer, std::vector<gltf::Vertex>& vertexBuffer,
-              std::vector<gltf::Node*> storedNodes);
+              std::vector<gltf::Node*>& storedNodes);
 
 void VulkanGLTFModel::LoadGLTFFile(const std::string& fileName) {
     tinygltf::asset_manager = GlobalContext::Inst()->GetAndroidContext()->GetAndroidAssetManager();
@@ -145,7 +145,7 @@ void LoadMaterials(tinygltf::Model& input, std::vector<gltf::Material>& material
 
 void LoadNode(const tinygltf::Node& inputNode, const tinygltf::Model& input, gltf::Node* parent,
               std::vector<uint32_t>& indexBuffer, std::vector<gltf::Vertex>& vertexBuffer,
-              std::vector<gltf::Node*> storedNodes) {
+              std::vector<gltf::Node*>& storedNodes) {
     auto node = new gltf::Node{};
     node->matrix = glm::mat4(1.0f);
     node->parent = parent;

@@ -71,7 +71,7 @@ void VulkanContext::CreateVulkanInstance(XrInstance xrInstance, XrSystemId syste
 
 void VulkanContext::InitializeResources() {
     InitCubeResources();
-//    InitGltfResources();
+    InitGltfResources();
 }
 
 XrSwapchainImageBaseHeader* VulkanContext::AllocateSwapchainImageStructs(
