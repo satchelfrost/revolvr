@@ -73,6 +73,8 @@ void VulkanGLTFModel::LoadGLTFFile(const std::string& fileName) {
                                                   MemoryType::DeviceLocal);
     renderingContext_->CopyBuffer(vertexStagingBuffer.GetBuffer(), vertexBuffer->GetBuffer(),
                                  vertexStagingBuffer.GetSizeInBytes(), 0, 0);
+    renderingContext_->CopyBuffer(indexStagingBuffer.GetBuffer(), indexBuffer->GetBuffer(),
+                                  indexStagingBuffer.GetSizeInBytes(), 0, 0);
     drawBuffer_ = std::make_unique<DrawBuffer>(std::move(indexBuffer), std::move(vertexBuffer));
 }
 
