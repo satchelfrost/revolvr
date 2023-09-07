@@ -30,12 +30,16 @@ private:
 public:
     SwapchainImageContext(const std::shared_ptr<RenderingContext>& renderingContext, uint32_t capacity,
                           const XrSwapchainCreateInfo &swapchainCreateInfo);
-    void Draw(uint32_t imageIndex, const std::unique_ptr<Pipeline>& pipeline,
-              const std::unique_ptr<DrawBuffer>& drawBuffer,
+
+    // Expects a corresponding call to EndRenderPass()
+    void BeginRenderPass(uint32_t imageIndex);
+    // Expects BeginRenderPass() to have been called
+    void EndRenderPass();
+
+    void Draw(const std::unique_ptr<Pipeline>& pipeline, const std::unique_ptr<DrawBuffer>& drawBuffer,
               const std::vector<glm::mat4> &transforms);
-    void DrawGltf(uint32_t imageIndex, const std::unique_ptr<Pipeline>& pipeline,
-                  const std::unique_ptr<VulkanGLTFModel>& model, VkDescriptorSet descriptorSet);
-    void BindRenderTarget(uint32_t index, VkRenderPassBeginInfo *renderPassBeginInfo);
+    void DrawGltf(const std::unique_ptr<Pipeline>& pipeline, const std::unique_ptr<VulkanGLTFModel>& model,
+                  VkDescriptorSet descriptorSet);
     XrSwapchainImageBaseHeader* GetFirstImagePointer();
     void InitRenderTargets();
 };

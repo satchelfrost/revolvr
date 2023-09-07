@@ -35,7 +35,7 @@ VkPipelineLayout PipelineLayout::GetLayout() {
 }
 
 Pipeline::Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique_ptr<ShaderStages>& shaderStages,
-                   VertexBufferLayout vertexBufferLayout) : device_(context->GetDevice()) {
+                   VertexBufferLayout vertexBufferLayout, VkFrontFace frontFace) : device_(context->GetDevice()) {
     pipelineLayout_ = std::make_unique<PipelineLayout>(device_,
                                                        shaderStages->GetPushConstants(),
                                                        shaderStages->GetDescriptorSetLayouts());
@@ -62,7 +62,8 @@ Pipeline::Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique
     rs.polygonMode = VK_POLYGON_MODE_FILL;
     rs.cullMode = VK_CULL_MODE_BACK_BIT;
 //    rs.frontFace = VK_FRONT_FACE_CLOCKWISE;
-    rs.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+//    rs.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    rs.frontFace = frontFace;
     rs.depthClampEnable = VK_FALSE;
     rs.rasterizerDiscardEnable = VK_FALSE;
     rs.depthBiasEnable = VK_FALSE;

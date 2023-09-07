@@ -32,44 +32,13 @@ renderingContext_(renderingContext), swapchainExtent_({swapchainCreateInfo.width
         image.type = XR_TYPE_SWAPCHAIN_IMAGE_VULKAN2_KHR;
 }
 
-void SwapchainImageContext::BindRenderTarget(uint32_t index, VkRenderPassBeginInfo *renderPassBeginInfo) {
-    if (renderTargets_[index]->GetFramebuffer() == VK_NULL_HANDLE)
-        PrintError("Frame buffer was VK_NULL_HANDLE");
-    renderPassBeginInfo->renderPass = renderingContext_->GetRenderPass();
-    renderPassBeginInfo->framebuffer = renderTargets_[index]->GetFramebuffer();
-    renderPassBeginInfo->renderArea.offset = {0, 0};
-    renderPassBeginInfo->renderArea.extent = swapchainExtent_;
-}
-
 XrSwapchainImageBaseHeader *SwapchainImageContext::GetFirstImagePointer() {
     return reinterpret_cast<XrSwapchainImageBaseHeader*>(&swapchainImages_[0]);
 }
 
-void SwapchainImageContext::Draw(uint32_t imageIdx, const std::unique_ptr<Pipeline>& pipeline,
+void SwapchainImageContext::Draw(const std::unique_ptr<Pipeline>& pipeline,
                                  const std::unique_ptr<DrawBuffer>& drawBuffer,
                                  const std::vector<glm::mat4> &transforms) {
-    cmdBuffer_->Wait();
-    cmdBuffer_->Reset();
-    cmdBuffer_->Begin();
-
-    // Bind and clear eye render target
-    static XrColor4f darkSlateGrey = {0.184313729f, 0.309803933f, 0.309803933f, 1.0f};
-    static std::array<VkClearValue, 2> clearValues;
-    clearValues[0].color.float32[0] = darkSlateGrey.r;
-    clearValues[0].color.float32[1] = darkSlateGrey.g;
-    clearValues[0].color.float32[2] = darkSlateGrey.b;
-    clearValues[0].color.float32[3] = darkSlateGrey.a;
-    clearValues[1].depthStencil.depth = 1.0f;
-    clearValues[1].depthStencil.stencil = 0;
-    VkRenderPassBeginInfo renderPassBeginInfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
-    renderPassBeginInfo.clearValueCount = (uint32_t) clearValues.size();
-    renderPassBeginInfo.pClearValues = clearValues.data();
-
-    BindRenderTarget(imageIdx, &renderPassBeginInfo);
-
-    vkCmdBeginRenderPass(cmdBuffer_->GetBuffer(), &renderPassBeginInfo,
-                         VK_SUBPASS_CONTENTS_INLINE);
-
     pipeline->BindPipeline(cmdBuffer_->GetBuffer());
     vkCmdBindIndexBuffer(cmdBuffer_->GetBuffer(), drawBuffer->GetIndexBuffer(),
                          0, VK_INDEX_TYPE_UINT16);
@@ -86,14 +55,27 @@ void SwapchainImageContext::Draw(uint32_t imageIdx, const std::unique_ptr<Pipeli
         vkCmdDrawIndexed(cmdBuffer_->GetBuffer(), drawBuffer->GetIndexCount(),
                          1, 0, 0, 0);
     }
-
-    vkCmdEndRenderPass(cmdBuffer_->GetBuffer());
-    cmdBuffer_->End();
-    cmdBuffer_->Exec(renderingContext_->GetGraphicsQueue());
 }
 
-void SwapchainImageContext::DrawGltf(uint32_t imageIdx, const std::unique_ptr<Pipeline>& pipeline,
+void SwapchainImageContext::DrawGltf(const std::unique_ptr<Pipeline>& pipeline,
                                      const std::unique_ptr<VulkanGLTFModel>& model, VkDescriptorSet descriptorSet) {
+    vkCmdSetViewport(cmdBuffer_->GetBuffer(), 0, 1, &viewport_);
+    vkCmdSetScissor(cmdBuffer_->GetBuffer(), 0, 1, &scissor_);
+    vkCmdBindDescriptorSets(cmdBuffer_->GetBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            pipeline->GetPipelineLayout(), 0, 1,
+                            &descriptorSet, 0, nullptr) ;
+    pipeline->BindPipeline(cmdBuffer_->GetBuffer());
+    model->Draw(cmdBuffer_->GetBuffer(), pipeline->GetPipelineLayout());
+}
+
+void SwapchainImageContext::InitRenderTargets() {
+    for (size_t i = 0; i < swapchainImages_.size(); i++)
+        renderTargets_[i] = std::make_unique<RenderTarget>(renderingContext_,
+                                                           swapchainImages_[i].image,
+                                                           swapchainExtent_);
+}
+
+void SwapchainImageContext::BeginRenderPass(uint32_t imageIndex) {
     cmdBuffer_->Wait();
     cmdBuffer_->Reset();
     cmdBuffer_->Begin();
@@ -110,27 +92,17 @@ void SwapchainImageContext::DrawGltf(uint32_t imageIdx, const std::unique_ptr<Pi
     VkRenderPassBeginInfo renderPassBeginInfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
     renderPassBeginInfo.clearValueCount = (uint32_t) clearValues.size();
     renderPassBeginInfo.pClearValues = clearValues.data();
-
-    BindRenderTarget(imageIdx, &renderPassBeginInfo);
-
+    renderPassBeginInfo.renderPass = renderingContext_->GetRenderPass();
+    renderPassBeginInfo.framebuffer = renderTargets_[imageIndex]->GetFramebuffer();
+    renderPassBeginInfo.renderArea.offset = {0, 0};
+    renderPassBeginInfo.renderArea.extent = swapchainExtent_;
     vkCmdBeginRenderPass(cmdBuffer_->GetBuffer(), &renderPassBeginInfo,
                          VK_SUBPASS_CONTENTS_INLINE);
-    vkCmdSetViewport(cmdBuffer_->GetBuffer(), 0, 1, &viewport_);
-    vkCmdSetScissor(cmdBuffer_->GetBuffer(), 0, 1, &scissor_);
-    vkCmdBindDescriptorSets(cmdBuffer_->GetBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            pipeline->GetPipelineLayout(), 0, 1,
-                            &descriptorSet, 0, nullptr) ;
-    pipeline->BindPipeline(cmdBuffer_->GetBuffer());
-    model->Draw(cmdBuffer_->GetBuffer(), pipeline->GetPipelineLayout());
+}
+
+void SwapchainImageContext::EndRenderPass() {
     vkCmdEndRenderPass(cmdBuffer_->GetBuffer());
     cmdBuffer_->End();
     cmdBuffer_->Exec(renderingContext_->GetGraphicsQueue());
-}
-
-void SwapchainImageContext::InitRenderTargets() {
-    for (size_t i = 0; i < swapchainImages_.size(); i++)
-        renderTargets_[i] = std::make_unique<RenderTarget>(renderingContext_,
-                                                           swapchainImages_[i].image,
-                                                           swapchainExtent_);
 }
 }

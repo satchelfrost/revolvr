@@ -102,18 +102,18 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
         mvps.push_back(mvp);
     }
 
-    auto swapchainContext = imageToSwapchainContext_[swapchainImage];
-    swapchainContext->Draw(imageIndex, cubePipeline_, drawBuffer_, mvps);
+    // Update uniform buffer
+    uboScene.projection = projectionMatrix;
+    uboScene.view = viewMatrix;
+    auto position = math::Pose(layerView.pose).GetPosition();
+    uboScene.viewPos = glm::vec4(position, 0.0f) * glm::vec4(-1.0f, 1.0f, -1.0f, 1.0f);
+    uniformBuffer_->UpdatePersistent(&uboScene);
 
-    // Update uniform buffers
-    if (uniformBuffer_) {
-        uboScene.projection = projectionMatrix;
-        uboScene.view = viewMatrix;
-        auto position = math::Pose(layerView.pose).GetPosition();
-        uboScene.viewPos = glm::vec4(position, 0.0f) * glm::vec4(-1.0f, 1.0f, -1.0f, 1.0f);
-        uniformBuffer_->UpdatePersistent(&uboScene);
-        swapchainContext->DrawGltf(imageIndex, gltfPipeline_, model_, uboSceneDescriptorSet_);
-    }
+    auto swapchainContext = imageToSwapchainContext_[swapchainImage];
+    swapchainContext->BeginRenderPass(imageIndex);
+//    swapchainContext->Draw(cubePipeline_, drawBuffer_, mvps);
+    swapchainContext->DrawGltf(gltfPipeline_, model_, uboSceneDescriptorSet_);
+    swapchainContext->EndRenderPass();
 
 }
 
@@ -285,7 +285,8 @@ void VulkanContext::InitCubeResources() {
                                                std::move(vertexBuffer));
     drawBuffer_->UpdateIndices(Geometry::c_cubeIndices);
     drawBuffer_->UpdateVertices(Geometry::c_cubeVertices);
-    cubePipeline_ = std::make_unique<Pipeline>(renderingContext_, cubeShaderStages_, vertexBufferLayout);
+    cubePipeline_ = std::make_unique<Pipeline>(renderingContext_, cubeShaderStages_, vertexBufferLayout,
+                                               VK_FRONT_FACE_CLOCKWISE);
 }
 
 void VulkanContext::InitGltfResources() {
@@ -317,7 +318,8 @@ void VulkanContext::InitGltfResources() {
     vertexBufferLayout.Push({1, DataType::F32, 3, "Normal"});
     vertexBufferLayout.Push({2, DataType::F32, 2, "UV"});
     vertexBufferLayout.Push({3, DataType::F32, 3, "Color"});
-    gltfPipeline_ = std::make_unique<Pipeline>(renderingContext_, gltfShaderStages_, vertexBufferLayout);
+    gltfPipeline_ = std::make_unique<Pipeline>(renderingContext_, gltfShaderStages_, vertexBufferLayout,
+                                               VK_FRONT_FACE_COUNTER_CLOCKWISE);
 }
 
 void VulkanContext::SetupDescriptors() {

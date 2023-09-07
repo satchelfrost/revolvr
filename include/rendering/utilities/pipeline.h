@@ -34,8 +34,9 @@ private:
     std::unique_ptr<PipelineLayout> pipelineLayout_;
 
 public:
+    // TODO: change frontFrace parameter to general pipelineConfig param
     Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique_ptr<ShaderStages>& shaderStages,
-             VertexBufferLayout vertexBufferLayout);
+             VertexBufferLayout vertexBufferLayout, VkFrontFace frontFace);
     ~Pipeline();
     void BindPipeline(VkCommandBuffer cmdBuffer);
     VkPipelineLayout GetPipelineLayout();
