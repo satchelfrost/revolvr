@@ -111,10 +111,9 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
 
     auto swapchainContext = imageToSwapchainContext_[swapchainImage];
     swapchainContext->BeginRenderPass(imageIndex);
-//    swapchainContext->Draw(cubePipeline_, drawBuffer_, mvps);
+    swapchainContext->Draw(cubePipeline_, drawBuffer_, mvps);
     swapchainContext->DrawGltf(gltfPipeline_, model_, uboSceneDescriptorSet_);
     swapchainContext->EndRenderPass();
-
 }
 
 std::vector<std::string> VulkanContext::GetInstanceExtensions() {

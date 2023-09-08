@@ -104,5 +104,8 @@ void SwapchainImageContext::EndRenderPass() {
     vkCmdEndRenderPass(cmdBuffer_->GetBuffer());
     cmdBuffer_->End();
     cmdBuffer_->Exec(renderingContext_->GetGraphicsQueue());
+    // TODO: get rid of this because of performance, necessary for multiple uniform buffer writes
+    cmdBuffer_->Wait();
+
 }
 }
