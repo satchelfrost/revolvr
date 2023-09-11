@@ -14,11 +14,15 @@ DrawBuffer::DrawBuffer(std::unique_ptr<VulkanBuffer> indexBuffer, std::unique_pt
 indexBuffer_(std::move(indexBuffer)), vertexBuffer_(std::move(vertexBuffer)) {}
 
 void DrawBuffer::UpdateIndices(const void *data) {
-    indexBuffer_->Update(data);
+    indexBuffer_->Map();
+    indexBuffer_->WriteToBuffer(data);
+    indexBuffer_->Unmap();
 }
 
 void DrawBuffer::UpdateVertices(const void *data) {
-    vertexBuffer_->Update(data);
+    vertexBuffer_->Map();
+    vertexBuffer_->WriteToBuffer(data);
+    vertexBuffer_->Unmap();
 }
 
 VkBuffer DrawBuffer::GetIndexBuffer() {

@@ -107,7 +107,7 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
     uboScene.view = viewMatrix;
     auto position = math::Pose(layerView.pose).GetPosition();
     uboScene.viewPos = glm::vec4(position, 0.0f) * glm::vec4(-1.0f, 1.0f, -1.0f, 1.0f);
-    uniformBuffer_->UpdatePersistent(&uboScene);
+    uniformBuffer_->WriteToBuffer(&uboScene);
 
     auto swapchainContext = imageToSwapchainContext_[swapchainImage];
     swapchainContext->BeginRenderPass(imageIndex);
@@ -290,12 +290,12 @@ void VulkanContext::InitCubeResources() {
 
 void VulkanContext::InitGltfResources() {
     // Setup model and uniform buffer before setting up descriptors
-//    model_ = std::make_unique<VulkanGLTFModel>(renderingContext_, "RoundedCubeBase.gltf");
     model_ = std::make_unique<VulkanGLTFModel>(renderingContext_, "gltf/shrek/scene.gltf");
     uniformBuffer_ = std::make_unique<VulkanBuffer>(renderingContext_, sizeof(uboScene),
                                                     1, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                                                     MemoryType::HostVisible);
-    uniformBuffer_->UpdatePersistent(&uboScene);
+    uniformBuffer_->Map();
+    uniformBuffer_->WriteToBuffer(&uboScene);
     SetupDescriptors();
 
     // Create the shader stages, add any push constants and/or descriptor set layouts

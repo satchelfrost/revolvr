@@ -28,13 +28,11 @@ VkImageLayout imageLayout) {
 
     CommandBuffer copyCmdBuffer = CommandBuffer(renderingContext->GetDevice(),
                                                 renderingContext->GetGraphicsPool());
-//    copyCmdBuffer.Wait();
-//    copyCmdBuffer.Reset();
-//    copyCmdBuffer.Begin();
-
     VulkanBuffer stagingBuffer = VulkanBuffer(renderingContext, 1, bufferSize,
                                               VK_BUFFER_USAGE_TRANSFER_SRC_BIT, MemoryType::HostVisible);
-    stagingBuffer.Update(buffer);
+    stagingBuffer.Map();
+    stagingBuffer.WriteToBuffer(buffer);
+    stagingBuffer.Unmap();
 
     VkBufferImageCopy bufferCopyRegion = {};
     bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;

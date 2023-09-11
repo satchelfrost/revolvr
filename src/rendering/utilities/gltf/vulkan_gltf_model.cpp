@@ -59,8 +59,12 @@ void VulkanGLTFModel::LoadGLTFFile(const std::string& fileName) {
     auto indexStagingBuffer = VulkanBuffer(renderingContext_, sizeof(uint32_t),
                                            gltfIndexBuffer.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                                            MemoryType::HostVisible);
-    vertexStagingBuffer.Update(gltfVertexBuffer.data());
-    indexStagingBuffer.Update(gltfIndexBuffer.data());
+    vertexStagingBuffer.Map();
+    vertexStagingBuffer.WriteToBuffer(gltfVertexBuffer.data());
+    vertexStagingBuffer.Unmap();
+    indexStagingBuffer.Map();
+    indexStagingBuffer.WriteToBuffer(gltfIndexBuffer.data());
+    indexStagingBuffer.Unmap();
     auto vertexBuffer = std::make_unique<VulkanBuffer>(renderingContext_, sizeof(gltf::Vertex),
                                                    gltfVertexBuffer.size(),
                                                    VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
@@ -72,9 +76,9 @@ void VulkanGLTFModel::LoadGLTFFile(const std::string& fileName) {
                                                   VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                                                   MemoryType::DeviceLocal);
     renderingContext_->CopyBuffer(vertexStagingBuffer.GetBuffer(), vertexBuffer->GetBuffer(),
-                                 vertexStagingBuffer.GetSizeInBytes(), 0, 0);
+                                 vertexStagingBuffer.GetSizeOfBuffer(), 0, 0);
     renderingContext_->CopyBuffer(indexStagingBuffer.GetBuffer(), indexBuffer->GetBuffer(),
-                                  indexStagingBuffer.GetSizeInBytes(), 0, 0);
+                                  indexStagingBuffer.GetSizeOfBuffer(), 0, 0);
     drawBuffer_ = std::make_unique<DrawBuffer>(std::move(indexBuffer), std::move(vertexBuffer));
 }
 
