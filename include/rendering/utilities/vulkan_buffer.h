@@ -30,7 +30,7 @@ public:
     void WriteToBuffer(const void* data, VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
     VkResult Flush(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
     VkResult Invalidate(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
-    VkDescriptorBufferInfo descriptorInfo(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
+    VkDescriptorBufferInfo DescriptorInfo(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
 
     void WriteToIndex(void* data, int index);
     VkResult FlushIndex(int index);
@@ -41,7 +41,6 @@ public:
     VkBuffer GetBuffer() const;
     uint32_t GetCount() const;
     size_t GetSizeOfBuffer() const;
-    VkDescriptorBufferInfo GetBufferInfo();
     ~VulkanBuffer();
 };
 }

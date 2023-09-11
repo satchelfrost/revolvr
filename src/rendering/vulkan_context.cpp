@@ -379,7 +379,7 @@ void VulkanContext::SetupDescriptors() {
     writeDescriptorSet.dstBinding = 0;
     if (!uniformBuffer_)
         THROW("Uniform buffer not created")
-    VkDescriptorBufferInfo bufferInfo = uniformBuffer_->GetBufferInfo();
+    VkDescriptorBufferInfo bufferInfo = uniformBuffer_->DescriptorInfo();
     writeDescriptorSet.pBufferInfo = &bufferInfo;
     writeDescriptorSet.descriptorCount = 1;
     vkUpdateDescriptorSets(device_, 1, &writeDescriptorSet,

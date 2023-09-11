@@ -47,10 +47,6 @@ size_t VulkanBuffer::GetSizeOfBuffer() const {
     return sizeOfBuffer_;
 }
 
-VkDescriptorBufferInfo VulkanBuffer::GetBufferInfo() {
-    return bufferInfo_;
-}
-
 void VulkanBuffer::Map(VkDeviceSize size, VkDeviceSize offset) {
     if (!(buffer_ && memory_))
         THROW("Called map on buffer before create");
@@ -97,7 +93,7 @@ VkResult VulkanBuffer::Invalidate(VkDeviceSize size, VkDeviceSize offset) {
     return vkInvalidateMappedMemoryRanges(device_, 1, &mappedRange);
 }
 
-VkDescriptorBufferInfo VulkanBuffer::descriptorInfo(VkDeviceSize size, VkDeviceSize offset) {
+VkDescriptorBufferInfo VulkanBuffer::DescriptorInfo(VkDeviceSize size, VkDeviceSize offset) {
     return VkDescriptorBufferInfo{
             buffer_,
             offset,
@@ -114,7 +110,7 @@ VkResult VulkanBuffer::FlushIndex(int index) {
 }
 
 VkDescriptorBufferInfo VulkanBuffer::DescriptorInfoForIndex(int index) {
-    return descriptorInfo(alignmentSize_, index * alignmentSize_);
+    return DescriptorInfo(alignmentSize_, index * alignmentSize_);
 }
 
 VkResult VulkanBuffer::InvalidateIndex(int index) {
