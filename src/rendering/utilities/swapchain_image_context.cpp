@@ -39,33 +39,35 @@ XrSwapchainImageBaseHeader *SwapchainImageContext::GetFirstImagePointer() {
 void SwapchainImageContext::Draw(const std::unique_ptr<Pipeline>& pipeline,
                                  const std::unique_ptr<DrawBuffer>& drawBuffer,
                                  const std::vector<glm::mat4> &transforms) {
-    pipeline->BindPipeline(cmdBuffer_->GetBuffer());
-    vkCmdBindIndexBuffer(cmdBuffer_->GetBuffer(), drawBuffer->GetIndexBuffer(),
+    VkCommandBuffer cmdBuffer = cmdBuffer_->GetBuffer();
+    pipeline->BindPipeline(cmdBuffer);
+    vkCmdBindIndexBuffer(cmdBuffer, drawBuffer->GetIndexBuffer(),
                          0, VK_INDEX_TYPE_UINT16);
     VkDeviceSize offset = 0;
     VkBuffer vertexBuffer = drawBuffer->GetVertexBuffer();
-    vkCmdBindVertexBuffers(cmdBuffer_->GetBuffer(), 0, 1, &vertexBuffer,
+    vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &vertexBuffer,
                            &offset);
-    vkCmdSetViewport(cmdBuffer_->GetBuffer(), 0, 1, &viewport_);
-    vkCmdSetScissor(cmdBuffer_->GetBuffer(), 0, 1, &scissor_);
+    vkCmdSetViewport(cmdBuffer, 0, 1, &viewport_);
+    vkCmdSetScissor(cmdBuffer, 0, 1, &scissor_);
     for (const auto& transform : transforms) {
-        vkCmdPushConstants(cmdBuffer_->GetBuffer(), pipeline->GetPipelineLayout(),
+        vkCmdPushConstants(cmdBuffer, pipeline->GetPipelineLayout(),
                            VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(transform),
                            glm::value_ptr(transform));
-        vkCmdDrawIndexed(cmdBuffer_->GetBuffer(), drawBuffer->GetIndexCount(),
+        vkCmdDrawIndexed(cmdBuffer, drawBuffer->GetIndexCount(),
                          1, 0, 0, 0);
     }
 }
 
 void SwapchainImageContext::DrawGltf(const std::unique_ptr<Pipeline>& pipeline,
                                      const std::unique_ptr<VulkanGLTFModel>& model, VkDescriptorSet descriptorSet) {
-    vkCmdSetViewport(cmdBuffer_->GetBuffer(), 0, 1, &viewport_);
-    vkCmdSetScissor(cmdBuffer_->GetBuffer(), 0, 1, &scissor_);
-    vkCmdBindDescriptorSets(cmdBuffer_->GetBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS,
+    VkCommandBuffer cmdBuffer = cmdBuffer_->GetBuffer();
+    vkCmdSetViewport(cmdBuffer, 0, 1, &viewport_);
+    vkCmdSetScissor(cmdBuffer, 0, 1, &scissor_);
+    vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                             pipeline->GetPipelineLayout(), 0, 1,
                             &descriptorSet, 0, nullptr) ;
-    pipeline->BindPipeline(cmdBuffer_->GetBuffer());
-    model->Draw(cmdBuffer_->GetBuffer(), pipeline->GetPipelineLayout());
+    pipeline->BindPipeline(cmdBuffer);
+    model->Draw(cmdBuffer, pipeline->GetPipelineLayout());
 }
 
 void SwapchainImageContext::InitRenderTargets() {

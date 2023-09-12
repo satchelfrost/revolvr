@@ -8,18 +8,18 @@
 
 #include <pch.h>
 
+// TODO: check unused includes
 #include "rendering/utilities/shader_stages.h"
 #include "rendering/utilities/draw_buffer.h"
 #include "rendering/utilities/pipeline.h"
 #include "rendering/utilities/vulkan_utils.h"
 #include <rendering/utilities/geometry.h>
 #include <rendering/utilities/swapchain_image_context.h>
-
 #include <rendering/utilities/rendering_context.h>
-
 #include <platform/android_context.h>
 #include <ecs/system/render_system.h>
 #include <rendering/utilities/gltf/vulkan_gltf_model.h>
+#include <rendering/utilities/vulkan_descriptors.h>
 
 namespace rvr {
 class XrContext;
@@ -50,7 +50,7 @@ private:
     std::unique_ptr<VulkanGLTFModel> model_; // for now just one
     std::unique_ptr<VulkanBuffer> uniformBuffer_;
     VkDescriptorSet uboSceneDescriptorSet_;
-    VkDescriptorPool descriptorPool_ = VK_NULL_HANDLE;
+//    VkDescriptorPool descriptorPool_ = VK_NULL_HANDLE;
     struct UBOScene {
         glm::mat4 projection;
         glm::mat4 view;
@@ -61,6 +61,10 @@ private:
         VkDescriptorSetLayout uboScene;
         VkDescriptorSetLayout textures;
     } descriptorSetLayouts;
+
+    // Global descriptor pool
+    std::unique_ptr<DescriptorPool> globalDescriptorPool_;
+
 
 #if !defined(NDEBUG)
         const bool enableValidationLayers_ = true;

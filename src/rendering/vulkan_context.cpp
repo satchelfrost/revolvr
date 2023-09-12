@@ -76,6 +76,8 @@ void VulkanContext::InitializeResources() {
 
 XrSwapchainImageBaseHeader* VulkanContext::AllocateSwapchainImageStructs(
         uint32_t capacity, const XrSwapchainCreateInfo &swapchainCreateInfo) {
+    //
+
     auto context = std::make_shared<SwapchainImageContext>(renderingContext_,
                                                                          capacity, swapchainCreateInfo);
     auto images = context->GetFirstImagePointer();
@@ -248,7 +250,7 @@ void VulkanContext::InitRenderingContext(VkFormat colorFormat) {
     renderingContext_ = std::make_shared<RenderingContext>(physicalDevice_, device_,
                                                            graphicsQueue_, colorFormat,
                                                            graphicsPool_);
-    InitializeResources();
+//    InitializeResources();
 }
 
 std::shared_ptr<RenderingContext> VulkanContext::GetRenderingContext() {
@@ -325,22 +327,28 @@ void VulkanContext::SetupDescriptors() {
     if (!model_)
         THROW("Model not loaded");
 
-    // Setup descriptor pool
-    VkDescriptorPoolSize uboDescriptorPoolSize{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER};
-    uboDescriptorPoolSize.descriptorCount = 1;
-    VkDescriptorPoolSize imageTextureDescriptorPoolSize{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER};
-    imageTextureDescriptorPoolSize.descriptorCount = model_->GetNumImages(); // TODO: deal with models lacking textures
-    std::vector<VkDescriptorPoolSize> poolSizes = {
-            uboDescriptorPoolSize,
-            imageTextureDescriptorPoolSize
-    };
-    VkDescriptorPoolCreateInfo descriptorPoolInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO};
-    descriptorPoolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-    descriptorPoolInfo.maxSets = model_->GetNumImages() + 1;
-    descriptorPoolInfo.pPoolSizes = poolSizes.data();
-    VkResult result = vkCreateDescriptorPool(device_, &descriptorPoolInfo, nullptr,
-                                             &descriptorPool_);
-    CHECK_VKCMD(result);
+    globalDescriptorPool_ = DescriptorPool::Builder(device_)
+            .SetMaxSets(model_->GetNumImages() + 1)
+            .AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1)
+            .AddPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, model_->GetNumImages())
+            .Build();
+
+//    // Setup descriptor pool
+//    VkDescriptorPoolSize uboDescriptorPoolSize{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER};
+//    uboDescriptorPoolSize.descriptorCount = 1;
+//    VkDescriptorPoolSize imageTextureDescriptorPoolSize{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER};
+//    imageTextureDescriptorPoolSize.descriptorCount = model_->GetNumImages(); // TODO: deal with models lacking textures
+//    std::vector<VkDescriptorPoolSize> poolSizes = {
+//            uboDescriptorPoolSize,
+//            imageTextureDescriptorPoolSize
+//    };
+//    VkDescriptorPoolCreateInfo descriptorPoolInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO};
+//    descriptorPoolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+//    descriptorPoolInfo.maxSets = model_->GetNumImages() + 1;
+//    descriptorPoolInfo.pPoolSizes = poolSizes.data();
+//    VkResult result = vkCreateDescriptorPool(device_, &descriptorPoolInfo, nullptr,
+//                                             &descriptorPool_);
+//    CHECK_VKCMD(result);
 
     // Setup descriptor set layouts
     VkDescriptorSetLayoutBinding setLayoutBinding{};
@@ -351,7 +359,7 @@ void VulkanContext::SetupDescriptors() {
     VkDescriptorSetLayoutCreateInfo descriptorSetLayoutInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO};
     descriptorSetLayoutInfo.pBindings = &setLayoutBinding;
     descriptorSetLayoutInfo.bindingCount = 1;
-    result = vkCreateDescriptorSetLayout(device_, &descriptorSetLayoutInfo, nullptr,
+    VkResult result = vkCreateDescriptorSetLayout(device_, &descriptorSetLayoutInfo, nullptr,
                                          &descriptorSetLayouts.uboScene);
     CHECK_VKCMD(result);
     setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -360,13 +368,10 @@ void VulkanContext::SetupDescriptors() {
                                          &descriptorSetLayouts.textures);
     CHECK_VKCMD(result);
 
-    // TODO: pass setLayouts to pipeline layout create info
-    // set 0 = matrices, set 1 = material in shader
-    std::array<VkDescriptorSetLayout, 2> setLayouts = {descriptorSetLayouts.uboScene, descriptorSetLayouts.textures};
-
     // Allocate and update descriptor sets
     VkDescriptorSetAllocateInfo allocInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
-    allocInfo.descriptorPool = descriptorPool_;
+//    allocInfo.descriptorPool = descriptorPool_;
+    allocInfo.descriptorPool = globalDescriptorPool_->GetDescriptorPool();
     allocInfo.pSetLayouts = &descriptorSetLayouts.uboScene;
     allocInfo.descriptorSetCount = 1;
     result = vkAllocateDescriptorSets(device_, &allocInfo, &uboSceneDescriptorSet_);
