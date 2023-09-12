@@ -305,7 +305,7 @@ void VulkanGLTFModel::DrawNode(VkCommandBuffer commandBuffer, VkPipelineLayout p
         DrawNode(commandBuffer, pipelineLayout, child);
 }
 
-void VulkanGLTFModel::Draw(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout) {
+void VulkanGLTFModel::Draw(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, const glm::mat4 &transform) {
     // All vertices and indices are stored in single buffers, so we only need to bind once
     VkDeviceSize offsets[1] = { 0 };
     VkBuffer vertexBuffer = drawBuffer_->GetVertexBuffer();
@@ -313,8 +313,11 @@ void VulkanGLTFModel::Draw(VkCommandBuffer commandBuffer, VkPipelineLayout pipel
     vkCmdBindIndexBuffer(commandBuffer, drawBuffer_->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
     // Render all nodes at top-level
-    for (auto& node : nodes_)
+    for (gltf::Node* node : nodes_) {
+        // set the root node to the incoming transform
+        node->matrix = transform;
         DrawNode(commandBuffer, pipelineLayout, node);
+    }
 }
 
 uint32_t VulkanGLTFModel::GetNumImages() {

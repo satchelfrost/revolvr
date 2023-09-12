@@ -20,7 +20,7 @@ public:
     VulkanGLTFModel(std::shared_ptr<RenderingContext> renderingContext, const std::string& fileName);
     ~VulkanGLTFModel();
     void DrawNode(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, gltf::Node* node);
-    void Draw(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout);
+    void Draw(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, const glm::mat4 &transform);
     uint32_t GetNumImages();
     std::vector<gltf::Image>& GetImages();
 };

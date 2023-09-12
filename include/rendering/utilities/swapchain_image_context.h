@@ -39,7 +39,7 @@ public:
     void Draw(const std::unique_ptr<Pipeline>& pipeline, const std::unique_ptr<DrawBuffer>& drawBuffer,
               const std::vector<glm::mat4> &transforms);
     void DrawGltf(const std::unique_ptr<Pipeline>& pipeline, const std::unique_ptr<VulkanGLTFModel>& model,
-                  VkDescriptorSet descriptorSet);
+                  VkDescriptorSet descriptorSet, const std::vector<glm::mat4> &transforms);
     XrSwapchainImageBaseHeader* GetFirstImagePointer();
     void InitRenderTargets();
 };

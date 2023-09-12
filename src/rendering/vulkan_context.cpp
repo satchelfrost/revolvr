@@ -104,6 +104,15 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
         mvps.push_back(mvp);
     }
 
+    // Hardcode the shrek transforms for now until the models are hooked up to scene description
+    std::vector<glm::mat4> mats;
+    for (int i = 0; i < 4; i++) {
+        math::Transform transform{};
+        transform.SetPosition((float)i, 0, 0);
+        transform.SetOrientation(math::quaternion::FromEuler(-90, 0, 0));
+        mats.push_back(transform.ToMat4());
+    }
+
     // Update uniform buffer
     uboScene.projection = projectionMatrix;
     uboScene.view = viewMatrix;
@@ -114,7 +123,7 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
     auto swapchainContext = imageToSwapchainContext_[swapchainImage];
     swapchainContext->BeginRenderPass(imageIndex);
     swapchainContext->Draw(cubePipeline_, drawBuffer_, mvps);
-    swapchainContext->DrawGltf(gltfPipeline_, model_, uboSceneDescriptorSet_);
+    swapchainContext->DrawGltf(gltfPipeline_, model_, uboSceneDescriptorSet_, mats);
     swapchainContext->EndRenderPass();
 }
 
@@ -305,11 +314,11 @@ void VulkanContext::InitGltfResources() {
                                                "shaders/basic_gltf.vert.spv",
                                                VulkanShader::Vertex);
     vert->PushConstant("Model primitive", sizeof(glm::mat4));
-    vert->AddSetLayout(descriptorSetLayouts.uboScene);
+    vert->AddSetLayout(descriptorSetLayouts_["shrek_ubo"]->GetDescriptorSetLayout());
     auto frag = std::make_unique<VulkanShader>(device_,
                                                "shaders/basic_gltf.frag.spv",
                                                VulkanShader::Fragment);
-    frag->AddSetLayout(descriptorSetLayouts.textures);
+    frag->AddSetLayout(descriptorSetLayouts_["shrek_texture"]->GetDescriptorSetLayout());
     gltfShaderStages_ = std::make_unique<ShaderStages>(device_, std::move(vert),
                                                        std::move(frag));
 
@@ -333,73 +342,27 @@ void VulkanContext::SetupDescriptors() {
             .AddPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, model_->GetNumImages())
             .Build();
 
-//    // Setup descriptor pool
-//    VkDescriptorPoolSize uboDescriptorPoolSize{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER};
-//    uboDescriptorPoolSize.descriptorCount = 1;
-//    VkDescriptorPoolSize imageTextureDescriptorPoolSize{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER};
-//    imageTextureDescriptorPoolSize.descriptorCount = model_->GetNumImages(); // TODO: deal with models lacking textures
-//    std::vector<VkDescriptorPoolSize> poolSizes = {
-//            uboDescriptorPoolSize,
-//            imageTextureDescriptorPoolSize
-//    };
-//    VkDescriptorPoolCreateInfo descriptorPoolInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO};
-//    descriptorPoolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-//    descriptorPoolInfo.maxSets = model_->GetNumImages() + 1;
-//    descriptorPoolInfo.pPoolSizes = poolSizes.data();
-//    VkResult result = vkCreateDescriptorPool(device_, &descriptorPoolInfo, nullptr,
-//                                             &descriptorPool_);
-//    CHECK_VKCMD(result);
-
     // Setup descriptor set layouts
-    VkDescriptorSetLayoutBinding setLayoutBinding{};
-    setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    setLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-    setLayoutBinding.binding = 0;
-    setLayoutBinding.descriptorCount = 1;
-    VkDescriptorSetLayoutCreateInfo descriptorSetLayoutInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO};
-    descriptorSetLayoutInfo.pBindings = &setLayoutBinding;
-    descriptorSetLayoutInfo.bindingCount = 1;
-    VkResult result = vkCreateDescriptorSetLayout(device_, &descriptorSetLayoutInfo, nullptr,
-                                         &descriptorSetLayouts.uboScene);
-    CHECK_VKCMD(result);
-    setLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    setLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-    result = vkCreateDescriptorSetLayout(device_, &descriptorSetLayoutInfo, nullptr,
-                                         &descriptorSetLayouts.textures);
-    CHECK_VKCMD(result);
+    descriptorSetLayouts_["shrek_ubo"] = DescriptorSetLayout::Builder(device_)
+            .AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                        VK_SHADER_STAGE_VERTEX_BIT)
+            .Build();
 
-    // Allocate and update descriptor sets
-    VkDescriptorSetAllocateInfo allocInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
-//    allocInfo.descriptorPool = descriptorPool_;
-    allocInfo.descriptorPool = globalDescriptorPool_->GetDescriptorPool();
-    allocInfo.pSetLayouts = &descriptorSetLayouts.uboScene;
-    allocInfo.descriptorSetCount = 1;
-    result = vkAllocateDescriptorSets(device_, &allocInfo, &uboSceneDescriptorSet_);
-    CHECK_VKCMD(result);
+    descriptorSetLayouts_["shrek_texture"] = DescriptorSetLayout::Builder(device_)
+            .AddBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                        VK_SHADER_STAGE_FRAGMENT_BIT)
+            .Build();
 
-    // Descriptor set for uboScene uniform buffer
-    VkWriteDescriptorSet writeDescriptorSet{VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET};
-    writeDescriptorSet.dstSet = uboSceneDescriptorSet_;
-    writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    writeDescriptorSet.dstBinding = 0;
-    if (!uniformBuffer_)
-        THROW("Uniform buffer not created")
-    VkDescriptorBufferInfo bufferInfo = uniformBuffer_->DescriptorInfo();
-    writeDescriptorSet.pBufferInfo = &bufferInfo;
-    writeDescriptorSet.descriptorCount = 1;
-    vkUpdateDescriptorSets(device_, 1, &writeDescriptorSet,
-                           0, nullptr);
+    auto bufferInfo = uniformBuffer_->DescriptorInfo();
+    DescriptorWriter(*descriptorSetLayouts_["shrek_ubo"], *globalDescriptorPool_)
+        .WriteBuffer(0, &bufferInfo)
+        .Build(uboSceneDescriptorSet_);
 
     // Descriptor sets for materials
-    allocInfo.pSetLayouts = &descriptorSetLayouts.textures;
-    writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     for (auto& image : model_->GetImages()) {
-        result = vkAllocateDescriptorSets(device_, &allocInfo, &image.descriptorSet);
-        CHECK_VKCMD(result);
-        writeDescriptorSet.dstSet = image.descriptorSet;
-        writeDescriptorSet.pImageInfo = &image.texture.descriptor;
-        vkUpdateDescriptorSets(device_, 1, &writeDescriptorSet,
-                               0, nullptr);
+        DescriptorWriter(*descriptorSetLayouts_["shrek_texture"], *globalDescriptorPool_)
+                .WriteImage(0, &image.texture.descriptor)
+                .Build(image.descriptorSet);
     }
 }
 }

@@ -50,20 +50,16 @@ private:
     std::unique_ptr<VulkanGLTFModel> model_; // for now just one
     std::unique_ptr<VulkanBuffer> uniformBuffer_;
     VkDescriptorSet uboSceneDescriptorSet_;
-//    VkDescriptorPool descriptorPool_ = VK_NULL_HANDLE;
     struct UBOScene {
         glm::mat4 projection;
         glm::mat4 view;
         glm::vec4 lightPos = glm::vec4(5.0f, 5.0f, 5.0f, 1.0f);
         glm::vec4 viewPos;
     } uboScene;
-    struct DescriptorSetLayouts {
-        VkDescriptorSetLayout uboScene;
-        VkDescriptorSetLayout textures;
-    } descriptorSetLayouts;
 
     // Global descriptor pool
     std::unique_ptr<DescriptorPool> globalDescriptorPool_;
+    std::map<std::string, std::unique_ptr<DescriptorSetLayout>> descriptorSetLayouts_;
 
 
 #if !defined(NDEBUG)

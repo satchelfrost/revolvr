@@ -59,7 +59,8 @@ void SwapchainImageContext::Draw(const std::unique_ptr<Pipeline>& pipeline,
 }
 
 void SwapchainImageContext::DrawGltf(const std::unique_ptr<Pipeline>& pipeline,
-                                     const std::unique_ptr<VulkanGLTFModel>& model, VkDescriptorSet descriptorSet) {
+                                     const std::unique_ptr<VulkanGLTFModel>& model, VkDescriptorSet descriptorSet,
+                                     const std::vector<glm::mat4> &transforms) {
     VkCommandBuffer cmdBuffer = cmdBuffer_->GetBuffer();
     vkCmdSetViewport(cmdBuffer, 0, 1, &viewport_);
     vkCmdSetScissor(cmdBuffer, 0, 1, &scissor_);
@@ -67,7 +68,8 @@ void SwapchainImageContext::DrawGltf(const std::unique_ptr<Pipeline>& pipeline,
                             pipeline->GetPipelineLayout(), 0, 1,
                             &descriptorSet, 0, nullptr) ;
     pipeline->BindPipeline(cmdBuffer);
-    model->Draw(cmdBuffer, pipeline->GetPipelineLayout());
+    for (const auto& transform : transforms)
+        model->Draw(cmdBuffer, pipeline->GetPipelineLayout(), transform);
 }
 
 void SwapchainImageContext::InitRenderTargets() {
