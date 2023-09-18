@@ -47,7 +47,8 @@ private:
     // For now just one gltf model to test
     std::unique_ptr<ShaderStages> gltfShaderStages_;
     std::unique_ptr<Pipeline> gltfPipeline_;
-    std::unique_ptr<VulkanGLTFModel> model_; // for now just one
+//    std::unique_ptr<VulkanGLTFModel> model_; // for now just one
+    std::map<std::string, std::unique_ptr<VulkanGLTFModel>> models_;
     std::unique_ptr<VulkanBuffer> uniformBuffer_;
     VkDescriptorSet uboSceneDescriptorSet_;
     struct UBOScene {

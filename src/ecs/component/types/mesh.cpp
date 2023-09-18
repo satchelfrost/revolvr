@@ -11,7 +11,8 @@ namespace rvr {
 Mesh::Mesh(type::EntityId pId, bool visible) : Component(ComponentType::Mesh, pId), visible_(visible) {}
 
 Mesh::Mesh(const Mesh &other, type::EntityId newEntityId) :
-Component(ComponentType::Mesh, newEntityId), visible_(other.visible_) {}
+Component(ComponentType::Mesh, newEntityId), visible_(other.visible_),
+resourceName_(other.resourceName_) {}
 
 Component *Mesh::Clone(type::EntityId newEntityId) {
     return new Mesh(*this, newEntityId);
@@ -29,5 +30,17 @@ void Mesh::SetVisibilityRecursive(bool visibility) {
 
 bool Mesh::IsVisible() const {
     return visible_;
+}
+
+bool Mesh::HasResource() const {
+    return !resourceName_.empty();
+}
+
+std::string Mesh::ResourceName() {
+    return resourceName_;
+}
+
+void Mesh::SetName(std::string name) {
+    resourceName_ = name;
 }
 }

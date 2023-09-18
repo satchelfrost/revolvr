@@ -32,11 +32,14 @@ void App::Run(struct android_app *app) {
 //    scene_.LoadScene("test_scenes/hand_collision");
 //    scene_.LoadScene("test_scenes/sound_test");
 //    scene_.LoadScene("test_scenes/spinning_pointer");
-//    scene_.LoadScene("test_scenes/generic");
+    scene_.LoadScene("test_scenes/generic");
 //    scene_.LoadScene("test_scenes/conway");
 //    scene_.LoadScene("test_scenes/hand_tracking");
-    scene_.LoadScene("test_scenes/movement");
+//    scene_.LoadScene("test_scenes/movement");
 //    scene_.LoadScene("test_scenes/hand_shooting_stuff");
+
+    // Initialize resources after scene has been loaded
+    globalContext_->GetVulkanContext()->InitializeResources();
 
     if(!globalContext_->GetAudioEngine()->start())
         THROW("Failed to start Audio engine");

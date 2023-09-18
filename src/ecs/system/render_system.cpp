@@ -10,19 +10,46 @@
 #include <global_context.h>
 
 namespace rvr::system::render {
-void PopulateRenderTransformBuffer(std::vector<math::Transform>& buffer) {
+void AppendCubeTransformBuffer(std::vector<math::Transform>& buffer) {
     auto components = GlobalContext::Inst()->GetECS()->GetComponents(ComponentType::Mesh);
     for (auto [eid, component] : components) {
         auto mesh = dynamic_cast<Mesh*>(component);
-        if (mesh->IsVisible()) {
+        if (mesh->IsVisible() && !mesh->HasResource()) {
             auto* spatial = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(eid);
             buffer.push_back(spatial::GetPlayerRelativeTransform(spatial));
         }
     }
-    DrawGrid(buffer);
+    DrawCubeGrid(buffer);
 }
 
-void DrawGrid(std::vector<math::Transform>& buffer) {
+void AppendGltfMap(std::map<std::string, std::vector<glm::mat4>>& gltfMap) {
+    auto components = GlobalContext::Inst()->GetECS()->GetComponents(ComponentType::Mesh);
+    for (auto [eid, component] : components) {
+        auto mesh = dynamic_cast<Mesh*>(component);
+        if (mesh->IsVisible() && mesh->HasResource()) {
+            auto* spatial = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(eid);
+            std::string resourceName = mesh->ResourceName();
+            math::Transform transform = spatial::GetPlayerRelativeTransform(spatial);
+            if (gltfMap.count(resourceName))
+                gltfMap[resourceName].push_back(transform.ToMat4());
+            else
+                gltfMap[resourceName] = {transform.ToMat4()}; // implicitly create vector
+        }
+    }
+}
+
+std::set<std::string> GetUniqueModelNames() {
+    auto components = GlobalContext::Inst()->GetECS()->GetComponents(ComponentType::Mesh);
+    std::set<std::string> uniqueNames;
+    for (auto [eid, component] : components) {
+        auto mesh = dynamic_cast<Mesh*>(component);
+        if (mesh->HasResource())
+            uniqueNames.insert(mesh->ResourceName());
+    }
+    return uniqueNames;
+}
+
+void DrawCubeGrid(std::vector<math::Transform>& buffer) {
     // Get the player and spatial world transforms
     auto player = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(GlobalContext::Inst()->PLAYER_ID);
     CHECK_MSG(player, "Player spatial does not exist inside of GetPlayerRelativeTransform()");

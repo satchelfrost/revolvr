@@ -95,23 +95,17 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
     glm::mat4 poseMatrix = math::Pose(layerView.pose).ToMat4();
     glm::mat4 viewMatrix = glm::affineInverse(poseMatrix);
     glm::mat4 viewProjection = projectionMatrix * viewMatrix;
-    std::vector<glm::mat4> mvps;
+    std::vector<glm::mat4> cubeMvps;
     renderBuffer_.clear();
-    system::render::PopulateRenderTransformBuffer(renderBuffer_);
+    system::render::AppendCubeTransformBuffer(renderBuffer_);
     for (const math::Transform &model : renderBuffer_) {
         glm::mat4 modelMatrix = model.ToMat4();
         glm::mat4 mvp = viewProjection * modelMatrix;
-        mvps.push_back(mvp);
+        cubeMvps.push_back(mvp);
     }
 
-    // Hardcode the shrek transforms for now until the models are hooked up to scene description
-    std::vector<glm::mat4> mats;
-    for (int i = 0; i < 4; i++) {
-        math::Transform transform{};
-        transform.SetPosition((float)i, 0, 0);
-        transform.SetOrientation(math::quaternion::FromEuler(-90, 0, 0));
-        mats.push_back(transform.ToMat4());
-    }
+    std::map<std::string, std::vector<glm::mat4>> gltfMap;
+    system::render::AppendGltfMap(gltfMap);
 
     // Update uniform buffer
     uboScene.projection = projectionMatrix;
@@ -122,8 +116,9 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
 
     auto swapchainContext = imageToSwapchainContext_[swapchainImage];
     swapchainContext->BeginRenderPass(imageIndex);
-    swapchainContext->Draw(cubePipeline_, drawBuffer_, mvps);
-    swapchainContext->DrawGltf(gltfPipeline_, model_, uboSceneDescriptorSet_, mats);
+    swapchainContext->Draw(cubePipeline_, drawBuffer_, cubeMvps);
+    for (auto& [name, model] : models_)
+        swapchainContext->DrawGltf(gltfPipeline_, model, uboSceneDescriptorSet_, gltfMap[name]);
     swapchainContext->EndRenderPass();
 }
 
@@ -301,7 +296,10 @@ void VulkanContext::InitCubeResources() {
 
 void VulkanContext::InitGltfResources() {
     // Setup model and uniform buffer before setting up descriptors
-    model_ = std::make_unique<VulkanGLTFModel>(renderingContext_, "gltf/shrek/scene.gltf");
+    std::set<std::string> uniqueNames = system::render::GetUniqueModelNames();
+    for (auto& name : uniqueNames)
+        models_[name] = std::make_unique<VulkanGLTFModel>(renderingContext_, "gltf/shrek/" + name + ".gltf");
+
     uniformBuffer_ = std::make_unique<VulkanBuffer>(renderingContext_, sizeof(uboScene),
                                                     1, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                                                     MemoryType::HostVisible);
@@ -314,11 +312,13 @@ void VulkanContext::InitGltfResources() {
                                                "shaders/basic_gltf.vert.spv",
                                                VulkanShader::Vertex);
     vert->PushConstant("Model primitive", sizeof(glm::mat4));
-    vert->AddSetLayout(descriptorSetLayouts_["shrek_ubo"]->GetDescriptorSetLayout());
+    vert->AddSetLayout(descriptorSetLayouts_["ubo"]->GetDescriptorSetLayout());
     auto frag = std::make_unique<VulkanShader>(device_,
                                                "shaders/basic_gltf.frag.spv",
                                                VulkanShader::Fragment);
-    frag->AddSetLayout(descriptorSetLayouts_["shrek_texture"]->GetDescriptorSetLayout());
+//    frag->AddSetLayout(descriptorSetLayouts_["texture"]->GetDescriptorSetLayout());
+    for (auto& [name, model] : models_)
+        frag->AddSetLayout(descriptorSetLayouts_[name]->GetDescriptorSetLayout());
     gltfShaderStages_ = std::make_unique<ShaderStages>(device_, std::move(vert),
                                                        std::move(frag));
 
@@ -333,36 +333,39 @@ void VulkanContext::InitGltfResources() {
 }
 
 void VulkanContext::SetupDescriptors() {
-    if (!model_)
-        THROW("Model not loaded");
+    // Setup the descriptor pool
+    DescriptorPool::Builder builder(device_);
+    uint32_t maxSets = 1; // start with ubo
+    builder.AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1);
+    for (auto& [name, model] : models_) {
+        uint32_t numImages = model->GetNumImages();
+        maxSets += numImages;
+        builder.AddPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, numImages);
+    }
+    builder.SetMaxSets(maxSets);
+    globalDescriptorPool_ = builder.Build();
 
-    globalDescriptorPool_ = DescriptorPool::Builder(device_)
-            .SetMaxSets(model_->GetNumImages() + 1)
-            .AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1)
-            .AddPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, model_->GetNumImages())
-            .Build();
-
-    // Setup descriptor set layouts
-    descriptorSetLayouts_["shrek_ubo"] = DescriptorSetLayout::Builder(device_)
+    // Setup descriptor set layout and descriptor sets for ubo
+    descriptorSetLayouts_["ubo"] = DescriptorSetLayout::Builder(device_)
             .AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
                         VK_SHADER_STAGE_VERTEX_BIT)
             .Build();
-
-    descriptorSetLayouts_["shrek_texture"] = DescriptorSetLayout::Builder(device_)
-            .AddBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                        VK_SHADER_STAGE_FRAGMENT_BIT)
-            .Build();
-
     auto bufferInfo = uniformBuffer_->DescriptorInfo();
-    DescriptorWriter(*descriptorSetLayouts_["shrek_ubo"], *globalDescriptorPool_)
+    DescriptorWriter(*descriptorSetLayouts_["ubo"], *globalDescriptorPool_)
         .WriteBuffer(0, &bufferInfo)
         .Build(uboSceneDescriptorSet_);
 
-    // Descriptor sets for materials
-    for (auto& image : model_->GetImages()) {
-        DescriptorWriter(*descriptorSetLayouts_["shrek_texture"], *globalDescriptorPool_)
-                .WriteImage(0, &image.texture.descriptor)
-                .Build(image.descriptorSet);
+    // For each model setup descriptor sets for materials
+    for (auto& [name, model] : models_) {
+        descriptorSetLayouts_[name] = DescriptorSetLayout::Builder(device_)
+                .AddBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                            VK_SHADER_STAGE_FRAGMENT_BIT)
+                .Build();
+        for (auto& image : model->GetImages()) {
+            DescriptorWriter(*descriptorSetLayouts_[name], *globalDescriptorPool_)
+                    .WriteImage(0, &image.texture.descriptor)
+                    .Build(image.descriptorSet);
+        }
     }
 }
 }

@@ -16,10 +16,13 @@ public:
     Mesh(const Mesh& other, type::EntityId newEntityId);
     virtual Component* Clone(type::EntityId newEntityId) override;
     bool IsVisible() const;
+    bool HasResource() const;
+    std::string ResourceName();
+    void SetName(std::string name);
 
     void SetVisibilityRecursive(bool visibility);
 private:
     bool visible_;
-    //Resource resource_
+    std::string resourceName_;
 };
 }

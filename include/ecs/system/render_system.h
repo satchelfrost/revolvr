@@ -10,6 +10,12 @@
 #include "ecs/component/types/spatial.h"
 
 namespace rvr::system::render{
-void PopulateRenderTransformBuffer(std::vector<math::Transform>& buffer);
-void DrawGrid(std::vector<math::Transform>& buffer);
+struct NamedTransform {
+    std::string resourceName;
+    math::Transform transform;
+};
+void AppendCubeTransformBuffer(std::vector<math::Transform>& buffer);
+void AppendGltfMap(std::map<std::string, std::vector<glm::mat4>>& gltfMap);
+std::set<std::string> GetUniqueModelNames();
+void DrawCubeGrid(std::vector<math::Transform>& buffer);
 }
