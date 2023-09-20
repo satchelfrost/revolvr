@@ -41,7 +41,7 @@ bool Scanner::IdentifierScan(std::string& line, int& pos) {
   if(isalpha(line[pos]) || line[pos] == '_') {
     std::string identifier;
     do {
-      if(isalnum(line[pos]) || line[pos] == '_') {
+      if(isalnum(line[pos]) || line[pos] == '_' || line[pos] == '/') {
         identifier += line[pos];
       }
       else {
@@ -76,7 +76,7 @@ bool Scanner::NumberScan(std::string& line, int& pos) {
 }
 
 void Scanner::Tokenize(std::string line) {
-  // Iterate throught the characters in a line
+  // Iterate throughout the characters in a line
   for (int pos = 0; pos < line.size(); pos++) {
     // Skip over whitespace
     if(isspace(line[pos]))

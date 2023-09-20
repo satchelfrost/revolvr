@@ -1,0 +1,36 @@
+#include <rendering/utilities/vulkan_view.h>
+
+namespace rvr {
+VulkanView::VulkanView(const std::shared_ptr<RenderingContext>& context, ViewType viewType, VkImage image) :
+device_(context->GetDevice()) {
+    VkFormat format;
+    VkImageAspectFlagBits aspectMask;
+    switch (viewType) {
+        case Depth:
+            format = context->GetDepthFormat();
+            aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+            break;
+        case Color:
+            format = context->GetColorFormat();
+            aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            break;
+        case Sample:
+            format = VK_FORMAT_R8G8B8A8_UNORM;
+            aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            break;
+        default:
+            THROW("Image type undefined");
+    }
+
+    context->CreateImageView(image, format, aspectMask, &imageView_);
+}
+
+
+VulkanView::~VulkanView() {
+    vkDestroyImageView(device_, imageView_, nullptr);
+}
+
+VkImageView VulkanView::GetImageView() {
+    return imageView_;
+}
+}

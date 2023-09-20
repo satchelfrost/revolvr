@@ -4,6 +4,54 @@
 #include <pch.h>
 
 namespace rvr {
+VkFormat GetVkFormat(DataType type, uint32_t count) {
+    switch (type) {
+        case DataType::U8:
+            switch (count) {
+                case 1: return VK_FORMAT_R8_UNORM;
+                case 2: return VK_FORMAT_R8G8_UNORM;
+                case 3: return VK_FORMAT_R8G8B8_UNORM;
+                case 4: return VK_FORMAT_R8G8B8A8_UNORM;
+                default: THROW("Unsupported count");
+            }
+        case DataType::U16:
+            switch (count) {
+                case 1:return VK_FORMAT_R16_UINT;
+                case 2:return VK_FORMAT_R16G16_UINT;
+                case 3: return VK_FORMAT_R16G16B16_UINT;
+                case 4: return VK_FORMAT_R16G16B16A16_UINT;
+                default: THROW("unsupported count");
+            }
+        case DataType::U32:
+            switch (count) {
+                case 1:return VK_FORMAT_R32_UINT;
+                case 2:return VK_FORMAT_R32G32_UINT;
+                case 3: return VK_FORMAT_R32G32B32_UINT;
+                case 4: return VK_FORMAT_R32G32B32A32_UINT;
+                default: THROW("unsupported count");
+            }
+        case DataType::F32:
+            switch (count) {
+                case 1:return VK_FORMAT_R32_SFLOAT;
+                case 2:return VK_FORMAT_R32G32_SFLOAT;
+                case 3: return VK_FORMAT_R32G32B32_SFLOAT;
+                case 4: return VK_FORMAT_R32G32B32A32_SFLOAT;
+                default: THROW("unsupported count");
+            }
+        default: THROW("unsupported enum");
+    }
+}
+
+size_t DataTypeSize(DataType type) {
+    switch(type) {
+        case DataType::U8:  return 1;
+        case DataType::U16: return 2;
+        case DataType::U32:
+        case DataType::F32: return 4;
+        default: THROW("Unsupported data type");
+    }
+}
+
 VkResult CreateDebugReportCallbackEXT(VkInstance instance, VkDebugReportCallbackCreateInfoEXT* createInfo,
                                       const VkAllocationCallbacks* pAllocator, VkDebugReportCallbackEXT* callback) {
     auto func = (PFN_vkCreateDebugReportCallbackEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT");
@@ -108,6 +156,7 @@ std::vector<char> CreateSPIRVVector(const char* assetName) {
     return shader_vector;
 }
 
+// TODO: Move this to rendering context
 int64_t SelectColorSwapchainFormat(const std::vector<int64_t> &runtimeFormats) {
     // List of supported color swapchain formats.
     constexpr int64_t SupportedColorSwapchainFormats[] = {VK_FORMAT_B8G8R8A8_SRGB,
@@ -156,9 +205,9 @@ XrResult GetVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystemId syste
     return pfnGetVulkanGraphicsRequirements2KHR(instance, systemId, graphicsRequirements);
 }
 
-void CheckVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystemId systemId,
-                                         XrGraphicsRequirementsVulkan2KHR* graphicsRequirements) {
-    CHECK_XRCMD(GetVulkanGraphicsRequirements2KHR(instance, systemId, graphicsRequirements));
+void CheckVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystemId systemId) {
+    XrGraphicsRequirementsVulkan2KHR graphicsRequirements{XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN2_KHR};
+    CHECK_XRCMD(GetVulkanGraphicsRequirements2KHR(instance, systemId, &graphicsRequirements));
 }
 
 QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice physicalDevice) {
@@ -172,15 +221,82 @@ QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice physicalDevice) {
 
     // Here we want the queue family to support graphics
     int i = 0;
+    bool found = false;
     for (const auto& queueFamily : queueFamilies) {
         if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
             indices.graphicsFamily = i;
 
-        if (indices.isComplete())
+        if (indices.isComplete()) {
+            found = true;
             break;
+        }
 
         i++;
     }
-    return indices;
+    if (found)
+        return indices;
+    else
+        THROW("Now suitable graphics queue family");
+}
+
+uint32_t FindMemoryType(VkPhysicalDevice physicalDevice, uint32_t filter, VkMemoryPropertyFlags flags) {
+    VkPhysicalDeviceMemoryProperties properties;
+    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &properties);
+    for (uint32_t i = 0; i < properties.memoryTypeCount; i++)
+        if (filter & (1u << i) && (properties.memoryTypes[i].propertyFlags & flags) == flags)
+            return i;
+    THROW("Failed to find suitable memory type");
+}
+
+// TODO: change this to be more like Vulkan Example
+void PopulateTransitionLayoutInfo(VkImageMemoryBarrier &barrier, VkPipelineStageFlags& srcStage,
+                                  VkPipelineStageFlags& dstStage, VkImageLayout oldLayout, VkImageLayout newLayout) {
+    if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED) {
+        switch (newLayout) {
+            case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+                barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+                barrier.srcAccessMask = 0;
+                barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+                srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+                dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+                break;
+            case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+                barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+                barrier.srcAccessMask = 0;
+                barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+                srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+                dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+                break;
+            case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+                barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+                barrier.srcAccessMask = 0;
+                barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+                                        VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+                srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+                dstStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+                break;
+            default:
+                THROW("Unsupported layout transition");
+        }
+    }
+    else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
+             newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+        barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+        dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    }
+    else {
+        THROW("Unsupported layout transition");
+    }
+}
+
+VkMemoryPropertyFlags GetMemoryPropertyFlags(MemoryType memType) {
+    switch (memType) {
+        case MemoryType::DeviceLocal: return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+        case MemoryType::HostVisible: return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+        default: THROW("Unknown memory type");
+    }
 }
 }

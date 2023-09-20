@@ -53,7 +53,11 @@ void CreateTrackedSpace(Entity *entity, const std::map<std::string, Parser::Fiel
 void CreateMesh(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
     bool visible = true;
     GetBoolField(entity, fields, "Mesh.visible", visible);
-    Assign(entity, new Mesh(entity->id, visible));
+    Mesh* mesh = new Mesh(entity->id, visible);
+    std::string name;
+    if (GetStringField(entity, fields, "Mesh.gltf", name))
+        mesh->SetName(name);
+    Assign(entity, mesh);
 }
 
 void CreateRitual(Entity *entity, const std::map<std::string, Parser::Field>& fields) {

@@ -8,41 +8,39 @@
 
 #include <pch.h>
 #include <common.h>
-
-#include <rendering/utilities/depth_buffer.h>
-#include <rendering/utilities/geometry.h>
+#include <rendering/utilities/command_buffer.h>
 #include <rendering/utilities/pipeline.h>
 #include <rendering/utilities/render_target.h>
-#include <rendering/utilities/render_pass.h>
-#include <rendering/utilities/vertex_buffer.h>
+#include <math/transform.h>
+#include "rendering/utilities/gltf/vulkan_gltf_model.h"
 
-class MemoryAllocator;
-
+namespace rvr {
 class SwapchainImageContext {
-public:
-    // A packed array of XrSwapchainImageVulkan2KHR's for xrEnumerateSwapchainImages
-    std::vector <XrSwapchainImageVulkan2KHR> swapchainImages;
-    std::vector <RenderTarget> renderTarget;
-    VkExtent2D size{};
-    DepthBuffer depthBuffer{};
-    RenderPass rp{};
-    Pipeline pipe{};
-    XrStructureType swapchainImageType;
-
-    SwapchainImageContext() = default;
-    SwapchainImageContext(XrStructureType _swapchainImageType);
-
-    std::vector<XrSwapchainImageBaseHeader *> Create(VkDevice device,
-           MemoryAllocator *memAllocator, uint32_t capacity,
-           const XrSwapchainCreateInfo &swapchainCreateInfo, const PipelineLayout &layout,
-           const ShaderProgram &sp, const VertexBuffer<Geometry::Vertex> &vb);
-
-    uint32_t ImageIndex(const XrSwapchainImageBaseHeader *swapchainImageHeader);
-
-    void BindRenderTarget(uint32_t index, VkRenderPassBeginInfo *renderPassBeginInfo);
-
 private:
-    VkDevice m_vkDevice{VK_NULL_HANDLE};
+    std::shared_ptr<RenderingContext> renderingContext_;
+    std::vector <XrSwapchainImageVulkan2KHR> swapchainImages_;
+
+    VkExtent2D swapchainExtent_;
+    VkViewport viewport_{};
+    VkRect2D scissor_{};
+
+    std::vector <std::unique_ptr<RenderTarget>> renderTargets_;
+    std::unique_ptr<CommandBuffer> cmdBuffer_;
+
+public:
+    SwapchainImageContext(const std::shared_ptr<RenderingContext>& renderingContext, uint32_t capacity,
+                          const XrSwapchainCreateInfo &swapchainCreateInfo);
+
+    // Expects a corresponding call to EndRenderPass()
+    void BeginRenderPass(uint32_t imageIndex);
+    // Expects BeginRenderPass() to have been called
+    void EndRenderPass();
+
+    void Draw(const std::unique_ptr<Pipeline>& pipeline, const std::unique_ptr<DrawBuffer>& drawBuffer,
+              const std::vector<glm::mat4> &transforms);
+    void DrawGltf(const std::unique_ptr<Pipeline>& pipeline, const std::unique_ptr<VulkanGLTFModel>& model,
+                  VkDescriptorSet descriptorSet, const std::vector<glm::mat4> &transforms);
+    XrSwapchainImageBaseHeader* GetFirstImagePointer();
+    void InitRenderTargets();
 };
-
-
+}

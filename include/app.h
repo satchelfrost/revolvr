@@ -26,7 +26,7 @@ public:
     Scene scene_;
     GlobalContext* globalContext_;
 
-    bool requestRestart_; // TODO: do something with this variable
-    bool exitRenderLoop_; // TODO: do something with this variable
+    bool requestRestart_;
+    bool exitRenderLoop_;
 };
 }

@@ -2,11 +2,26 @@
 #include <pch.h>
 
 namespace rvr {
+// TODO: move some of these enums and structs to vulkan data types
 struct QueueFamilyIndices {
     std::optional<uint32_t> graphicsFamily;
     bool isComplete() {return graphicsFamily.has_value();}
 };
 
+enum class DataType {
+    U8,
+    U16,
+    U32,
+    F32
+};
+
+enum class MemoryType {
+    DeviceLocal,
+    HostVisible
+};
+
+VkFormat GetVkFormat(DataType type, uint32_t count);
+size_t DataTypeSize(DataType type);
 VkResult CreateDebugReportCallbackEXT(VkInstance instance, VkDebugReportCallbackCreateInfoEXT* createInfo,
                                       const VkAllocationCallbacks* pAllocator,
                                       VkDebugReportCallbackEXT* callback);
@@ -27,7 +42,10 @@ XrResult GetVulkanGraphicsDevice2KHR(XrInstance instance, const XrVulkanGraphics
                                      VkPhysicalDevice* vulkanPhysicalDevice);
 XrResult GetVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystemId systemId,
                                            XrGraphicsRequirementsVulkan2KHR* graphicsRequirements);
-void CheckVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystemId systemId,
-                                         XrGraphicsRequirementsVulkan2KHR* graphicsRequirements);
+void CheckVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystemId systemId);
 QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice physicalDevice);
+uint32_t FindMemoryType(VkPhysicalDevice physicalDevice, uint32_t filter, VkMemoryPropertyFlags flags);
+void PopulateTransitionLayoutInfo(VkImageMemoryBarrier& barrier, VkPipelineStageFlags& srcStage,
+                                  VkPipelineStageFlags& dstStage, VkImageLayout oldLayout, VkImageLayout newLayout);
+VkMemoryPropertyFlags GetMemoryPropertyFlags(MemoryType memType);
 }

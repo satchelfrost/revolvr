@@ -8,30 +8,22 @@
 
 #include <pch.h>
 #include <common.h>
+#include <rendering/utilities/rendering_context.h>
+#include <rendering/utilities/vulkan_image.h>
+#include <rendering/utilities/vulkan_view.h>
 
-class RenderPass;
-
-// VkImage + framebuffer wrapper
+namespace rvr {
 class RenderTarget {
-public:
-    VkImage colorImage{VK_NULL_HANDLE};
-    VkImage depthImage{VK_NULL_HANDLE};
-    VkImageView colorView{VK_NULL_HANDLE};
-    VkImageView depthView{VK_NULL_HANDLE};
-    VkFramebuffer fb{VK_NULL_HANDLE};
-
-    RenderTarget() = default;
-
-    RenderTarget(RenderTarget &&other) noexcept;
-    RenderTarget &operator=(RenderTarget &&other) noexcept;
-    RenderTarget(const RenderTarget &) = delete;
-    RenderTarget &operator=(const RenderTarget &) = delete;
-
-    ~RenderTarget();
-
-    void Create(VkDevice device, VkImage aColorImage, VkImage aDepthImage, VkExtent2D size, RenderPass &renderPass);
-
 private:
-    VkDevice m_vkDevice{VK_NULL_HANDLE};
+    // OpenXR creates a color image for us, so no need to create one here
+    VulkanView* colorView_;
+    VulkanImage* depthImage_;
+    VulkanView* depthView_;
+    VkFramebuffer framebuffer_{VK_NULL_HANDLE};
+    VkDevice device_{VK_NULL_HANDLE};
+public:
+    RenderTarget(const std::shared_ptr<RenderingContext>& context, VkImage colorImage, VkExtent2D extent);
+    VkFramebuffer GetFramebuffer();
+    ~RenderTarget();
 };
-
+}

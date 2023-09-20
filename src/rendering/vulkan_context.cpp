@@ -12,18 +12,18 @@
 #include <ecs/system/spatial_system.h>
 #include <math/linear_math.h>
 #include <rendering/utilities/vulkan_utils.h>
+#include <rendering/utilities/vertex_buffer_layout.h>
+#include <rendering/utilities/vulkan_shader.h>
 
 namespace rvr {
-void VulkanContext::Init(XrInstance xrInstance, XrSystemId systemId) {
-    XrGraphicsRequirementsVulkan2KHR graphicsRequirements{XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN2_KHR};
-    CheckVulkanGraphicsRequirements2KHR(xrInstance, systemId, &graphicsRequirements);
+void VulkanContext::InitDevice(XrInstance xrInstance, XrSystemId systemId) {
+    CheckVulkanGraphicsRequirements2KHR(xrInstance, systemId);
     CreateVulkanInstance(xrInstance, systemId);
     SetupReportCallback();
     PickPhysicalDevice(xrInstance, systemId);
     CreateLogicalDevice(xrInstance, systemId);
-    vkGetDeviceQueue(device_, queueFamilyIndex_, 0, &graphicsQueue_);
-    memAllocator_.Init(physicalDevice_, device_);
-    InitializeResources();
+    CreateCommandPool();
+    RetrieveQueues();
     StoreGraphicsBinding();
 }
 
@@ -70,242 +70,68 @@ void VulkanContext::CreateVulkanInstance(XrInstance xrInstance, XrSystemId syste
 }
 
 void VulkanContext::InitializeResources() {
-    auto fragmentSPIRV = CreateSPIRVVector("shaders/basic.frag.spv");
-    auto vertexSPIRV = CreateSPIRVVector("shaders/basic.vert.spv");
+    InitCubeResources();
 
-    if (vertexSPIRV.empty()) THROW("Failed to compile vertex shader");
-    if (fragmentSPIRV.empty()) THROW("Failed to compile fragment shader");
-
-    shaderProgram_.Init(device_);
-    shaderProgram_.LoadVertexShader(vertexSPIRV);
-    shaderProgram_.LoadFragmentShader(fragmentSPIRV);
-
-    // Semaphore to block on draw complete
-    VkSemaphoreCreateInfo semInfo{VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
-    CHECK_VKCMD(vkCreateSemaphore(device_, &semInfo, nullptr, &drawDone_));
-
-    if (!cmdBuffer_.Init(device_, queueFamilyIndex_))
-        THROW("Failed to create command buffer");
-
-    pipelineLayout_.Create(device_);
-
-    static_assert(sizeof(Geometry::Vertex) == 24, "Unexpected Vertex size");
-    drawBuffer_.Init(device_, &memAllocator_,
-                     {{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Geometry::Vertex, Position)},
-                       {1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Geometry::Vertex, Color)}});
-    uint32_t numCubeIndices = sizeof(Geometry::c_cubeIndices) / sizeof(Geometry::c_cubeIndices[0]);
-    uint32_t numCubeVertices =
-            sizeof(Geometry::c_cubeVertices) / sizeof(Geometry::c_cubeVertices[0]);
-    drawBuffer_.Create(numCubeIndices, numCubeVertices);
-    drawBuffer_.UpdateIndices(Geometry::c_cubeIndices, numCubeIndices, 0);
-    drawBuffer_.UpdateVertices(Geometry::c_cubeVertices, numCubeVertices, 0);
+    std::set<std::string> uniqueNames = system::render::GetUniqueModelNames();
+    // Only try to load gltf models if necessary
+    if (!uniqueNames.empty()) {
+        InitGltfResources();
+        usingGltf_ = true;
+    }
 }
 
-std::vector<XrSwapchainImageBaseHeader *> VulkanContext::AllocateSwapchainImageStructs(
+XrSwapchainImageBaseHeader* VulkanContext::AllocateSwapchainImageStructs(
         uint32_t capacity, const XrSwapchainCreateInfo &swapchainCreateInfo) {
-    // Allocate and initialize the buffer of image structs (must be sequential in memory for xrEnumerateSwapchainImages).
-    // Return back an array of pointers to each swapchain image struct so the consumer doesn't need to know the type/size.
-    // Keep the buffer alive by adding it into the list of buffers.
-    swapchainImageContexts_.emplace_back(GetSwapchainImageType());
+    //
 
-    SwapchainImageContext &swapchainImageContext = swapchainImageContexts_.back();
-
-    std::vector<XrSwapchainImageBaseHeader *> bases = swapchainImageContext.Create(
-            device_, &memAllocator_, capacity, swapchainCreateInfo, pipelineLayout_,
-            shaderProgram_, drawBuffer_);
-
-    // Map every swapchainImage base pointer to this context
-    for (auto &base : bases) {
-        swapchainImageContextMap_[base] = &swapchainImageContext;
-    }
-
-    return bases;
+    auto context = std::make_shared<SwapchainImageContext>(renderingContext_,
+                                                                         capacity, swapchainCreateInfo);
+    auto images = context->GetFirstImagePointer();
+    imageToSwapchainContext_.insert(std::make_pair(images, context));
+    return images;
 }
 
 void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView,
-                               const XrSwapchainImageBaseHeader *swapchainImage,
-                               int64_t /*swapchainFormat*/, const std::vector<math::Transform> &cubes) {
-    CHECK(layerView.subImage.imageArrayIndex == 0);  // Texture arrays not supported.
-
-    auto swapchainContext = swapchainImageContextMap_[swapchainImage];
-    uint32_t imageIndex = swapchainContext->ImageIndex(swapchainImage);
-
-    cmdBuffer_.Reset();
-    cmdBuffer_.Begin();
-
-    // Ensure depth is in the right layout
-    swapchainContext->depthBuffer.
-    TransitionLayout(&cmdBuffer_, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
-
-    // Bind and clear eye render target
-    static XrColor4f darkSlateGrey = {0.184313729f, 0.309803933f, 0.309803933f, 1.0f};
-    static std::array<VkClearValue, 2> clearValues;
-    clearValues[0].color.float32[0] = darkSlateGrey.r;
-    clearValues[0].color.float32[1] = darkSlateGrey.g;
-    clearValues[0].color.float32[2] = darkSlateGrey.b;
-    clearValues[0].color.float32[3] = darkSlateGrey.a;
-    clearValues[1].depthStencil.depth = 1.0f;
-    clearValues[1].depthStencil.stencil = 0;
-    VkRenderPassBeginInfo renderPassBeginInfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
-    renderPassBeginInfo.clearValueCount = (uint32_t) clearValues.size();
-    renderPassBeginInfo.pClearValues = clearValues.data();
-
-    swapchainContext->BindRenderTarget(imageIndex, &renderPassBeginInfo);
-
-    vkCmdBeginRenderPass(cmdBuffer_.buf, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-    vkCmdBindPipeline(cmdBuffer_.buf, VK_PIPELINE_BIND_POINT_GRAPHICS, swapchainContext->pipe.pipe);
-
-    // Bind index and vertex buffers
-    vkCmdBindIndexBuffer(cmdBuffer_.buf, drawBuffer_.idxBuf, 0, VK_INDEX_TYPE_UINT16);
-    VkDeviceSize offset = 0;
-    vkCmdBindVertexBuffers(cmdBuffer_.buf, 0, 1, &drawBuffer_.vtxBuf, &offset);
-
+                               const XrSwapchainImageBaseHeader *swapchainImage, uint32_t imageIndex) {
+    // Texture arrays not supported.
+    CHECK(layerView.subImage.imageArrayIndex == 0);
     // Compute the view-projection transform.
     // Note all matrices (including OpenXR) are column-major, right-handed.
-    const auto &pose = layerView.pose;
-
     glm::mat4 projectionMatrix = math::matrix::CreateProjectionFromXrFOV(layerView.fov, 0.05f, 100.0f);
-    glm::mat4 poseMatrix = math::Pose(pose).ToMat4();
+    glm::mat4 poseMatrix = math::Pose(layerView.pose).ToMat4();
     glm::mat4 viewMatrix = glm::affineInverse(poseMatrix);
     glm::mat4 viewProjection = projectionMatrix * viewMatrix;
-
-    // Render each cube
-    for (const math::Transform &cube : cubes) {
-        glm::mat4 modelMatrix = cube.ToMat4();
-        glm::mat4 mvp = viewProjection * modelMatrix;
-        vkCmdPushConstants(cmdBuffer_.buf, pipelineLayout_.layout,
-                           VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(mvp),
-                           glm::value_ptr(mvp));
-        vkCmdDrawIndexed(cmdBuffer_.buf, drawBuffer_.count.idx,
-                         1, 0, 0, 0);
-    }
-
-    vkCmdEndRenderPass(cmdBuffer_.buf);
-
-    cmdBuffer_.End();
-    cmdBuffer_.Exec(graphicsQueue_);
-
-    // XXX Should double-buffer the command buffers, for now just flush
-    cmdBuffer_.Wait();
-}
-
-void VulkanContext::Render() {
-    XrContext* xrContext = GlobalContext::Inst()->GetXrContext();
-    if (xrContext->frameState.shouldRender == XR_TRUE) {
-        if (RenderLayer(xrContext->projectionLayerViews, xrContext->mainLayer, xrContext)) {
-            xrContext->AddMainLayer();
-        }
-    }
-}
-
-bool VulkanContext::RenderLayer(std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
-                                XrCompositionLayerProjection& layer, XrContext* xrContext) {
-    XrViewState viewState{XR_TYPE_VIEW_STATE};
-    auto viewCapacityInput = (uint32_t)xrContext->views.size();
-    uint32_t viewCountOutput;
-
-    XrViewLocateInfo viewLocateInfo{XR_TYPE_VIEW_LOCATE_INFO};
-    viewLocateInfo.viewConfigurationType = xrContext->viewConfigType;
-    viewLocateInfo.displayTime = xrContext->frameState.predictedDisplayTime;
-    viewLocateInfo.space = xrContext->appSpace;
-
-    XrResult res = xrLocateViews(xrContext->session, &viewLocateInfo, &viewState, viewCapacityInput,
-                                 &viewCountOutput, xrContext->views.data());
-    CHECK_XRRESULT(res, "xrLocateViews");
-    if ((viewState.viewStateFlags & XR_VIEW_STATE_POSITION_VALID_BIT) == 0 ||
-        (viewState.viewStateFlags & XR_VIEW_STATE_ORIENTATION_VALID_BIT) == 0) {
-        return false;  // There is no valid tracking poses for the views.
-    }
-
-    CHECK(viewCountOutput == viewCapacityInput);
-    CHECK(viewCountOutput == xrContext->configViews.size());
-    CHECK(viewCountOutput == xrContext->swapchains.size());
-
-    projectionLayerViews.resize(viewCountOutput);
-
-    // Convert renderable to a cube for now
-    for (auto spatial : system::render::GetRenderSpatials()) {
-        math::Transform cube{};
-        cube = system::spatial::GetPlayerRelativeTransform(spatial);
-        renderBuffer_.push_back(cube);
-    }
-
-    // Draw a simple grid
-    DrawGrid();
-
-    // Render view to the appropriate part of the swapchain image.
-    for (uint32_t i = 0; i < viewCountOutput; i++) {
-        // Each view has a separate swapchain which is acquired, rendered to, and released.
-        const Swapchain viewSwapchain = xrContext->swapchains[i];
-
-        XrSwapchainImageAcquireInfo acquireInfo{XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO};
-
-        uint32_t swapchainImageIndex;
-        CHECK_XRCMD(xrAcquireSwapchainImage(viewSwapchain.handle, &acquireInfo, &swapchainImageIndex));
-
-        XrSwapchainImageWaitInfo waitInfo{XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO};
-        waitInfo.timeout = XR_INFINITE_DURATION;
-        CHECK_XRCMD(xrWaitSwapchainImage(viewSwapchain.handle, &waitInfo));
-
-        projectionLayerViews[i] = {XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW};
-        projectionLayerViews[i].pose = xrContext->views[i].pose;
-        projectionLayerViews[i].fov = xrContext->views[i].fov;
-        projectionLayerViews[i].subImage.swapchain = viewSwapchain.handle;
-        projectionLayerViews[i].subImage.imageRect.offset = {0, 0};
-        projectionLayerViews[i].subImage.imageRect.extent = {viewSwapchain.width, viewSwapchain.height};
-
-        const XrSwapchainImageBaseHeader* const swapchainImage = xrContext->swapchainImageMap[viewSwapchain.handle][swapchainImageIndex];
-        RenderView(projectionLayerViews[i], swapchainImage, xrContext->colorSwapchainFormat, renderBuffer_);
-
-        XrSwapchainImageReleaseInfo releaseInfo{XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO};
-        CHECK_XRCMD(xrReleaseSwapchainImage(viewSwapchain.handle, &releaseInfo));
-    }
-
-    // Clear the renderBuffer for the next frame
+    std::vector<glm::mat4> cubeMvps;
     renderBuffer_.clear();
-
-    layer.space = xrContext->appSpace;
-    layer.viewCount = (uint32_t)projectionLayerViews.size();
-    layer.views = projectionLayerViews.data();
-    return true;
-}
-
-void VulkanContext::DrawGrid() {
-    // Get the player and spatial world transforms
-    auto player = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(GlobalContext::Inst()->PLAYER_ID);
-    CHECK_MSG(player, "Player spatial does not exist inside of GetPlayerRelativeTransform()");
-    math::Transform playerWorld = player->GetWorld();
-    auto invOrientation = glm::inverse(playerWorld.GetOrientation());
-
-    // Draw the horizontal lines
-    for (int i = -5; i <= 5; i ++) {
-        math::Transform cube;
-        glm::vec3 position(0, 0, (float)i * 2.0f);
-        auto relativePosition = position - playerWorld.GetPosition();
-        cube.SetPosition(invOrientation * relativePosition);
-        cube.SetOrientation(invOrientation);
-        cube.SetScale(20.0f, 0.1f, 0.1f);
-        renderBuffer_.push_back(cube);
+    system::render::AppendCubeTransformBuffer(renderBuffer_);
+    for (const math::Transform &model : renderBuffer_) {
+        glm::mat4 modelMatrix = model.ToMat4();
+        glm::mat4 mvp = viewProjection * modelMatrix;
+        cubeMvps.push_back(mvp);
     }
-    // Draw the vertical lines
-    for (int i = -5; i <= 5; i ++) {
-        math::Transform cube;
-        glm::vec3 position((float)i * 2.0f, 0, 0);
-        auto relativePosition = position - playerWorld.GetPosition();
-        cube.SetPosition(invOrientation * relativePosition);
-        cube.SetOrientation(invOrientation);
-        cube.SetScale(0.1f, 0.1f, 20.0f);
-        renderBuffer_.push_back(cube);
+
+    std::map<std::string, std::vector<glm::mat4>> gltfMap;
+    system::render::AppendGltfMap(gltfMap);
+
+    if (usingGltf_) {
+        // Update uniform buffer
+        uboScene.projection = projectionMatrix;
+        uboScene.view = viewMatrix;
+        auto position = math::Pose(layerView.pose).GetPosition();
+        uboScene.viewPos = glm::vec4(position, 0.0f) * glm::vec4(-1.0f, 1.0f, -1.0f, 1.0f);
+        uniformBuffer_->WriteToBuffer(&uboScene);
     }
+
+    auto swapchainContext = imageToSwapchainContext_[swapchainImage];
+    swapchainContext->BeginRenderPass(imageIndex);
+    swapchainContext->Draw(cubePipeline_, drawBuffer_, cubeMvps);
+    for (auto& [name, model] : models_)
+        swapchainContext->DrawGltf(gltfPipeline_, model, uboSceneDescriptorSet_, gltfMap[name]);
+    swapchainContext->EndRenderPass();
 }
 
 std::vector<std::string> VulkanContext::GetInstanceExtensions() {
     return {XR_KHR_VULKAN_ENABLE2_EXTENSION_NAME};
-}
-
-XrStructureType VulkanContext::GetSwapchainImageType() {
-    return XR_TYPE_SWAPCHAIN_IMAGE_VULKAN2_KHR;
 }
 
 uint32_t VulkanContext::GetSupportedSwapchainSampleCount(const XrViewConfigurationView &) {
@@ -369,11 +195,11 @@ void VulkanContext::PickPhysicalDevice(XrInstance xrInstance, XrSystemId systemI
 }
 
 void VulkanContext::CreateLogicalDevice(XrInstance xrInstance, XrSystemId systemId) {
-    QueueFamilyIndices indices = FindQueueFamilies(physicalDevice_);
+    queueFamilyIndices_ = FindQueueFamilies(physicalDevice_);
     float queuePriority = 1.0f;
     VkDeviceQueueCreateInfo queueCreateInfo{};
     queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
+    queueCreateInfo.queueFamilyIndex = queueFamilyIndices_.graphicsFamily.value();
     queueCreateInfo.queueCount = 1;
     queueCreateInfo.pQueuePriorities = &queuePriority;
 
@@ -405,12 +231,149 @@ void VulkanContext::CreateLogicalDevice(XrInstance xrInstance, XrSystemId system
     CHECK_VKCMD(vkResult);
 }
 
+void VulkanContext::CreateCommandPool() {
+    VkCommandPoolCreateInfo cmdPoolInfo{VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO};
+    cmdPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    cmdPoolInfo.queueFamilyIndex = queueFamilyIndices_.graphicsFamily.value();
+    CHECK_VKCMD(vkCreateCommandPool(device_, &cmdPoolInfo, nullptr,
+                                    &graphicsPool_));
+}
+
 void VulkanContext::StoreGraphicsBinding() {
     graphicsBinding_.type = XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR;
     graphicsBinding_.instance = instance_;
     graphicsBinding_.physicalDevice = physicalDevice_;
     graphicsBinding_.device = device_;
-    graphicsBinding_.queueFamilyIndex = queueFamilyIndex_;
+    graphicsBinding_.queueFamilyIndex = queueFamilyIndices_.graphicsFamily.value();
     graphicsBinding_.queueIndex = 0;
+}
+
+void VulkanContext::RetrieveQueues() {
+    vkGetDeviceQueue(device_, queueFamilyIndices_.graphicsFamily.value(), 0,
+                     &graphicsQueue_);
+}
+
+void VulkanContext::SwapchainImagesReady(XrSwapchainImageBaseHeader *images) {
+    auto context = imageToSwapchainContext_[images];
+    context->InitRenderTargets();
+}
+
+void VulkanContext::InitRenderingContext(VkFormat colorFormat) {
+    renderingContext_ = std::make_shared<RenderingContext>(physicalDevice_, device_,
+                                                           graphicsQueue_, colorFormat,
+                                                           graphicsPool_);
+//    InitializeResources();
+}
+
+std::shared_ptr<RenderingContext> VulkanContext::GetRenderingContext() {
+    return renderingContext_;
+}
+
+void VulkanContext::InitCubeResources() {
+    auto vert = std::make_unique<VulkanShader>(device_,
+                                                       "shaders/basic.vert.spv",
+                                                       VulkanShader::Vertex);
+    vert->PushConstant("Model View Projection Matrix", sizeof(glm::mat4));
+    auto frag= std::make_unique<VulkanShader>(device_,
+                                              "shaders/basic.frag.spv",
+                                              VulkanShader::Fragment);
+    cubeShaderStages_ = std::make_unique<ShaderStages>(device_, std::move(vert),
+                                                     std::move(frag));
+    VertexBufferLayout vertexBufferLayout;
+    vertexBufferLayout.Push({0, DataType::F32, 3, "Position"});
+    vertexBufferLayout.Push({1, DataType::F32, 3, "Color"});
+    size_t sizeOfIndex = sizeof(Geometry::c_cubeIndices[0]);
+    size_t sizeOfVertex = sizeof(Geometry::c_cubeVertices[0]);
+    size_t indexCount = sizeof(Geometry::c_cubeIndices) / sizeOfIndex;
+    size_t vertexCount = sizeof(Geometry::c_cubeVertices) / sizeOfVertex;
+    auto indexBuffer = std::make_unique<VulkanBuffer>(renderingContext_,
+                                                      sizeOfIndex, indexCount,
+                                                  VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                                                  MemoryType::HostVisible);
+    auto vertexBuffer = std::make_unique<VulkanBuffer>(renderingContext_,
+                                                       sizeOfVertex, vertexCount,
+                                                   VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                                                   MemoryType::HostVisible);
+    drawBuffer_ = std::make_unique<DrawBuffer>(std::move(indexBuffer),
+                                               std::move(vertexBuffer));
+    drawBuffer_->UpdateIndices(Geometry::c_cubeIndices);
+    drawBuffer_->UpdateVertices(Geometry::c_cubeVertices);
+    cubePipeline_ = std::make_unique<Pipeline>(renderingContext_, cubeShaderStages_, vertexBufferLayout,
+                                               VK_FRONT_FACE_CLOCKWISE);
+}
+
+void VulkanContext::InitGltfResources() {
+    // Setup model and uniform buffer before setting up descriptors
+    std::set<std::string> uniqueNames = system::render::GetUniqueModelNames();
+    for (auto& name : uniqueNames)
+        models_[name] = std::make_unique<VulkanGLTFModel>(renderingContext_, name + ".gltf");
+
+    uniformBuffer_ = std::make_unique<VulkanBuffer>(renderingContext_, sizeof(uboScene),
+                                                    1, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                                                    MemoryType::HostVisible);
+    uniformBuffer_->Map();
+    uniformBuffer_->WriteToBuffer(&uboScene);
+    SetupDescriptors();
+
+    // Create the shader stages, add any push constants and/or descriptor set layouts
+    auto vert = std::make_unique<VulkanShader>(device_,
+                                               "shaders/basic_gltf.vert.spv",
+                                               VulkanShader::Vertex);
+    vert->PushConstant("Model primitive", sizeof(glm::mat4));
+    vert->AddSetLayout(descriptorSetLayouts_["ubo"]->GetDescriptorSetLayout());
+    auto frag = std::make_unique<VulkanShader>(device_,
+                                               "shaders/basic_gltf.frag.spv",
+                                               VulkanShader::Fragment);
+//    frag->AddSetLayout(descriptorSetLayouts_["texture"]->GetDescriptorSetLayout());
+    for (auto& [name, model] : models_)
+        frag->AddSetLayout(descriptorSetLayouts_[name]->GetDescriptorSetLayout());
+    gltfShaderStages_ = std::make_unique<ShaderStages>(device_, std::move(vert),
+                                                       std::move(frag));
+
+    // Setup vertex buffer layout, and use that along with shader stages to create a pipeline
+    VertexBufferLayout vertexBufferLayout;
+    vertexBufferLayout.Push({0, DataType::F32, 3, "Position"});
+    vertexBufferLayout.Push({1, DataType::F32, 3, "Normal"});
+    vertexBufferLayout.Push({2, DataType::F32, 2, "UV"});
+    vertexBufferLayout.Push({3, DataType::F32, 3, "Color"});
+    gltfPipeline_ = std::make_unique<Pipeline>(renderingContext_, gltfShaderStages_, vertexBufferLayout,
+                                               VK_FRONT_FACE_COUNTER_CLOCKWISE);
+}
+
+void VulkanContext::SetupDescriptors() {
+    // Setup the descriptor pool
+    DescriptorPool::Builder builder(device_);
+    uint32_t maxSets = 1; // start with ubo
+    builder.AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1);
+    for (auto& [name, model] : models_) {
+        uint32_t numImages = model->GetNumImages();
+        maxSets += numImages;
+        builder.AddPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, numImages);
+    }
+    builder.SetMaxSets(maxSets);
+    globalDescriptorPool_ = builder.Build();
+
+    // Setup descriptor set layout and descriptor sets for ubo
+    descriptorSetLayouts_["ubo"] = DescriptorSetLayout::Builder(device_)
+            .AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                        VK_SHADER_STAGE_VERTEX_BIT)
+            .Build();
+    auto bufferInfo = uniformBuffer_->DescriptorInfo();
+    DescriptorWriter(*descriptorSetLayouts_["ubo"], *globalDescriptorPool_)
+        .WriteBuffer(0, &bufferInfo)
+        .Build(uboSceneDescriptorSet_);
+
+    // For each model setup descriptor sets for materials
+    for (auto& [name, model] : models_) {
+        descriptorSetLayouts_[name] = DescriptorSetLayout::Builder(device_)
+                .AddBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                            VK_SHADER_STAGE_FRAGMENT_BIT)
+                .Build();
+        for (auto& image : model->GetImages()) {
+            DescriptorWriter(*descriptorSetLayouts_[name], *globalDescriptorPool_)
+                    .WriteImage(0, &image.texture.descriptor)
+                    .Build(image.descriptorSet);
+        }
+    }
 }
 }

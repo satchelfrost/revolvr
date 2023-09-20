@@ -15,9 +15,10 @@ public:
                  std::string actionPath, ActionType type);
     void Update(XrSession& session) override;
     void Reset();
-    void ApplyVibration(XrSession &session, Hand hand, float amplitude = 0.0,
+    void ApplyVibration(Hand hand, float amplitude = 0.0,
                         float frequency = 0.0, XrDuration duration = XR_MIN_HAPTIC_DURATION);
 private:
     XrHapticVibration vibration_{XR_TYPE_HAPTIC_VIBRATION};
+    XrSession session_{XR_NULL_HANDLE};
 };
 }
