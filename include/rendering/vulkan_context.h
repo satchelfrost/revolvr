@@ -44,10 +44,11 @@ private:
     std::unique_ptr<DrawBuffer> drawBuffer_;
     std::unique_ptr<Pipeline> cubePipeline_;
 
-    // For now just one gltf model to test
+
+    // Gltf stuff
+    bool usingGltf_ = false;
     std::unique_ptr<ShaderStages> gltfShaderStages_;
     std::unique_ptr<Pipeline> gltfPipeline_;
-//    std::unique_ptr<VulkanGLTFModel> model_; // for now just one
     std::map<std::string, std::unique_ptr<VulkanGLTFModel>> models_;
     std::unique_ptr<VulkanBuffer> uniformBuffer_;
     VkDescriptorSet uboSceneDescriptorSet_;
@@ -57,8 +58,6 @@ private:
         glm::vec4 lightPos = glm::vec4(5.0f, 5.0f, 5.0f, 1.0f);
         glm::vec4 viewPos;
     } uboScene;
-
-    // Global descriptor pool
     std::unique_ptr<DescriptorPool> globalDescriptorPool_;
     std::map<std::string, std::unique_ptr<DescriptorSetLayout>> descriptorSetLayouts_;
 

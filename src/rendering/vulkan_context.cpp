@@ -71,7 +71,13 @@ void VulkanContext::CreateVulkanInstance(XrInstance xrInstance, XrSystemId syste
 
 void VulkanContext::InitializeResources() {
     InitCubeResources();
-    InitGltfResources();
+
+    std::set<std::string> uniqueNames = system::render::GetUniqueModelNames();
+    // Only try to load gltf models if necessary
+    if (!uniqueNames.empty()) {
+        InitGltfResources();
+        usingGltf_ = true;
+    }
 }
 
 XrSwapchainImageBaseHeader* VulkanContext::AllocateSwapchainImageStructs(
@@ -107,12 +113,14 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
     std::map<std::string, std::vector<glm::mat4>> gltfMap;
     system::render::AppendGltfMap(gltfMap);
 
-    // Update uniform buffer
-    uboScene.projection = projectionMatrix;
-    uboScene.view = viewMatrix;
-    auto position = math::Pose(layerView.pose).GetPosition();
-    uboScene.viewPos = glm::vec4(position, 0.0f) * glm::vec4(-1.0f, 1.0f, -1.0f, 1.0f);
-    uniformBuffer_->WriteToBuffer(&uboScene);
+    if (usingGltf_) {
+        // Update uniform buffer
+        uboScene.projection = projectionMatrix;
+        uboScene.view = viewMatrix;
+        auto position = math::Pose(layerView.pose).GetPosition();
+        uboScene.viewPos = glm::vec4(position, 0.0f) * glm::vec4(-1.0f, 1.0f, -1.0f, 1.0f);
+        uniformBuffer_->WriteToBuffer(&uboScene);
+    }
 
     auto swapchainContext = imageToSwapchainContext_[swapchainImage];
     swapchainContext->BeginRenderPass(imageIndex);
@@ -298,7 +306,7 @@ void VulkanContext::InitGltfResources() {
     // Setup model and uniform buffer before setting up descriptors
     std::set<std::string> uniqueNames = system::render::GetUniqueModelNames();
     for (auto& name : uniqueNames)
-        models_[name] = std::make_unique<VulkanGLTFModel>(renderingContext_, "gltf/shrek/" + name + ".gltf");
+        models_[name] = std::make_unique<VulkanGLTFModel>(renderingContext_, name + ".gltf");
 
     uniformBuffer_ = std::make_unique<VulkanBuffer>(renderingContext_, sizeof(uboScene),
                                                     1, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,

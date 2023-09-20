@@ -7,6 +7,8 @@
 #include "ecs/component/types/mesh.h"
 #include <global_context.h>
 
+#include <utility>
+
 namespace rvr {
 Mesh::Mesh(type::EntityId pId, bool visible) : Component(ComponentType::Mesh, pId), visible_(visible) {}
 
@@ -41,6 +43,6 @@ std::string Mesh::ResourceName() {
 }
 
 void Mesh::SetName(std::string name) {
-    resourceName_ = name;
+    resourceName_ = std::move(name);
 }
 }
