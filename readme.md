@@ -23,6 +23,7 @@ The RevolVR Game Engine is a VR-focused C++ game engine. It's free to use with a
 * CMake build system
 * OpenXR compatibility
 * Vulkan compatibility
+* gltf model loading
 * An Entity Component System (ECS)
 * A custom scene description file format
 * WAV file loading and playback
@@ -42,8 +43,6 @@ We hope to expand this in the future. Perhaps starting with lower hanging fruit 
 
 ## Planned Features
 RevolVR was made with purpose-built in mind. So by-definition it doesn't try to be a general purpose engine. If the game needs it, then the feature gets added. This means no GUI/editor, you will just be editing a scene description file, and writing C++.
-
-With that said, the next major features will be mainly graphical. We plan to use gltf as the graphics file format.
 
 If there is a feature you are particularly interested in, then you may open an issue, or perhaps fork the project and build it yourself.
 
