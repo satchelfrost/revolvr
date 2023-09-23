@@ -289,8 +289,10 @@ void VulkanGLTFModel::DrawNode(VkCommandBuffer commandBuffer, VkPipelineLayout p
             nodeMatrix = currentParent->matrix * nodeMatrix;
             currentParent = currentParent->parent;
         }
+        glm::mat4 normalMatrix = glm::inverseTranspose(nodeMatrix);
         // Pass the final matrix to the vertex shader using push constants
         vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &nodeMatrix);
+        vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, sizeof(glm::mat4), sizeof(glm::mat4), &normalMatrix);
         for (gltf::Primitive& primitive : node->mesh.primitives) {
             if (primitive.indexCount > 0) {
                 // Get the texture index for this primitive

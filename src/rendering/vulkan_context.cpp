@@ -14,6 +14,7 @@
 #include <rendering/utilities/vulkan_utils.h>
 #include <rendering/utilities/vertex_buffer_layout.h>
 #include <rendering/utilities/vulkan_shader.h>
+#include <ecs/component/types/spatial.h>
 
 namespace rvr {
 void VulkanContext::InitDevice(XrInstance xrInstance, XrSystemId systemId) {
@@ -118,7 +119,10 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
         uboScene.projection = projectionMatrix;
         uboScene.view = viewMatrix;
         auto position = math::Pose(layerView.pose).GetPosition();
+//        auto position = glm::vec3(viewMatrix[3]);
         uboScene.viewPos = glm::vec4(position, 0.0f) * glm::vec4(-1.0f, 1.0f, -1.0f, 1.0f);
+        auto* spatial = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(13);
+        uboScene.lightPos = glm::vec4(system::spatial::GetPlayerRelativeTransform(spatial).GetPosition(), 1.0f);
         uniformBuffer_->WriteToBuffer(&uboScene);
     }
 
@@ -320,11 +324,11 @@ void VulkanContext::InitGltfResources() {
                                                "shaders/basic_gltf.vert.spv",
                                                VulkanShader::Vertex);
     vert->PushConstant("Model primitive", sizeof(glm::mat4));
+    vert->PushConstant("Normal matrix", sizeof(glm::mat4));
     vert->AddSetLayout(descriptorSetLayouts_["ubo"]->GetDescriptorSetLayout());
     auto frag = std::make_unique<VulkanShader>(device_,
                                                "shaders/basic_gltf.frag.spv",
                                                VulkanShader::Fragment);
-//    frag->AddSetLayout(descriptorSetLayouts_["texture"]->GetDescriptorSetLayout());
     for (auto& [name, model] : models_)
         frag->AddSetLayout(descriptorSetLayouts_[name]->GetDescriptorSetLayout());
     gltfShaderStages_ = std::make_unique<ShaderStages>(device_, std::move(vert),
