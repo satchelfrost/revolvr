@@ -4,7 +4,7 @@
 /* (http://opensource.org/licenses/MIT)                                    */
 /***************************************************************************/
 
-#include <ecs/component/aux/tracked_space_type.h>
+#include <ecs/component/tracked_space_type.h>
 #include <common.h>
 
 namespace rvr {

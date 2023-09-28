@@ -9,7 +9,7 @@
 #include <xr_context.h>
 #include "xr_app_helpers.h"
 #include "ecs/entity/entity.h"
-#include <ecs/component/aux/tracked_space_type.h>
+#include <ecs/component/tracked_space_type.h>
 
 namespace rvr::system::spatial {
 void UpdateTrackedSpaces(XrContext* context);

@@ -7,7 +7,7 @@
 #pragma once
 
 #include "ecs/component/component.h"
-#include "ecs/component/aux/tracked_space_type.h"
+#include "ecs/component/tracked_space_type.h"
 
 namespace rvr {
 class TrackedSpace : public Component {
