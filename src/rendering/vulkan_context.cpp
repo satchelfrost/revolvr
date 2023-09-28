@@ -119,8 +119,9 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
         uboScene.projection = projectionMatrix;
         uboScene.view = viewMatrix;
         auto position = math::Pose(layerView.pose).GetPosition();
-//        auto position = glm::vec3(viewMatrix[3]);
-        uboScene.viewPos = glm::vec4(position, 0.0f) * glm::vec4(-1.0f, 1.0f, -1.0f, 1.0f);
+        uboScene.viewPos = glm::vec4(position, 0.0f);// * glm::vec4(-1.0f, 1.0f, -1.0f, 1.0f);
+//        uboScene.invView = poseMatrix;
+
         auto* spatial = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(13);
         uboScene.lightPos = glm::vec4(system::spatial::GetPlayerRelativeTransform(spatial).GetPosition(), 1.0f);
         uniformBuffer_->WriteToBuffer(&uboScene);

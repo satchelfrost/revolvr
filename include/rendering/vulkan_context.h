@@ -56,6 +56,7 @@ private:
         glm::mat4 projection;
         glm::mat4 view;
         glm::vec4 lightPos = glm::vec4(5.0f, 5.0f, 5.0f, 1.0f);
+//        glm::mat4 invView;
         glm::vec4 viewPos;
     } uboScene;
     std::unique_ptr<DescriptorPool> globalDescriptorPool_;
