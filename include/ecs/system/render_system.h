@@ -8,6 +8,7 @@
 
 #include "ecs/entity/entity.h"
 #include "ecs/component/types/spatial.h"
+#include "rendering/utilities/gltf/vulkan_gltf_model.h"
 
 namespace rvr::system::render{
 struct NamedTransform {
@@ -15,7 +16,7 @@ struct NamedTransform {
     math::Transform transform;
 };
 void AppendCubeTransformBuffer(std::vector<math::Transform>& buffer);
-void AppendGltfMap(std::map<std::string, std::vector<glm::mat4>>& gltfMap);
+void AppendGltfModelPushConstants(std::map<std::string, std::unique_ptr<VulkanGLTFModel>>& models);
 std::set<std::string> GetUniqueModelNames();
 void DrawCubeGrid(std::vector<math::Transform>& buffer);
 }

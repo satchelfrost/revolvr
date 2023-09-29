@@ -44,7 +44,6 @@ private:
     std::unique_ptr<DrawBuffer> drawBuffer_;
     std::unique_ptr<Pipeline> cubePipeline_;
 
-
     // Gltf stuff
     bool usingGltf_ = false;
     std::unique_ptr<ShaderStages> gltfShaderStages_;
@@ -55,8 +54,7 @@ private:
     struct UBOScene {
         glm::mat4 projection;
         glm::mat4 view;
-        glm::vec4 lightPos = glm::vec4(5.0f, 5.0f, 5.0f, 1.0f);
-//        glm::mat4 invView;
+        glm::vec4 lightPos;
         glm::vec4 viewPos;
     } uboScene;
     std::unique_ptr<DescriptorPool> globalDescriptorPool_;
@@ -77,7 +75,6 @@ public:
     static std::vector<std::string> GetInstanceExtensions();
     static uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView& view);
     const XrBaseInStructure* GetGraphicsBinding() const;
-    std::shared_ptr<RenderingContext> GetRenderingContext();
     void InitializeResources();
     void InitRenderingContext(VkFormat colorFormat);
     void SwapchainImagesReady(XrSwapchainImageBaseHeader* images);

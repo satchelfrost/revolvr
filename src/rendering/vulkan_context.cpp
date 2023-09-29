@@ -102,6 +102,8 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
     glm::mat4 poseMatrix = math::Pose(layerView.pose).ToMat4();
     glm::mat4 viewMatrix = glm::affineInverse(poseMatrix);
     glm::mat4 viewProjection = projectionMatrix * viewMatrix;
+
+
     std::vector<glm::mat4> cubeMvps;
     renderBuffer_.clear();
     system::render::AppendCubeTransformBuffer(renderBuffer_);
@@ -111,27 +113,30 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
         cubeMvps.push_back(mvp);
     }
 
-    std::map<std::string, std::vector<glm::mat4>> gltfMap;
-    system::render::AppendGltfMap(gltfMap);
-
+    // Update uniform buffer for gltf models
     if (usingGltf_) {
-        // Update uniform buffer
         uboScene.projection = projectionMatrix;
         uboScene.view = viewMatrix;
         auto position = math::Pose(layerView.pose).GetPosition();
-        uboScene.viewPos = glm::vec4(position, 0.0f);// * glm::vec4(-1.0f, 1.0f, -1.0f, 1.0f);
-//        uboScene.invView = poseMatrix;
+        uboScene.viewPos = glm::vec4(position, 0.0f);
 
+        // TODO: don't hardcode light source
         auto* spatial = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(13);
         uboScene.lightPos = glm::vec4(system::spatial::GetPlayerRelativeTransform(spatial).GetPosition(), 1.0f);
         uniformBuffer_->WriteToBuffer(&uboScene);
     }
 
+    // Update the transforms for each gltf model
+    system::render::AppendGltfModelPushConstants(models_);
+
+    // Acquire swapchain context and begin render pass
     auto swapchainContext = imageToSwapchainContext_[swapchainImage];
     swapchainContext->BeginRenderPass(imageIndex);
     swapchainContext->Draw(cubePipeline_, drawBuffer_, cubeMvps);
-    for (auto& [name, model] : models_)
-        swapchainContext->DrawGltf(gltfPipeline_, model, uboSceneDescriptorSet_, gltfMap[name]);
+    for (auto& [name, model] : models_) {
+        swapchainContext->DrawGltf(gltfPipeline_, model, uboSceneDescriptorSet_);
+        model->ClearPushConstants();
+    }
     swapchainContext->EndRenderPass();
 }
 
@@ -267,11 +272,6 @@ void VulkanContext::InitRenderingContext(VkFormat colorFormat) {
     renderingContext_ = std::make_shared<RenderingContext>(physicalDevice_, device_,
                                                            graphicsQueue_, colorFormat,
                                                            graphicsPool_);
-//    InitializeResources();
-}
-
-std::shared_ptr<RenderingContext> VulkanContext::GetRenderingContext() {
-    return renderingContext_;
 }
 
 void VulkanContext::InitCubeResources() {

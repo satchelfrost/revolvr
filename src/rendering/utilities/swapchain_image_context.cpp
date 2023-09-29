@@ -59,8 +59,7 @@ void SwapchainImageContext::Draw(const std::unique_ptr<Pipeline>& pipeline,
 }
 
 void SwapchainImageContext::DrawGltf(const std::unique_ptr<Pipeline>& pipeline,
-                                     const std::unique_ptr<VulkanGLTFModel>& model, VkDescriptorSet descriptorSet,
-                                     const std::vector<glm::mat4> &transforms) {
+                                     const std::unique_ptr<VulkanGLTFModel>& model, VkDescriptorSet descriptorSet) {
     VkCommandBuffer cmdBuffer = cmdBuffer_->GetBuffer();
     vkCmdSetViewport(cmdBuffer, 0, 1, &viewport_);
     vkCmdSetScissor(cmdBuffer, 0, 1, &scissor_);
@@ -68,8 +67,7 @@ void SwapchainImageContext::DrawGltf(const std::unique_ptr<Pipeline>& pipeline,
                             pipeline->GetPipelineLayout(), 0, 1,
                             &descriptorSet, 0, nullptr) ;
     pipeline->BindPipeline(cmdBuffer);
-    for (const auto& transform : transforms)
-        model->Draw(cmdBuffer, pipeline->GetPipelineLayout(), transform);
+    model->Draw(cmdBuffer, pipeline->GetPipelineLayout());
 }
 
 void SwapchainImageContext::InitRenderTargets() {
@@ -108,8 +106,8 @@ void SwapchainImageContext::EndRenderPass() {
     vkCmdEndRenderPass(cmdBuffer_->GetBuffer());
     cmdBuffer_->End();
     cmdBuffer_->Exec(renderingContext_->GetGraphicsQueue());
+
     // TODO: get rid of this because of performance, necessary for multiple uniform buffer writes
     cmdBuffer_->Wait();
-
 }
 }

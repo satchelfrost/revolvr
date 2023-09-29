@@ -16,4 +16,5 @@ void UpdateTrackedSpaces(XrContext* context);
 void UpdateSpatials();
 void SetSpatialWithJointPose(Spatial* spatial, TrackedSpaceType trackedSpaceType);
 math::Transform GetPlayerRelativeTransform(Spatial* pSpatial);
+math::Transform GetPlayerRelativeTransform(math::Transform& transform);
 }
