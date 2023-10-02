@@ -11,10 +11,6 @@
 #include "rendering/utilities/gltf/vulkan_gltf_model.h"
 
 namespace rvr::system::render{
-struct NamedTransform {
-    std::string resourceName;
-    math::Transform transform;
-};
 void AppendCubeTransformBuffer(std::vector<math::Transform>& buffer);
 void AppendGltfModelPushConstants(std::map<std::string, std::unique_ptr<VulkanGLTFModel>>& models);
 std::set<std::string> GetUniqueModelNames();

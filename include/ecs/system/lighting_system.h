@@ -6,12 +6,9 @@
 
 #pragma once
 
-#define COMPONENT_LIST(X) \
-    X(Spatial) \
-    X(Mesh) \
-    X(TrackedSpace) \
-    X(Ritual) \
-    X(Collider) \
-    X(Audio) \
-    X(Timer) \
-    X(PointLight) \
+#include "ecs/entity/entity.h"
+#include "ecs/component/types/point_light.h"
+
+namespace rvr::system::lighting {
+void AppendLightSources(std::vector<PointLight*>& pointLights);
+}

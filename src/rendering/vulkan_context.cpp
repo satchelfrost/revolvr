@@ -10,11 +10,13 @@
 #include <xr_context.h>
 #include <global_context.h>
 #include <ecs/system/spatial_system.h>
+#include <ecs/system/lighting_system.h>
 #include <math/linear_math.h>
 #include <rendering/utilities/vulkan_utils.h>
 #include <rendering/utilities/vertex_buffer_layout.h>
 #include <rendering/utilities/vulkan_shader.h>
 #include <ecs/component/types/spatial.h>
+#include <ecs/component/types/point_light.h>
 
 namespace rvr {
 void VulkanContext::InitDevice(XrInstance xrInstance, XrSystemId systemId) {
@@ -120,9 +122,21 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
         auto position = math::Pose(layerView.pose).GetPosition();
         uboScene.viewPos = glm::vec4(position, 0.0f);
 
-        // TODO: don't hardcode light source
-        auto* spatial = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(13);
-        uboScene.lightPos = glm::vec4(system::spatial::GetPlayerRelativeTransform(spatial).GetPosition(), 1.0f);
+        std::vector<PointLight*> pointLights;
+        system::lighting::AppendLightSources(pointLights);
+        uboScene.numLights = (int)pointLights.size();
+        for (int i = 0; i < pointLights.size(); i++) {
+            PointLight* pointLight = pointLights[i];
+            auto* spatial = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(pointLight->id);
+            if (spatial) {
+                glm::vec3 lightPos = system::spatial::GetPlayerRelativeTransform(spatial).GetPosition();
+                uboScene.pointLights[i].position = glm::vec4(lightPos, 1.0f);
+                uboScene.pointLights[i].color = glm::vec4(1.0f, 1.0f, 1.0f, 0.15f);
+            }
+            else {
+                PrintWarning("PointLight missing spatial. Eid = " + std::to_string(pointLight->id));
+            }
+        }
         uniformBuffer_->WriteToBuffer(&uboScene);
     }
 
@@ -361,7 +375,7 @@ void VulkanContext::SetupDescriptors() {
     // Setup descriptor set layout and descriptor sets for ubo
     descriptorSetLayouts_["ubo"] = DescriptorSetLayout::Builder(device_)
             .AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                        VK_SHADER_STAGE_VERTEX_BIT)
+                        VK_SHADER_STAGE_ALL_GRAPHICS)
             .Build();
     auto bufferInfo = uniformBuffer_->DescriptorInfo();
     DescriptorWriter(*descriptorSetLayouts_["ubo"], *globalDescriptorPool_)

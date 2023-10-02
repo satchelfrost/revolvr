@@ -10,9 +10,12 @@
 #include <ritual_hdrs.h>
 #include <ritual_type.h>
 #include <audio/wav_audio_source.h>
+
+// TODO: Can these be moved to component_hdrs.h
 #include <ecs/component/types/colliders/sphere_collider.h>
 #include <ecs/component/types/colliders/aabb_collider.h>
 #include <ecs/component/types/audio/spatial_audio.h>
+
 #include <global_context.h>
 #include <math/linear_math.h>
 #include <ecs/component/component_factory_util.h>
@@ -46,7 +49,7 @@ void CreateTrackedSpace(Entity *entity, const std::map<std::string, Parser::Fiel
         Assign(entity, new TrackedSpace(entity->id, trackedSpaceType));
     }
     else {
-        ENTITY_ERR("TrackedSpace.type unspecified, cannot construct tracked space",entity->GetName());
+        ENTITY_ERR("TrackedSpace.type unspecified, cannot construct tracked space", entity->GetName());
     }
 }
 
@@ -167,5 +170,9 @@ void CreateTimer(Entity *entity, const std::map<std::string, Parser::Field>& fie
                    Fmt("Timer wait time not set, using default of %d seconds", defaultWaitTime));
         Assign(entity, new Timer(entity->id, autoStart, oneShot, duration));
     }
+}
+
+void CreatePointLight(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
+    Assign(entity, new PointLight(entity->id));
 }
 }
