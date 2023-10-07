@@ -131,7 +131,7 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
             if (spatial) {
                 glm::vec3 lightPos = system::spatial::GetPlayerRelativeTransform(spatial).GetPosition();
                 uboScene.pointLights[i].position = glm::vec4(lightPos, 1.0f);
-                uboScene.pointLights[i].color = glm::vec4(1.0f, 1.0f, 1.0f, 0.15f);
+                uboScene.pointLights[i].color = glm::vec4(pointLight->GetColor(), pointLight->GetIntensity());
             }
             else {
                 PrintWarning("PointLight missing spatial. Eid = " + std::to_string(pointLight->id));

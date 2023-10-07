@@ -173,6 +173,18 @@ void CreateTimer(Entity *entity, const std::map<std::string, Parser::Field>& fie
 }
 
 void CreatePointLight(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
-    Assign(entity, new PointLight(entity->id));
+    std::string colorName;
+    float r, g, b;
+    glm::vec3 color{0.0f, 0.0f, 0.0f};
+    if (GetFloat3Field(entity, fields, "PointLight.color_norm_rgb", r, g, b))
+        color = {r, g, b};
+    if (GetFloat3Field(entity, fields, "PointLight.color_u8_rgb", r, g, b))
+        color = {r / 255.0f, g / 255.0f, b /  255.0f};
+    if (GetStringField(entity, fields, "PointLight.color_name", colorName))
+        color =  GetNormalizedRGBFromColorName(colorName);
+
+    float intensity = 0.15f; // hopefully a sane default
+    GetFloatField(entity, fields, "PointLight.intensity", intensity);
+    Assign(entity, new PointLight(entity->id, color, intensity));
 }
 }

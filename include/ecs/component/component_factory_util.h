@@ -8,6 +8,8 @@
 
 #include <ecs/entity/entity.h>
 #include <scene/parser.h>
+#include "color_list.h"
+#include "glm/vec3.hpp"
 
 namespace rvr::componentFactory {
 // Returns true if string with nameQualifier was found and sets the out string with found value
@@ -25,4 +27,6 @@ bool GetFloat3Field(Entity* entity, const std::map<std::string, Parser::Field>& 
 // Returns true if 1 float with nameQualifier was found and sets the out float with found value
 bool GetFloatField(Entity* entity, const std::map<std::string, Parser::Field>& fields,
                    const std::string& nameQualifier, float& outFloat);
+
+glm::vec3 GetNormalizedRGBFromColorName(const std::string& colorName);
 }

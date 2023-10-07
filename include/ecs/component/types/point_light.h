@@ -8,13 +8,21 @@
 
 #include <ecs/component/component.h>
 #include "ecs/entity/entity.h"
+#include "glm/vec3.hpp"
 
 namespace rvr {
 class PointLight : public Component {
+    float intensity_;
+    glm::vec3 color_;
+
 public:
     PointLight(type::EntityId pId);
+    PointLight(type::EntityId pId, glm::vec3 color, float intensity);
     PointLight(const PointLight& other) = delete;
     PointLight(const PointLight& other, type::EntityId pId);
     virtual Component* Clone(type::EntityId newEntityId) override;
+
+    float GetIntensity();
+    glm::vec3 GetColor();
 };
 }
