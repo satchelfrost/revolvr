@@ -25,6 +25,8 @@ constexpr XrVector3f Green{0, 1, 0};
 constexpr XrVector3f DarkGreen{0, 0.25f, 0};
 constexpr XrVector3f Blue{0, 0, 1};
 constexpr XrVector3f DarkBlue{0, 0, 0.25f};
+constexpr XrVector3f Cyan{0.0f, 1.0f, 1.0f};
+constexpr XrVector3f Magenta{1.0f, 0.0f, 1.0f};
 
 // Vertices for a 1x1x1 meter cube. (Left/Right, Top/Bottom, Front/Back)
 constexpr XrVector3f LBB{-0.5f, -0.5f, -0.5f};

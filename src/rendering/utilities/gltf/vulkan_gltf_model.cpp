@@ -1,3 +1,9 @@
+/***************************************************************************/
+/* Copyright (c) 2022-present RevolVR Engine contributors (see authors.md) */
+/* This code is licensed under the MIT license (MIT)                       */
+/* (http://opensource.org/licenses/MIT)                                    */
+/***************************************************************************/
+
 #include "rendering/utilities/gltf/vulkan_gltf_model.h"
 #include <global_context.h>
 #include <utility>
@@ -289,8 +295,10 @@ void VulkanGLTFModel::DrawNode(VkCommandBuffer commandBuffer, VkPipelineLayout p
             nodeMatrix = currentParent->matrix * nodeMatrix;
             currentParent = currentParent->parent;
         }
+        glm::mat4 normalMatrix = glm::inverseTranspose(nodeMatrix);
         // Pass the final matrix to the vertex shader using push constants
         vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &nodeMatrix);
+        vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, sizeof(glm::mat4), sizeof(glm::mat4), &normalMatrix);
         for (gltf::Primitive& primitive : node->mesh.primitives) {
             if (primitive.indexCount > 0) {
                 // Get the texture index for this primitive
@@ -305,18 +313,20 @@ void VulkanGLTFModel::DrawNode(VkCommandBuffer commandBuffer, VkPipelineLayout p
         DrawNode(commandBuffer, pipelineLayout, child);
 }
 
-void VulkanGLTFModel::Draw(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, const glm::mat4 &transform) {
+void VulkanGLTFModel::Draw(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout) {
     // All vertices and indices are stored in single buffers, so we only need to bind once
     VkDeviceSize offsets[1] = { 0 };
     VkBuffer vertexBuffer = drawBuffer_->GetVertexBuffer();
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer, offsets);
     vkCmdBindIndexBuffer(commandBuffer, drawBuffer_->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-    // Render all nodes at top-level
-    for (gltf::Node* node : nodes_) {
-        // set the root node to the incoming transform
-        node->matrix = transform;
-        DrawNode(commandBuffer, pipelineLayout, node);
+    for (auto& transform : pushConstantTransforms_) {
+        // Render all nodes at top-level
+        for (gltf::Node* node : nodes_) {
+            // set the root node to the incoming transform
+            node->matrix = transform; // TODO: perhaps transform should be a parameter to DrawNode
+            DrawNode(commandBuffer, pipelineLayout, node);
+        }
     }
 }
 
@@ -326,5 +336,13 @@ uint32_t VulkanGLTFModel::GetNumImages() {
 
 std::vector<gltf::Image>& VulkanGLTFModel::GetImages() {
     return images_;
+}
+
+void VulkanGLTFModel::AddPushConstant(glm::mat4 transform) {
+    pushConstantTransforms_.push_back(transform);
+}
+
+void VulkanGLTFModel::ClearPushConstants() {
+    pushConstantTransforms_.clear();
 }
 }

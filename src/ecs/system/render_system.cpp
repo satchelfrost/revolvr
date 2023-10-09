@@ -22,7 +22,7 @@ void AppendCubeTransformBuffer(std::vector<math::Transform>& buffer) {
     DrawCubeGrid(buffer);
 }
 
-void AppendGltfMap(std::map<std::string, std::vector<glm::mat4>>& gltfMap) {
+void AppendGltfModelPushConstants(std::map<std::string, std::unique_ptr<VulkanGLTFModel>>& models) {
     auto components = GlobalContext::Inst()->GetECS()->GetComponents(ComponentType::Mesh);
     for (auto [eid, component] : components) {
         auto mesh = dynamic_cast<Mesh*>(component);
@@ -30,10 +30,10 @@ void AppendGltfMap(std::map<std::string, std::vector<glm::mat4>>& gltfMap) {
             auto* spatial = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(eid);
             std::string resourceName = mesh->ResourceName();
             math::Transform transform = spatial::GetPlayerRelativeTransform(spatial);
-            if (gltfMap.count(resourceName))
-                gltfMap[resourceName].push_back(transform.ToMat4());
+            if (models.count(resourceName))
+                models[resourceName]->AddPushConstant(transform.ToMat4());
             else
-                gltfMap[resourceName] = {transform.ToMat4()}; // implicitly create vector
+                rvr::PrintWarning("Resource " + resourceName + " has not been loaded, cannot add push constant");
         }
     }
 }

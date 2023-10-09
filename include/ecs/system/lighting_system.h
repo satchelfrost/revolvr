@@ -6,15 +6,9 @@
 
 #pragma once
 
-#include <xr_context.h>
-#include "xr_app_helpers.h"
 #include "ecs/entity/entity.h"
-#include <ecs/component/tracked_space_type.h>
+#include "ecs/component/types/point_light.h"
 
-namespace rvr::system::spatial {
-void UpdateTrackedSpaces(XrContext* context);
-void UpdateSpatials();
-void SetSpatialWithJointPose(Spatial* spatial, TrackedSpaceType trackedSpaceType);
-math::Transform GetPlayerRelativeTransform(Spatial* pSpatial);
-math::Transform GetPlayerRelativeTransform(math::Transform& transform);
+namespace rvr::system::lighting {
+void AppendLightSources(std::vector<PointLight*>& pointLights);
 }

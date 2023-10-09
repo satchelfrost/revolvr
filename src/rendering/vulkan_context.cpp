@@ -10,10 +10,13 @@
 #include <xr_context.h>
 #include <global_context.h>
 #include <ecs/system/spatial_system.h>
+#include <ecs/system/lighting_system.h>
 #include <math/linear_math.h>
 #include <rendering/utilities/vulkan_utils.h>
 #include <rendering/utilities/vertex_buffer_layout.h>
 #include <rendering/utilities/vulkan_shader.h>
+#include <ecs/component/types/spatial.h>
+#include <ecs/component/types/point_light.h>
 
 namespace rvr {
 void VulkanContext::InitDevice(XrInstance xrInstance, XrSystemId systemId) {
@@ -101,6 +104,8 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
     glm::mat4 poseMatrix = math::Pose(layerView.pose).ToMat4();
     glm::mat4 viewMatrix = glm::affineInverse(poseMatrix);
     glm::mat4 viewProjection = projectionMatrix * viewMatrix;
+
+
     std::vector<glm::mat4> cubeMvps;
     renderBuffer_.clear();
     system::render::AppendCubeTransformBuffer(renderBuffer_);
@@ -110,23 +115,42 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
         cubeMvps.push_back(mvp);
     }
 
-    std::map<std::string, std::vector<glm::mat4>> gltfMap;
-    system::render::AppendGltfMap(gltfMap);
-
+    // Update uniform buffer for gltf models
     if (usingGltf_) {
-        // Update uniform buffer
         uboScene.projection = projectionMatrix;
         uboScene.view = viewMatrix;
         auto position = math::Pose(layerView.pose).GetPosition();
-        uboScene.viewPos = glm::vec4(position, 0.0f) * glm::vec4(-1.0f, 1.0f, -1.0f, 1.0f);
+        uboScene.viewPos = glm::vec4(position, 0.0f);
+
+        std::vector<PointLight*> pointLights;
+        system::lighting::AppendLightSources(pointLights);
+        uboScene.numLights = (int)pointLights.size();
+        for (int i = 0; i < pointLights.size(); i++) {
+            PointLight* pointLight = pointLights[i];
+            auto* spatial = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(pointLight->id);
+            if (spatial) {
+                glm::vec3 lightPos = system::spatial::GetPlayerRelativeTransform(spatial).GetPosition();
+                uboScene.pointLights[i].position = glm::vec4(lightPos, 1.0f);
+                uboScene.pointLights[i].color = glm::vec4(pointLight->GetColor(), pointLight->GetIntensity());
+            }
+            else {
+                PrintWarning("PointLight missing spatial. Eid = " + std::to_string(pointLight->id));
+            }
+        }
         uniformBuffer_->WriteToBuffer(&uboScene);
     }
 
+    // Update the transforms for each gltf model
+    system::render::AppendGltfModelPushConstants(models_);
+
+    // Acquire swapchain context and begin render pass
     auto swapchainContext = imageToSwapchainContext_[swapchainImage];
     swapchainContext->BeginRenderPass(imageIndex);
     swapchainContext->Draw(cubePipeline_, drawBuffer_, cubeMvps);
-    for (auto& [name, model] : models_)
-        swapchainContext->DrawGltf(gltfPipeline_, model, uboSceneDescriptorSet_, gltfMap[name]);
+    for (auto& [name, model] : models_) {
+        swapchainContext->DrawGltf(gltfPipeline_, model, uboSceneDescriptorSet_);
+        model->ClearPushConstants();
+    }
     swapchainContext->EndRenderPass();
 }
 
@@ -262,11 +286,6 @@ void VulkanContext::InitRenderingContext(VkFormat colorFormat) {
     renderingContext_ = std::make_shared<RenderingContext>(physicalDevice_, device_,
                                                            graphicsQueue_, colorFormat,
                                                            graphicsPool_);
-//    InitializeResources();
-}
-
-std::shared_ptr<RenderingContext> VulkanContext::GetRenderingContext() {
-    return renderingContext_;
 }
 
 void VulkanContext::InitCubeResources() {
@@ -320,11 +339,11 @@ void VulkanContext::InitGltfResources() {
                                                "shaders/basic_gltf.vert.spv",
                                                VulkanShader::Vertex);
     vert->PushConstant("Model primitive", sizeof(glm::mat4));
+    vert->PushConstant("Normal matrix", sizeof(glm::mat4));
     vert->AddSetLayout(descriptorSetLayouts_["ubo"]->GetDescriptorSetLayout());
     auto frag = std::make_unique<VulkanShader>(device_,
                                                "shaders/basic_gltf.frag.spv",
                                                VulkanShader::Fragment);
-//    frag->AddSetLayout(descriptorSetLayouts_["texture"]->GetDescriptorSetLayout());
     for (auto& [name, model] : models_)
         frag->AddSetLayout(descriptorSetLayouts_[name]->GetDescriptorSetLayout());
     gltfShaderStages_ = std::make_unique<ShaderStages>(device_, std::move(vert),
@@ -356,7 +375,7 @@ void VulkanContext::SetupDescriptors() {
     // Setup descriptor set layout and descriptor sets for ubo
     descriptorSetLayouts_["ubo"] = DescriptorSetLayout::Builder(device_)
             .AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                        VK_SHADER_STAGE_VERTEX_BIT)
+                        VK_SHADER_STAGE_ALL_GRAPHICS)
             .Build();
     auto bufferInfo = uniformBuffer_->DescriptorInfo();
     DescriptorWriter(*descriptorSetLayouts_["ubo"], *globalDescriptorPool_)

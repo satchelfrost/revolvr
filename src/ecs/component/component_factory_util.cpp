@@ -72,4 +72,13 @@ bool GetFloatField(Entity* entity, const std::map<std::string, Parser::Field>& f
     }
     return false;
 }
+
+glm::vec3 GetNormalizedRGBFromColorName(const std::string& colorName) {
+#define TO_RGB_FROM_NAME(NAME, R, G, B) if (colorName == #NAME) return {R / 255.0f, G / 255.0f, B / 255.0f};
+    COLOR_LIST(TO_RGB_FROM_NAME)
+#undef TO_RGB_FROM_NAME
+
+    PrintWarning("Color " + colorName + " was not in color_list.h. Please update.");
+    return {1.0f, 1.0f, 1.0f};
+}
 }

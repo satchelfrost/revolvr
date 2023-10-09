@@ -14,3 +14,4 @@
     X(Collider) \
     X(Audio) \
     X(Timer) \
+    X(PointLight) \

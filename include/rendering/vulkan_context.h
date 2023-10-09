@@ -21,6 +21,8 @@
 #include <rendering/utilities/gltf/vulkan_gltf_model.h>
 #include <rendering/utilities/vulkan_descriptors.h>
 
+#define MAX_LIGHTS 10
+
 namespace rvr {
 class XrContext;
 
@@ -44,7 +46,6 @@ private:
     std::unique_ptr<DrawBuffer> drawBuffer_;
     std::unique_ptr<Pipeline> cubePipeline_;
 
-
     // Gltf stuff
     bool usingGltf_ = false;
     std::unique_ptr<ShaderStages> gltfShaderStages_;
@@ -52,11 +53,17 @@ private:
     std::map<std::string, std::unique_ptr<VulkanGLTFModel>> models_;
     std::unique_ptr<VulkanBuffer> uniformBuffer_;
     VkDescriptorSet uboSceneDescriptorSet_;
+    struct PointLightData {
+        glm::vec4 position; // ignore w
+        glm::vec4 color;    // color + intensity
+    };
     struct UBOScene {
         glm::mat4 projection;
         glm::mat4 view;
-        glm::vec4 lightPos = glm::vec4(5.0f, 5.0f, 5.0f, 1.0f);
         glm::vec4 viewPos;
+        glm::vec4 ambientColor = glm::vec4(1.0f, 1.0f, 1.0f, 0.15f); // color + intensity
+        PointLightData pointLights[MAX_LIGHTS];
+        int numLights;
     } uboScene;
     std::unique_ptr<DescriptorPool> globalDescriptorPool_;
     std::map<std::string, std::unique_ptr<DescriptorSetLayout>> descriptorSetLayouts_;
@@ -76,7 +83,6 @@ public:
     static std::vector<std::string> GetInstanceExtensions();
     static uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView& view);
     const XrBaseInStructure* GetGraphicsBinding() const;
-    std::shared_ptr<RenderingContext> GetRenderingContext();
     void InitializeResources();
     void InitRenderingContext(VkFormat colorFormat);
     void SwapchainImagesReady(XrSwapchainImageBaseHeader* images);
