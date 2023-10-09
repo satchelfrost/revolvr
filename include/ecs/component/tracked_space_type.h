@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <ecs/component/aux/tracked_space_list.h>
+#include <ecs/component/tracked_space_list.h>
 #include <pch.h>
 
 namespace rvr {
