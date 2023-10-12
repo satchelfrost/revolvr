@@ -11,6 +11,7 @@
 #include <global_context.h>
 #include <ecs/system/spatial_system.h>
 #include <ecs/system/lighting_system.h>
+#include <ecs/system/point_cloud_system.h>
 #include <math/linear_math.h>
 #include <rendering/utilities/vulkan_utils.h>
 #include <rendering/utilities/vertex_buffer_layout.h>
@@ -81,6 +82,8 @@ void VulkanContext::InitializeResources() {
         InitGltfResources();
         usingGltf_ = true;
     }
+
+    InitPointCloudResources();
 }
 
 XrSwapchainImageBaseHeader* VulkanContext::AllocateSwapchainImageStructs(
@@ -143,6 +146,11 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
     // Update the transforms for each gltf model
     system::render::AppendGltfModelPushConstants(models_);
 
+    // Hardcode one point cloud transform
+    std::vector<glm::mat4> pointCloudMvps = {cubeMvps[0]};
+//    std::vector<glm::mat4> pointCloudMvps = {glm::mat4{}};
+
+
     // Acquire swapchain context and begin render pass
     auto swapchainContext = imageToSwapchainContext_[swapchainImage];
     swapchainContext->BeginRenderPass(imageIndex);
@@ -151,6 +159,7 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
         swapchainContext->DrawGltf(gltfPipeline_, model, uboSceneDescriptorSet_);
         model->ClearPushConstants();
     }
+    swapchainContext->DrawPointCloud(pointCloudPipeline_, pointCloudBuffer_, pointCloudMvps);
     swapchainContext->EndRenderPass();
 }
 
@@ -394,5 +403,37 @@ void VulkanContext::SetupDescriptors() {
                     .Build(image.descriptorSet);
         }
     }
+}
+
+void VulkanContext::InitPointCloudResources() {
+    auto vert = std::make_unique<VulkanShader>(device_,
+                                               "shaders/basic.vert.spv",
+                                               VulkanShader::Vertex);
+    vert->PushConstant("Model View Projection Matrix", sizeof(glm::mat4));
+    auto frag= std::make_unique<VulkanShader>(device_,
+                                              "shaders/basic.frag.spv",
+                                              VulkanShader::Fragment);
+    cubeShaderStages_ = std::make_unique<ShaderStages>(device_, std::move(vert),
+                                                       std::move(frag));
+    VertexBufferLayout vertexBufferLayout;
+    vertexBufferLayout.Push({0, DataType::F32, 3, "Position"});
+    vertexBufferLayout.Push({1, DataType::F32, 3, "Color"});
+
+    // Parse the ply file
+    auto vertices = system::point_cloud::getVertexDataFromPly("flowers.ply");
+
+    size_t sizeOfVertex = sizeof(Geometry::Vertex);
+    pointCloudBuffer_ = std::make_unique<VulkanBuffer>(renderingContext_,
+                                                       sizeOfVertex, vertices.size(),
+                                                       VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                                                       MemoryType::HostVisible);
+
+    // for now don't worry about staging buffer
+    pointCloudBuffer_->Map();
+    pointCloudBuffer_->WriteToBuffer(vertices.data());
+    pointCloudBuffer_->Unmap();
+
+    pointCloudPipeline_ = std::make_unique<Pipeline>(renderingContext_, cubeShaderStages_, vertexBufferLayout,
+                                                     VK_FRONT_FACE_CLOCKWISE, VK_PRIMITIVE_TOPOLOGY_POINT_LIST);
 }
 }

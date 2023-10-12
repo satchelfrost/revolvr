@@ -19,7 +19,7 @@ void AppendCubeTransformBuffer(std::vector<math::Transform>& buffer) {
             buffer.push_back(spatial::GetPlayerRelativeTransform(spatial));
         }
     }
-    DrawCubeGrid(buffer);
+//    DrawCubeGrid(buffer);
 }
 
 void AppendGltfModelPushConstants(std::map<std::string, std::unique_ptr<VulkanGLTFModel>>& models) {

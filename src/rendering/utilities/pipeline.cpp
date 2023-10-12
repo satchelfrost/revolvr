@@ -35,7 +35,8 @@ VkPipelineLayout PipelineLayout::GetLayout() {
 }
 
 Pipeline::Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique_ptr<ShaderStages>& shaderStages,
-                   VertexBufferLayout vertexBufferLayout, VkFrontFace frontFace) : device_(context->GetDevice()) {
+                   VertexBufferLayout vertexBufferLayout, VkFrontFace frontFace, VkPrimitiveTopology topology)
+                   : device_(context->GetDevice()) {
     pipelineLayout_ = std::make_unique<PipelineLayout>(device_,
                                                        shaderStages->GetPushConstants(),
                                                        shaderStages->GetDescriptorSetLayouts());
@@ -56,7 +57,7 @@ Pipeline::Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique
 
     VkPipelineInputAssemblyStateCreateInfo ia{VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO};
     ia.primitiveRestartEnable = VK_FALSE;
-    ia.topology = topology_;
+    ia.topology = topology;
 
     VkPipelineRasterizationStateCreateInfo rs{VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO};
     rs.polygonMode = VK_POLYGON_MODE_FILL;

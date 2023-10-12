@@ -70,6 +70,24 @@ void SwapchainImageContext::DrawGltf(const std::unique_ptr<Pipeline>& pipeline,
     model->Draw(cmdBuffer, pipeline->GetPipelineLayout());
 }
 
+void SwapchainImageContext::DrawPointCloud(const std::unique_ptr<Pipeline>& pipeline,
+                                           const std::unique_ptr<VulkanBuffer>& vertexBuffer,
+                                           const std::vector<glm::mat4> &transforms) {
+    VkCommandBuffer cmdBuffer = cmdBuffer_->GetBuffer();
+    pipeline->BindPipeline(cmdBuffer);
+    VkDeviceSize offset = 0;
+    VkBuffer vtxBuffer = vertexBuffer->GetBuffer();
+    vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &vtxBuffer, &offset);
+    vkCmdSetViewport(cmdBuffer, 0, 1, &viewport_);
+    vkCmdSetScissor(cmdBuffer, 0, 1, &scissor_);
+    for (const auto& transform : transforms) {
+        vkCmdPushConstants(cmdBuffer, pipeline->GetPipelineLayout(),
+                           VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(transform),
+                           glm::value_ptr(transform));
+        vkCmdDraw(cmdBuffer, vertexBuffer->GetCount(), 1, 0, 0);
+    }
+}
+
 void SwapchainImageContext::InitRenderTargets() {
     for (size_t i = 0; i < swapchainImages_.size(); i++)
         renderTargets_[i] = std::make_unique<RenderTarget>(renderingContext_,

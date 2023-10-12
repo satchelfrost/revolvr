@@ -40,6 +40,8 @@ public:
               const std::vector<glm::mat4> &transforms);
     void DrawGltf(const std::unique_ptr<Pipeline>& pipeline, const std::unique_ptr<VulkanGLTFModel>& model,
                   VkDescriptorSet descriptorSet);
+    void DrawPointCloud(const std::unique_ptr<Pipeline>& pipeline, const std::unique_ptr<VulkanBuffer>& vertexBuffer,
+                        const std::vector<glm::mat4> &transforms);
     XrSwapchainImageBaseHeader* GetFirstImagePointer();
     void InitRenderTargets();
 };
