@@ -13,6 +13,7 @@
 #include <rendering/utilities/render_target.h>
 #include <math/transform.h>
 #include "rendering/utilities/gltf/vulkan_gltf_model.h"
+#include <rendering/utilities/point_cloud/point_cloud_res.h>
 
 namespace rvr {
 class SwapchainImageContext {
@@ -40,8 +41,8 @@ public:
               const std::vector<glm::mat4> &transforms);
     void DrawGltf(const std::unique_ptr<Pipeline>& pipeline, const std::unique_ptr<VulkanGLTFModel>& model,
                   VkDescriptorSet descriptorSet);
-    void DrawPointCloud(const std::unique_ptr<Pipeline>& pipeline, const std::unique_ptr<VulkanBuffer>& vertexBuffer,
-                        const std::vector<glm::mat4> &transforms);
+    void DrawPointCloud(const std::unique_ptr<Pipeline>& pipeline,
+                        const std::unique_ptr<PointCloudResource>& pointCloud);
     XrSwapchainImageBaseHeader* GetFirstImagePointer();
     void InitRenderTargets();
 };

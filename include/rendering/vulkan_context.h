@@ -69,7 +69,8 @@ private:
     std::map<std::string, std::unique_ptr<DescriptorSetLayout>> descriptorSetLayouts_;
 
     // Point cloud stuff
-    std::unique_ptr<VulkanBuffer> pointCloudBuffer_;
+    std::unique_ptr<ShaderStages> pointCloudShaderStages_;
+    std::map<std::string, std::unique_ptr<PointCloudResource>> pointClouds_;
     std::unique_ptr<Pipeline> pointCloudPipeline_;
 
 

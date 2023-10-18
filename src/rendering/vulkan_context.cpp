@@ -11,7 +11,6 @@
 #include <global_context.h>
 #include <ecs/system/spatial_system.h>
 #include <ecs/system/lighting_system.h>
-#include <ecs/system/point_cloud_system.h>
 #include <math/linear_math.h>
 #include <rendering/utilities/vulkan_utils.h>
 #include <rendering/utilities/vertex_buffer_layout.h>
@@ -83,7 +82,9 @@ void VulkanContext::InitializeResources() {
         usingGltf_ = true;
     }
 
-    InitPointCloudResources();
+    uniqueNames = system::render::GetUniquePointCloudNames();
+    if (!uniqueNames.empty())
+        InitPointCloudResources();
 }
 
 XrSwapchainImageBaseHeader* VulkanContext::AllocateSwapchainImageStructs(
@@ -146,10 +147,8 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
     // Update the transforms for each gltf model
     system::render::AppendGltfModelPushConstants(models_);
 
-    // Hardcode one point cloud transform
-    std::vector<glm::mat4> pointCloudMvps = {cubeMvps[0]};
-//    std::vector<glm::mat4> pointCloudMvps = {glm::mat4{}};
-
+    // Update the transforms for each point cloud
+    system::render::AppendPointCloudPushConstants(pointClouds_);
 
     // Acquire swapchain context and begin render pass
     auto swapchainContext = imageToSwapchainContext_[swapchainImage];
@@ -159,7 +158,10 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
         swapchainContext->DrawGltf(gltfPipeline_, model, uboSceneDescriptorSet_);
         model->ClearPushConstants();
     }
-    swapchainContext->DrawPointCloud(pointCloudPipeline_, pointCloudBuffer_, pointCloudMvps);
+    for (auto& [name, pointCloud] : pointClouds_) {
+        swapchainContext->DrawPointCloud(pointCloudPipeline_, pointCloud);
+        pointCloud->ClearPushConstants();
+    }
     swapchainContext->EndRenderPass();
 }
 
@@ -406,6 +408,12 @@ void VulkanContext::SetupDescriptors() {
 }
 
 void VulkanContext::InitPointCloudResources() {
+    // Get the point cloud files
+    std::set<std::string> uniqueNames = system::render::GetUniquePointCloudNames();
+    for (auto& name : uniqueNames)
+        pointClouds_[name] = std::make_unique<PointCloudResource>(renderingContext_, name);
+
+    // Setup shader stages & vertex buffer layout
     auto vert = std::make_unique<VulkanShader>(device_,
                                                "shaders/basic.vert.spv",
                                                VulkanShader::Vertex);
@@ -413,27 +421,15 @@ void VulkanContext::InitPointCloudResources() {
     auto frag= std::make_unique<VulkanShader>(device_,
                                               "shaders/basic.frag.spv",
                                               VulkanShader::Fragment);
-    cubeShaderStages_ = std::make_unique<ShaderStages>(device_, std::move(vert),
+    pointCloudShaderStages_ = std::make_unique<ShaderStages>(device_, std::move(vert),
                                                        std::move(frag));
     VertexBufferLayout vertexBufferLayout;
     vertexBufferLayout.Push({0, DataType::F32, 3, "Position"});
     vertexBufferLayout.Push({1, DataType::F32, 3, "Color"});
 
-    // Parse the ply file
-    auto vertices = system::point_cloud::getVertexDataFromPly("flowers.ply");
-
-    size_t sizeOfVertex = sizeof(Geometry::Vertex);
-    pointCloudBuffer_ = std::make_unique<VulkanBuffer>(renderingContext_,
-                                                       sizeOfVertex, vertices.size(),
-                                                       VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                                                       MemoryType::HostVisible);
-
-    // for now don't worry about staging buffer
-    pointCloudBuffer_->Map();
-    pointCloudBuffer_->WriteToBuffer(vertices.data());
-    pointCloudBuffer_->Unmap();
-
-    pointCloudPipeline_ = std::make_unique<Pipeline>(renderingContext_, cubeShaderStages_, vertexBufferLayout,
-                                                     VK_FRONT_FACE_CLOCKWISE, VK_PRIMITIVE_TOPOLOGY_POINT_LIST);
+    pointCloudPipeline_ = std::make_unique<Pipeline>(renderingContext_, pointCloudShaderStages_,
+                                                     vertexBufferLayout,
+                                                     VK_FRONT_FACE_CLOCKWISE,
+                                                     VK_PRIMITIVE_TOPOLOGY_POINT_LIST);
 }
 }

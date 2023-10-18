@@ -15,3 +15,4 @@
     X(Audio) \
     X(Timer) \
     X(PointLight) \
+    X(PointCloud) \

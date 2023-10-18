@@ -6,9 +6,14 @@
 
 #pragma once
 
-#include "pch.h"
-#include <rendering/utilities/geometry.h>
+#include <pch.h>
 
-namespace rvr::system::point_cloud {
-std::vector<Geometry::Vertex> getVertexDataFromPly(const std::string& fileName);
+namespace rvr {
+class AssetStream : public std::streambuf {
+public:
+    AssetStream(const std::string& fileName);
+    ~AssetStream();
+private:
+    AAsset * asset_;
+};
 }
