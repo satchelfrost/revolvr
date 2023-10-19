@@ -13,16 +13,17 @@ namespace rvr {
 PointCloudResource::PointCloudResource(std::shared_ptr<RenderingContext> renderingContext, const std::string& fileName)
 : renderingContext_(std::move(renderingContext)) {
     auto vertices = GetVertexDataFromPly(fileName);
-    size_t sizeOfVertex = sizeof(Geometry::Vertex);
-    vertexBuffer_ = std::make_unique<VulkanBuffer>(renderingContext_,
-                                                       sizeOfVertex, vertices.size(),
-                                                       VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                                                       MemoryType::HostVisible);
-
-    // for now don't worry about staging buffer
-    vertexBuffer_->Map();
-    vertexBuffer_->WriteToBuffer(vertices.data());
-    vertexBuffer_->Unmap();
+    auto vertexStagingBuffer = VulkanBuffer(renderingContext_, sizeof(Geometry::Vertex),
+                                            vertices.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                            MemoryType::HostVisible);
+    vertexStagingBuffer.Map();
+    vertexStagingBuffer.WriteToBuffer(vertices.data());
+    vertexStagingBuffer.Unmap();
+    vertexBuffer_ = std::make_unique<VulkanBuffer>(renderingContext_, sizeof(Geometry::Vertex), vertices.size(),
+                                                   VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                                                   MemoryType::DeviceLocal);
+    renderingContext_->CopyBuffer(vertexStagingBuffer.GetBuffer(), vertexBuffer_->GetBuffer(),
+                                  vertexStagingBuffer.GetSizeOfBuffer(), 0, 0);
 }
 
 void PointCloudResource::AddPushConstant(glm::mat4 transform) {
@@ -63,6 +64,11 @@ std::vector<Geometry::Vertex> PointCloudResource::GetVertexDataFromPly(const std
 }
 
 void PointCloudResource::Draw(VkCommandBuffer cmdBuffer, VkPipelineLayout pipelineLayout) {
+    if (!vertexBuffer_) {
+        PrintWarning("Point cloud vertex buffer not done loading");
+        return;
+    }
+
     VkDeviceSize offset = 0;
     VkBuffer vtxBuffer = vertexBuffer_->GetBuffer();
     vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &vtxBuffer, &offset);

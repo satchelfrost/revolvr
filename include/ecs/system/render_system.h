@@ -14,7 +14,8 @@
 namespace rvr::system::render{
 void AppendCubeTransformBuffer(std::vector<math::Transform>& buffer);
 void AppendGltfModelPushConstants(std::map<std::string, std::unique_ptr<VulkanGLTFModel>>& models);
-void AppendPointCloudPushConstants(std::map<std::string, std::unique_ptr<PointCloudResource>>& pointClouds);
+void AppendPointCloudPushConstants(std::map<std::string, std::unique_ptr<PointCloudResource>>& pointClouds,
+                                   glm::mat4 viewProjection);
 std::set<std::string> GetUniqueModelNames();
 std::set<std::string> GetUniquePointCloudNames();
 void DrawCubeGrid(std::vector<math::Transform>& buffer);

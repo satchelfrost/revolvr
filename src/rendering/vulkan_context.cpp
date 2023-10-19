@@ -148,7 +148,7 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
     system::render::AppendGltfModelPushConstants(models_);
 
     // Update the transforms for each point cloud
-    system::render::AppendPointCloudPushConstants(pointClouds_);
+    system::render::AppendPointCloudPushConstants(pointClouds_, viewProjection);
 
     // Acquire swapchain context and begin render pass
     auto swapchainContext = imageToSwapchainContext_[swapchainImage];

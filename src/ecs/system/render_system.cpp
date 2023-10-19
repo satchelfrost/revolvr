@@ -39,7 +39,8 @@ void AppendGltfModelPushConstants(std::map<std::string, std::unique_ptr<VulkanGL
     }
 }
 
-void AppendPointCloudPushConstants(std::map<std::string, std::unique_ptr<PointCloudResource>>& pointClouds) {
+void AppendPointCloudPushConstants(std::map<std::string, std::unique_ptr<PointCloudResource>>& pointClouds,
+                                   glm::mat4 viewProjection) {
     auto components = GlobalContext::Inst()->GetECS()->GetComponents(ComponentType::PointCloud);
     for (auto [eid, component] : components) {
         auto pointCloud = dynamic_cast<PointCloud*>(component);
@@ -48,7 +49,7 @@ void AppendPointCloudPushConstants(std::map<std::string, std::unique_ptr<PointCl
             std::string resourceName = pointCloud->FullResourceName();
             math::Transform transform = spatial::GetPlayerRelativeTransform(spatial);
             if (pointClouds.count(resourceName))
-                pointClouds[resourceName]->AddPushConstant(transform.ToMat4());
+                pointClouds[resourceName]->AddPushConstant(viewProjection * transform.ToMat4());
             else
                 rvr::PrintWarning("Resource " + resourceName + " has not been loaded, cannot add push constant");
         }
