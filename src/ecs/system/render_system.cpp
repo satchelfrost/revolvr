@@ -7,6 +7,7 @@
 #include <ecs/system/render_system.h>
 #include <ecs/system/spatial_system.h>
 #include <ecs/component/types/mesh.h>
+#include <ecs/component/types/point_cloud.h>
 #include <global_context.h>
 
 namespace rvr::system::render {
@@ -38,6 +39,23 @@ void AppendGltfModelPushConstants(std::map<std::string, std::unique_ptr<VulkanGL
     }
 }
 
+void AppendPointCloudPushConstants(std::map<std::string, std::unique_ptr<PointCloudResource>>& pointClouds,
+                                   glm::mat4 viewProjection) {
+    auto components = GlobalContext::Inst()->GetECS()->GetComponents(ComponentType::PointCloud);
+    for (auto [eid, component] : components) {
+        auto pointCloud = dynamic_cast<PointCloud*>(component);
+        if (pointCloud->IsVisible() && pointCloud->HasResource()) {
+            auto* spatial = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(eid);
+            std::string resourceName = pointCloud->FullResourceName();
+            math::Transform transform = spatial::GetPlayerRelativeTransform(spatial);
+            if (pointClouds.count(resourceName))
+                pointClouds[resourceName]->AddPushConstant(viewProjection * transform.ToMat4());
+            else
+                rvr::PrintWarning("Resource " + resourceName + " has not been loaded, cannot add push constant");
+        }
+    }
+}
+
 std::set<std::string> GetUniqueModelNames() {
     auto components = GlobalContext::Inst()->GetECS()->GetComponents(ComponentType::Mesh);
     std::set<std::string> uniqueNames;
@@ -45,6 +63,16 @@ std::set<std::string> GetUniqueModelNames() {
         auto mesh = dynamic_cast<Mesh*>(component);
         if (mesh->HasResource())
             uniqueNames.insert(mesh->ResourceName());
+    }
+    return uniqueNames;
+}
+
+std::set<std::string> GetUniquePointCloudNames() {
+    auto components = GlobalContext::Inst()->GetECS()->GetComponents(ComponentType::PointCloud);
+    std::set<std::string> uniqueNames;
+    for (auto [eid, component] : components) {
+        auto pointCloud = dynamic_cast<PointCloud*>(component);
+        uniqueNames.insert(pointCloud->FullResourceName());
     }
     return uniqueNames;
 }

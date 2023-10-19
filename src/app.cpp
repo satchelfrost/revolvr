@@ -38,6 +38,7 @@ void App::Run(struct android_app *app) {
 //    scene_.LoadScene("test_scenes/movement");
 //    scene_.LoadScene("test_scenes/hand_shooting_stuff");
     scene_.LoadScene("test_scenes/orbiting_lights");
+//    scene_.LoadScene("test_scenes/point_cloud");
 
     // Initialize resources after scene has been loaded
     globalContext_->GetVulkanContext()->InitializeResources();
@@ -47,7 +48,6 @@ void App::Run(struct android_app *app) {
 
     AndroidContext* androidContext = globalContext_->GetAndroidContext();
     XrContext* xrContext = globalContext_->GetXrContext();
-    VulkanContext* vulkanRenderer = globalContext_->GetVulkanContext();
 
     GameLoopTimer timer;
     while (app->destroyRequested == 0) {

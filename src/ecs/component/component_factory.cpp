@@ -80,7 +80,7 @@ void CreateRitual(Entity *entity, const std::map<std::string, Parser::Field>& fi
         RITUAL_LIST(RITUAL_CASE)
         #undef RITUAL_CASE
         default:
-            ENTITY_ERR("Ritual.type unspecified, cannot construct ritual",entity->GetName());
+            ENTITY_ERR("Ritual.type unspecified, cannot construct ritual", entity->GetName());
     }
 
     ritual->canUpdate = canUpdate;
@@ -186,5 +186,23 @@ void CreatePointLight(Entity *entity, const std::map<std::string, Parser::Field>
     float intensity = 0.15f; // hopefully a sane default
     GetFloatField(entity, fields, "PointLight.intensity", intensity);
     Assign(entity, new PointLight(entity->id, color, intensity));
+}
+
+void CreatePointCloud(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
+    std::string name;
+    PointCloud* pointCloud;
+    if (GetStringField(entity, fields, "PointCloud.ply", name)) {
+        pointCloud = new PointCloud(entity->id, name, PointCloud::Ply);
+    } else if (GetStringField(entity, fields, "PointCloud.las", name)) {
+        pointCloud = new PointCloud(entity->id, name, PointCloud::Las);
+    } else if (GetStringField(entity, fields, "PointCloud.laz", name)) {
+        pointCloud = new PointCloud(entity->id, name, PointCloud::Laz);
+    } else if (GetStringField(entity, fields, "PointCloud.e57", name)) {
+        pointCloud = new PointCloud(entity->id, name, PointCloud::E57);
+    } else  {
+        ENTITY_ERR("PointCloud must specify PointCloud.ply|las|laz|e57",entity->GetName());
+    }
+
+    Assign(entity, pointCloud);
 }
 }

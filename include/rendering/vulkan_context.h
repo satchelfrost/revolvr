@@ -68,6 +68,11 @@ private:
     std::unique_ptr<DescriptorPool> globalDescriptorPool_;
     std::map<std::string, std::unique_ptr<DescriptorSetLayout>> descriptorSetLayouts_;
 
+    // Point cloud stuff
+    std::unique_ptr<ShaderStages> pointCloudShaderStages_;
+    std::map<std::string, std::unique_ptr<PointCloudResource>> pointClouds_;
+    std::unique_ptr<Pipeline> pointCloudPipeline_;
+
 
 #if !defined(NDEBUG)
         const bool enableValidationLayers_ = true;
@@ -93,6 +98,7 @@ private:
     void SetupDescriptors();
     void InitCubeResources();
     void InitGltfResources();
+    void InitPointCloudResources();
     void CreateVulkanInstance(XrInstance xrInstance, XrSystemId systemId);
     bool CheckValidationLayerSupport();
     void SetupReportCallback();

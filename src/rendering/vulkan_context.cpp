@@ -81,6 +81,10 @@ void VulkanContext::InitializeResources() {
         InitGltfResources();
         usingGltf_ = true;
     }
+
+    uniqueNames = system::render::GetUniquePointCloudNames();
+    if (!uniqueNames.empty())
+        InitPointCloudResources();
 }
 
 XrSwapchainImageBaseHeader* VulkanContext::AllocateSwapchainImageStructs(
@@ -143,6 +147,9 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
     // Update the transforms for each gltf model
     system::render::AppendGltfModelPushConstants(models_);
 
+    // Update the transforms for each point cloud
+    system::render::AppendPointCloudPushConstants(pointClouds_, viewProjection);
+
     // Acquire swapchain context and begin render pass
     auto swapchainContext = imageToSwapchainContext_[swapchainImage];
     swapchainContext->BeginRenderPass(imageIndex);
@@ -150,6 +157,10 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
     for (auto& [name, model] : models_) {
         swapchainContext->DrawGltf(gltfPipeline_, model, uboSceneDescriptorSet_);
         model->ClearPushConstants();
+    }
+    for (auto& [name, pointCloud] : pointClouds_) {
+        swapchainContext->DrawPointCloud(pointCloudPipeline_, pointCloud);
+        pointCloud->ClearPushConstants();
     }
     swapchainContext->EndRenderPass();
 }
@@ -394,5 +405,31 @@ void VulkanContext::SetupDescriptors() {
                     .Build(image.descriptorSet);
         }
     }
+}
+
+void VulkanContext::InitPointCloudResources() {
+    // Get the point cloud files
+    std::set<std::string> uniqueNames = system::render::GetUniquePointCloudNames();
+    for (auto& name : uniqueNames)
+        pointClouds_[name] = std::make_unique<PointCloudResource>(renderingContext_, name);
+
+    // Setup shader stages & vertex buffer layout
+    auto vert = std::make_unique<VulkanShader>(device_,
+                                               "shaders/basic.vert.spv",
+                                               VulkanShader::Vertex);
+    vert->PushConstant("Model View Projection Matrix", sizeof(glm::mat4));
+    auto frag= std::make_unique<VulkanShader>(device_,
+                                              "shaders/basic.frag.spv",
+                                              VulkanShader::Fragment);
+    pointCloudShaderStages_ = std::make_unique<ShaderStages>(device_, std::move(vert),
+                                                       std::move(frag));
+    VertexBufferLayout vertexBufferLayout;
+    vertexBufferLayout.Push({0, DataType::F32, 3, "Position"});
+    vertexBufferLayout.Push({1, DataType::F32, 3, "Color"});
+
+    pointCloudPipeline_ = std::make_unique<Pipeline>(renderingContext_, pointCloudShaderStages_,
+                                                     vertexBufferLayout,
+                                                     VK_FRONT_FACE_CLOCKWISE,
+                                                     VK_PRIMITIVE_TOPOLOGY_POINT_LIST);
 }
 }

@@ -6,13 +6,14 @@
 
 #pragma once
 
-#define COMPONENT_LIST(X) \
-    X(Spatial) \
-    X(Mesh) \
-    X(TrackedSpace) \
-    X(Ritual) \
-    X(Collider) \
-    X(Audio) \
-    X(Timer) \
-    X(PointLight) \
-    X(PointCloud) \
+#include <pch.h>
+
+namespace rvr {
+class AssetStream : public std::streambuf {
+public:
+    AssetStream(const std::string& fileName);
+    ~AssetStream();
+private:
+    AAsset * asset_;
+};
+}

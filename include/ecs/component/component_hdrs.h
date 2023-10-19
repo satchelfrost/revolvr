@@ -14,3 +14,4 @@
 #include "ecs/component/types/audio.h"
 #include "ecs/component/types/timer.h"
 #include "ecs/component/types/point_light.h"
+#include "ecs/component/types/point_cloud.h"
