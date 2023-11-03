@@ -81,10 +81,16 @@ void VulkanGLTFModel::LoadGLTFFile(const std::string& fileName) {
                                                   VK_BUFFER_USAGE_INDEX_BUFFER_BIT |
                                                   VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                                                   MemoryType::DeviceLocal);
-    renderingContext_->CopyBuffer(vertexStagingBuffer.GetBuffer(), vertexBuffer->GetBuffer(),
-                                 vertexStagingBuffer.GetSizeOfBuffer(), 0, 0);
-    renderingContext_->CopyBuffer(indexStagingBuffer.GetBuffer(), indexBuffer->GetBuffer(),
-                                  indexStagingBuffer.GetSizeOfBuffer(), 0, 0);
+    CommandBuffer cmd = CommandBuffer(renderingContext_->GetDevice(), renderingContext_->GetGraphicsPool());
+    cmd.Begin();
+    renderingContext_->CopyBuffer(cmd.GetBuffer(), vertexStagingBuffer.GetBuffer(),
+                                  vertexBuffer->GetBuffer(), vertexStagingBuffer.GetSizeOfBuffer(),
+                                  0, 0);
+    renderingContext_->CopyBuffer(cmd.GetBuffer(), indexStagingBuffer.GetBuffer(),
+                                  indexBuffer->GetBuffer(), indexStagingBuffer.GetSizeOfBuffer(),
+                                  0, 0);
+    cmd.End();
+    cmd.Exec(renderingContext_->GetGraphicsQueue());
     drawBuffer_ = std::make_unique<DrawBuffer>(std::move(indexBuffer), std::move(vertexBuffer));
 }
 

@@ -58,22 +58,13 @@ void RenderingContext::AllocateBufferMemory(VkBuffer buffer, VkDeviceMemory *mem
     AllocateMemory(memory, memoryPropertyFlags, memReq);
 }
 
-void RenderingContext::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize srcOffset,
-                                  VkDeviceSize dstOffset) {
-    CommandBuffer commandBuffer(device_, graphicsPool_);
-    commandBuffer.Wait();
-    commandBuffer.Reset();
-    commandBuffer.Begin();
-
+void RenderingContext::CopyBuffer(VkCommandBuffer cmd, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size,
+                                  VkDeviceSize srcOffset, VkDeviceSize dstOffset) {
     VkBufferCopy copyRegion = {};
     copyRegion.size = size;
     copyRegion.srcOffset = srcOffset;
     copyRegion.dstOffset = dstOffset;
-    vkCmdCopyBuffer(commandBuffer.GetBuffer(), srcBuffer, dstBuffer,
-                    1, &copyRegion);
-
-    commandBuffer.End();
-    commandBuffer.Exec(graphicsQueue_);
+    vkCmdCopyBuffer(cmd, srcBuffer, dstBuffer, 1, &copyRegion);
 }
 
 VkCommandPool RenderingContext::GetGraphicsPool() {
@@ -129,7 +120,8 @@ void RenderingContext::CreateImageView(VkImage image, VkFormat format, VkImageAs
     CHECK_VKCMD(result);
 }
 
-void RenderingContext::CreateTransitionLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout) {
+void RenderingContext::CreateTransitionLayout(VkCommandBuffer cmd, VkImage image, VkImageLayout oldLayout,
+                                              VkImageLayout newLayout) {
     VkImageMemoryBarrier barrier{VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER};
     barrier.oldLayout = oldLayout;
     barrier.newLayout = newLayout;
@@ -143,15 +135,9 @@ void RenderingContext::CreateTransitionLayout(VkImage image, VkImageLayout oldLa
     VkPipelineStageFlags dstStage{};
     PopulateTransitionLayoutInfo(barrier, srcStage, dstStage, oldLayout, newLayout);
 
-    CommandBuffer commandBuffer(device_, graphicsPool_);
-    commandBuffer.Wait();
-    commandBuffer.Reset();
-    commandBuffer.Begin();
-    vkCmdPipelineBarrier(commandBuffer.GetBuffer(), srcStage, dstStage,
-                         0, 0, nullptr,0,
+    vkCmdPipelineBarrier(cmd, srcStage, dstStage,0,
+                         0, nullptr,0,
                          nullptr, 1, &barrier);
-    commandBuffer.End();
-    commandBuffer.Exec(graphicsQueue_);
 }
 
 void RenderingContext::AllocateMemory(VkDeviceMemory *memory, VkMemoryPropertyFlags memoryPropertyFlags,

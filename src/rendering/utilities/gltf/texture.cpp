@@ -32,8 +32,6 @@ VkImageLayout imageLayout) {
     height = texHeight;
     mipLevels = 1;
 
-    CommandBuffer copyCmdBuffer = CommandBuffer(renderingContext->GetDevice(),
-                                                renderingContext->GetGraphicsPool());
     VulkanBuffer stagingBuffer = VulkanBuffer(renderingContext, 1, bufferSize,
                                               VK_BUFFER_USAGE_TRANSFER_SRC_BIT, MemoryType::HostVisible);
     stagingBuffer.Map();
@@ -52,24 +50,22 @@ VkImageLayout imageLayout) {
 
     VkExtent2D extent = {width, height};
     image_ = std::make_unique<VulkanImage>(renderingContext, VulkanImage::Sample, extent);
-    // TODO: have only one command buffer going at a time
-    renderingContext->CreateTransitionLayout(image_->GetImage(), VK_IMAGE_LAYOUT_UNDEFINED,
+
+    CommandBuffer cmd = CommandBuffer(renderingContext->GetDevice(), renderingContext->GetGraphicsPool());
+    cmd.Begin();
+    renderingContext->CreateTransitionLayout(cmd.GetBuffer(), image_->GetImage(),
+                                             VK_IMAGE_LAYOUT_UNDEFINED,
                                              VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    copyCmdBuffer.Wait();
-    copyCmdBuffer.Reset();
-    copyCmdBuffer.Begin();
     // Copy mip levels from staging buffer
-    vkCmdCopyBufferToImage(copyCmdBuffer.GetBuffer(), stagingBuffer.GetBuffer(),
+    vkCmdCopyBufferToImage(cmd.GetBuffer(), stagingBuffer.GetBuffer(),
                            image_->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                            1, &bufferCopyRegion);
-    copyCmdBuffer.End();
-    copyCmdBuffer.Exec(renderingContext->GetGraphicsQueue());
 
     imageLayout_ = imageLayout;
-    renderingContext->CreateTransitionLayout(image_->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                             imageLayout);
-//    copyCmdBuffer.End();
-//    copyCmdBuffer.Exec(renderingContext->GetGraphicsQueue());
+    renderingContext->CreateTransitionLayout(cmd.GetBuffer(), image_->GetImage(),
+                                             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, imageLayout);
+    cmd.End();
+    cmd.Exec(renderingContext->GetGraphicsQueue());
 
     // TODO: may want to create a sampler class
     // Create sampler

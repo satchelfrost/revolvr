@@ -5,6 +5,7 @@
 /***************************************************************************/
 
 #include <rendering/utilities/vulkan_buffer.h>
+#include <rendering/utilities/command_buffer.h>
 #include "rendering/utilities/vulkan_results.h"
 
 namespace rvr {
@@ -32,7 +33,12 @@ VkDeviceSize VulkanBuffer::GetAlignment(VkDeviceSize instanceSize, VkDeviceSize 
 }
 
 void VulkanBuffer::CopyFrom(const std::shared_ptr<VulkanBuffer>& src, size_t size, size_t srcOffset, size_t dstOffset) {
-    rendering_context_->CopyBuffer(src->buffer_, buffer_, size, srcOffset, dstOffset);
+    CommandBuffer cmd = CommandBuffer(rendering_context_->GetDevice(), rendering_context_->GetGraphicsPool());
+    cmd.Begin();
+    rendering_context_->CopyBuffer(cmd.GetBuffer(), src->buffer_, buffer_, size, srcOffset,
+                                   dstOffset);
+    cmd.End();
+    cmd.Exec(rendering_context_->GetGraphicsQueue());
 }
 
 VkBuffer VulkanBuffer::GetBuffer() const {
