@@ -1,4 +1,4 @@
-ecs/component/component_factory.cpp:             //  1 TODO: Can these be moved to component_hdrs.h
+Done. ecs/component/component_factory.cpp:             //  1 TODO: Can these be moved to component_hdrs.h
 scene/scanner.cpp:                               //  2 TODO: make it possible to have a number such as ".3" with no leading zero
 scene/scene.cpp:                                 //  3 TODO: put this in scene manager once that exists
 rendering/utilities/gltf/vulkan_gltf_model.cpp:  //  4 TODO: perhaps transform should be a parameter to DrawNode
