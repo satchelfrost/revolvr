@@ -10,12 +10,6 @@
 #include <ritual_hdrs.h>
 #include <ritual_type.h>
 #include <audio/wav_audio_source.h>
-
-// TODO: Can these be moved to component_hdrs.h
-#include <ecs/component/types/colliders/sphere_collider.h>
-#include <ecs/component/types/colliders/aabb_collider.h>
-#include <ecs/component/types/audio/spatial_audio.h>
-
 #include <global_context.h>
 #include <math/linear_math.h>
 #include <ecs/component/component_factory_util.h>
