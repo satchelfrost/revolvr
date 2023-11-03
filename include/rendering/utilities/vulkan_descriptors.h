@@ -27,7 +27,7 @@ public:
 
     private:
         VkDevice device_;
-        std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings{};
+        std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings_{};
     };
 
     DescriptorSetLayout(VkDevice device, std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings);

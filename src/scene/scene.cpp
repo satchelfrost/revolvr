@@ -98,7 +98,7 @@ void Scene::CreateComponent(Entity* entity, const std::map<std::string, Parser::
         COMPONENT_LIST(COMPONENT_CASE)
         #undef COMPONENT_CASE
     default:
-        THROW(Fmt("Component type %s unrecognized", toString(cType)))
+        THROW(Fmt("Component type %s unrecognized", toString(cType)));
     }
 }
 

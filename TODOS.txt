@@ -1,4 +1,4 @@
-Done. ecs/component/component_factory.cpp:             //  1 TODO: Can these be moved to component_hdrs.h
+ecs/component/component_factory.cpp:             //  Done.
 scene/scanner.cpp:                               //  2 TODO: make it possible to have a number such as ".3" with no leading zero
 scene/scene.cpp:                                 //  3 TODO: put this in scene manager once that exists
 rendering/utilities/gltf/vulkan_gltf_model.cpp:  //  4 TODO: perhaps transform should be a parameter to DrawNode
@@ -6,11 +6,11 @@ rendering/utilities/gltf/texture.cpp:            //  5 TODO: have only one comma
 rendering/utilities/gltf/texture.cpp:            //  6 TODO: may want to create a sampler class
 rendering/utilities/vulkan_utils.cpp:            //  7 TODO: Move this to rendering context
 rendering/utilities/vulkan_utils.cpp:            //  8 TODO: change this to be more like Vulkan Example
-rendering/utilities/vulkan_descriptors.cpp:      //  9 TODO: my version
-rendering/utilities/vulkan_descriptors.cpp:      // 10 TODO: underscore convention not followed
+rendering/utilities/vulkan_descriptors.cpp:      //  Done. 
+rendering/utilities/vulkan_descriptors.cpp:      //  Done.
 rendering/utilities/swapchain_image_context.cpp: // 11 TODO: get rid of this because of performance, necessary for multiple uniform buffer writes
 io/hand_tracking/hand_tracker.cpp:               // 12 TODO: Possibly initialize some renderable with this mesh data
-ecs/component/component_pool_manager.h:          // 13 TODO: Change usage: GetComponent<MyComponent> --> GetComponent<MyComponent*>, to make it clear pointer is returned.
+ecs/component/component_pool_manager.h:          // Done. Not doing because doesn't work for shared_ptr, so don't make user type the *
 rendering/vulkan_context.h:                      // 14 TODO: check unused includes
 rendering/utilities/vulkan_descriptors.h:        // 15 TODO: This is temporary for testing only, get rid of
 rendering/utilities/vulkan_utils.h:              // 16 TODO: move some of these enums and structs to vulkan data types

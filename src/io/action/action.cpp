@@ -42,7 +42,7 @@ type(pType) {
             hands = {Hand::Right};
             break;
         default:
-            THROW(Fmt("Hand configuration %d is invalid", handConfig))
+            THROW(Fmt("Hand configuration %d is invalid", handConfig));
     }
 }
 
@@ -74,7 +74,7 @@ XrPath Action::GetSubactionPath(Hand hand) {
             return handSubactionPath_.at((int)hand);
         }
         catch (std::out_of_range& e) {
-            THROW(Fmt("Could not get subaction path for hand %d", hand))
+            THROW(Fmt("Could not get subaction path for hand %d", hand));
         }
     }
     else {
@@ -84,7 +84,7 @@ XrPath Action::GetSubactionPath(Hand hand) {
 
 XrAction Action::GetAction() {
     if (action_ == nullptr)
-        THROW("Action was nullptr")
+        THROW("Action was nullptr");
     return action_;
 
 }
@@ -96,7 +96,7 @@ std::string Action::GetFullActionPathStr(Hand hand) {
         case Hand::Right:
             return "/user/hand/right" + actionPath_;
         default:
-            THROW(Fmt("Action path string does not exist for hand %d", hand))
+            THROW(Fmt("Action path string does not exist for hand %d", hand));
     }
 }
 }

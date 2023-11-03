@@ -31,7 +31,7 @@ bool ButtonPressed(ActionType type) {
         case ActionType::Y:
             return button->StateTurnedOn(Hand::Left);
         default:
-            THROW("ButtonPressed expects only action types A, B, X, or Y")
+            THROW("ButtonPressed expects only action types A, B, X, or Y");
     }
 }
 
@@ -46,7 +46,7 @@ bool ButtonDown(ActionType type) {
         case ActionType::Y:
             return button->CurrHandState(Hand::Left).currentState;
         default:
-            THROW("ButtonDown/Up expects only action types A, B, X, or Y")
+            THROW("ButtonDown/Up expects only action types A, B, X, or Y");
     }
 }
 
@@ -65,7 +65,7 @@ bool ButtonReleased(ActionType type) {
         case ActionType::Y:
             return button->StateTurnedOff(Hand::Left);
         default:
-            THROW("ButtonReleased expects only action types A, B, X, or Y")
+            THROW("ButtonReleased expects only action types A, B, X, or Y");
     }
 }
 
@@ -78,7 +78,7 @@ bool Touched(ActionType type, Hand hand) {
         case ActionType::TriggerTouch:
             return button->CurrHandState(hand).currentState;
         default:
-            THROW("Touched/NotTouched expects only action types ThumbRestTouch, ThumbStickTouch, or TriggerTouch")
+            THROW("Touched/NotTouched expects only action types ThumbRestTouch, ThumbStickTouch, or TriggerTouch");
     }
 }
 
@@ -95,7 +95,7 @@ bool JustTouched(ActionType type, Hand hand) {
         case ActionType::TriggerTouch:
             return button->StateTurnedOn(hand);
         default:
-            THROW("JustTouched expects only action types ThumbRestTouch, ThumbStickTouch, or TriggerTouch")
+            THROW("JustTouched expects only action types ThumbRestTouch, ThumbStickTouch, or TriggerTouch");
     }
 
 }
@@ -109,7 +109,7 @@ bool JustUnTouched(ActionType type, Hand hand) {
         case ActionType::TriggerTouch:
             return button->StateTurnedOff(hand);
         default:
-            THROW("JustUnTouched expects only action types ThumbRestTouch, ThumbStickTouch, or TriggerTouch")
+            THROW("JustUnTouched expects only action types ThumbRestTouch, ThumbStickTouch, or TriggerTouch");
     }
 }
 

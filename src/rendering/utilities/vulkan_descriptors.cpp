@@ -5,29 +5,27 @@
 /***************************************************************************/
 
 #include <rendering/utilities/vulkan_descriptors.h>
+#include "check.h"
 
 namespace rvr {
-// *************** Descriptor Set Layout Builder *********************
 DescriptorSetLayout::Builder &DescriptorSetLayout::Builder::AddBinding(
         uint32_t binding,
         VkDescriptorType descriptorType,
         VkShaderStageFlags stageFlags,
         uint32_t count) {
-    assert(bindings.count(binding) == 0 && "Binding already in use");
+    assert(bindings_.count(binding) == 0 && "Binding already in use");
     VkDescriptorSetLayoutBinding layoutBinding{};
     layoutBinding.binding = binding;
     layoutBinding.descriptorType = descriptorType;
     layoutBinding.descriptorCount = count;
     layoutBinding.stageFlags = stageFlags;
-    bindings[binding] = layoutBinding;
+    bindings_[binding] = layoutBinding;
     return *this;
 }
 
 std::unique_ptr<DescriptorSetLayout> DescriptorSetLayout::Builder::Build() const {
-    return std::make_unique<DescriptorSetLayout>(device_, bindings);
+    return std::make_unique<DescriptorSetLayout>(device_, bindings_);
 }
-
-// **************** Descriptor Set Layout *********************
 
 DescriptorSetLayout::DescriptorSetLayout(
         VkDevice device, std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings)
@@ -42,10 +40,9 @@ DescriptorSetLayout::DescriptorSetLayout(
     descriptorSetLayoutInfo.bindingCount = static_cast<uint32_t>(setLayoutBindings.size());
     descriptorSetLayoutInfo.pBindings = setLayoutBindings.data();
 
-    // TODO: my version
     if (vkCreateDescriptorSetLayout(device_,&descriptorSetLayoutInfo,nullptr,
             &descriptorSetLayout_) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create descriptor set layout!");
+        THROW("failed to create descriptor set layout!");
     }
 }
 
@@ -56,8 +53,6 @@ DescriptorSetLayout::~DescriptorSetLayout() {
 VkDescriptorSetLayout DescriptorSetLayout::GetDescriptorSetLayout() {
     return descriptorSetLayout_;
 }
-
-// **************** Descriptor Pool Builder *********************
 
 DescriptorPool::Builder &DescriptorPool::Builder::AddPoolSize(
         VkDescriptorType descriptorType, uint32_t count) {
@@ -80,8 +75,6 @@ std::unique_ptr<DescriptorPool> DescriptorPool::Builder::Build() const {
                                                poolSizes_);
 }
 
-// **************** Descriptor Pool *********************
-
 DescriptorPool::DescriptorPool(
         VkDevice device,
         uint32_t maxSets,
@@ -97,7 +90,7 @@ DescriptorPool::DescriptorPool(
 
     if (vkCreateDescriptorPool(device_, &descriptorPoolInfo, nullptr,
                                &descriptorPool_) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create descriptor pool!");
+        THROW("failed to create descriptor pool!");
     }
 }
 
@@ -132,8 +125,6 @@ void DescriptorPool::FreeDescriptors(std::vector<VkDescriptorSet> &descriptors) 
 void DescriptorPool::ResetPool() {
     vkResetDescriptorPool(device_, descriptorPool_, 0);
 }
-
-// **************** Descriptor Writer *********************
 
 DescriptorWriter::DescriptorWriter(DescriptorSetLayout& setLayout, DescriptorPool& pool) : setLayout_(setLayout),
 pool_(pool) {}
@@ -193,7 +184,6 @@ void DescriptorWriter::Overwrite(VkDescriptorSet &set) {
     for (auto &write : writes_) {
         write.dstSet = set;
     }
-    // TODO: underscore convention not followed
     vkUpdateDescriptorSets(pool_.device_, writes_.size(), writes_.data(),
                            0, nullptr);
 }

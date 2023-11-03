@@ -93,7 +93,7 @@ Action* ActionManager::GetAction(ActionType type) {
         return actions_.at((int)type);
     }
     catch (std::out_of_range& e) {
-        THROW(Fmt("Failed to get action with type ActionType %d", type))
+        THROW(Fmt("Failed to get action with type ActionType %d", type));
     }
 }
 
