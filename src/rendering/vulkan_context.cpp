@@ -10,6 +10,7 @@
 #include <xr_context.h>
 #include <global_context.h>
 #include <ecs/system/spatial_system.h>
+#include <ecs/system/render_system.h>
 #include <ecs/system/lighting_system.h>
 #include <math/linear_math.h>
 #include <rendering/utilities/vulkan_utils.h>

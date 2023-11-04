@@ -8,16 +8,11 @@
 
 #include <pch.h>
 
-// TODO: check unused includes
 #include "rendering/utilities/shader_stages.h"
 #include "rendering/utilities/draw_buffer.h"
 #include "rendering/utilities/pipeline.h"
-#include "rendering/utilities/vulkan_utils.h"
-#include <rendering/utilities/geometry.h>
 #include <rendering/utilities/swapchain_image_context.h>
 #include <rendering/utilities/rendering_context.h>
-#include <platform/android_context.h>
-#include <ecs/system/render_system.h>
 #include <rendering/utilities/gltf/vulkan_gltf_model.h>
 #include <rendering/utilities/vulkan_descriptors.h>
 
