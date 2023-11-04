@@ -1,8 +1,8 @@
 /* TODOS: */
 ecs/component/component_factory.cpp:             //  Done.
 scene/scanner.cpp:                               //  Done. Leading zeroes should be required for floating point numbers
-scene/scene.cpp:                                 //  3 TODO: put this in scene manager once that exists
-rendering/utilities/gltf/vulkan_gltf_model.cpp:  //  4 TODO: perhaps transform should be a parameter to DrawNode
+scene/scene.cpp:                                 //  Done. Scene manager is a new feature and the focus is bug fixes so ignore
+rendering/utilities/gltf/vulkan_gltf_model.cpp:  //  Done. For now this method is feasible, perhaps at some point it could be optimized though
 rendering/utilities/gltf/texture.cpp:            //  Done.
 rendering/utilities/gltf/texture.cpp:            //  6 TODO: may want to create a sampler class
 rendering/utilities/vulkan_utils.cpp:            //  7 TODO: Move this to rendering context
