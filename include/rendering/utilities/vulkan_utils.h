@@ -6,26 +6,9 @@
 
 #pragma once
 #include <pch.h>
+#include <rendering/utilities/data_types.h>
 
 namespace rvr {
-// TODO: move some of these enums and structs to vulkan data types
-struct QueueFamilyIndices {
-    std::optional<uint32_t> graphicsFamily;
-    bool isComplete() {return graphicsFamily.has_value();}
-};
-
-enum class DataType {
-    U8,
-    U16,
-    U32,
-    F32
-};
-
-enum class MemoryType {
-    DeviceLocal,
-    HostVisible
-};
-
 VkFormat GetVkFormat(DataType type, uint32_t count);
 size_t DataTypeSize(DataType type);
 VkResult CreateDebugReportCallbackEXT(VkInstance instance, VkDebugReportCallbackCreateInfoEXT* createInfo,
