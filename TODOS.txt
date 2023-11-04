@@ -15,7 +15,7 @@ ecs/component/component_pool_manager.h:          //  Done. Not doing because doe
 rendering/vulkan_context.h:                      //  Done.
 rendering/utilities/vulkan_descriptors.h:        //  Done.
 rendering/utilities/vulkan_utils.h:              //  Done.
-rendering/utilities/vulkan_image.h:              // 17 TODO: definitely need to expose usage, probably also format. Maybe use some sane defaults.
+rendering/utilities/vulkan_image.h:              //  Done. Not doing, need a more specific reason to expose these parameters
 rendering/utilities/pipeline.h:                  // 18 TODO: change frontFrace parameter to general pipelineConfig param
 rendering/vulkan_context.cpp:                    // 19 TODO: change system to sys
 
