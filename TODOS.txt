@@ -5,8 +5,8 @@ scene/scene.cpp:                                 // Done. Scene manager is a new
 rendering/utilities/gltf/vulkan_gltf_model.cpp:  // Done. For now this method is feasible, perhaps at some point it could be optimized though
 rendering/utilities/gltf/texture.cpp:            // Done.
 rendering/utilities/gltf/texture.cpp:            // 6 TODO: may want to create a sampler class
-rendering/utilities/vulkan_utils.cpp:            // 7 TODO: Move this to rendering context
-rendering/utilities/vulkan_utils.cpp:            // 8 TODO: change this to be more like Vulkan Example
+rendering/utilities/vulkan_utils.cpp:            // Done.
+rendering/utilities/vulkan_utils.cpp:            // Done.
 rendering/utilities/vulkan_descriptors.cpp:      // Done. 
 rendering/utilities/vulkan_descriptors.cpp:      // Done.
 rendering/utilities/swapchain_image_context.cpp: // 11 TODO: get rid of this because of performance, necessary for multiple uniform buffer writes
