@@ -30,7 +30,7 @@ public:
         std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings_{};
     };
 
-    DescriptorSetLayout(VkDevice device, std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings);
+    DescriptorSetLayout(VkDevice device, const std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding>& bindings);
     ~DescriptorSetLayout();
     DescriptorSetLayout(const DescriptorSetLayout &) = delete;
     DescriptorSetLayout &operator=(const DescriptorSetLayout &) = delete;
@@ -68,9 +68,6 @@ public:
     bool AllocateDescriptor(const VkDescriptorSetLayout descriptorSetLayout, VkDescriptorSet &descriptor) const;
     void FreeDescriptors(std::vector<VkDescriptorSet> &descriptors) const;
     void ResetPool();
-
-    // TODO: This is temporary for testing only, get rid of
-    VkDescriptorPool GetDescriptorPool() { return descriptorPool_; }
 
     friend class DescriptorWriter;
 };
