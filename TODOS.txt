@@ -1,3 +1,4 @@
+/* TODOS: */
 ecs/component/component_factory.cpp:             //  Done.
 scene/scanner.cpp:                               //  2 TODO: make it possible to have a number such as ".3" with no leading zero
 scene/scene.cpp:                                 //  3 TODO: put this in scene manager once that exists
@@ -16,3 +17,18 @@ rendering/utilities/vulkan_descriptors.h:        // 15 TODO: This is temporary f
 rendering/utilities/vulkan_utils.h:              // 16 TODO: move some of these enums and structs to vulkan data types
 rendering/utilities/vulkan_image.h:              // 17 TODO: definitely need to expose usage, probably also format. Maybe use some sane defaults.
 rendering/utilities/pipeline.h:                  // 18 TODO: change frontFrace parameter to general pipelineConfig param
+rendering/vulkan_context.cpp:                    // 19 TODO: change system to sys
+
+/* Known Bugs: */
+1) Graphics performance Wait() CommandBuffer issue
+2) Uniform buffer race condition issue
+3) SetWorld*() functions do not at all do what they say
+4) Entity destroy bug (queue deletion bug)
+5) Scene hierarchy bug (i.e. entities without parent spatial are cut off from hierarchy)
+6) Vulkan validation messages
+7) glTF without a texture / embedded gltf crash
+
+/* Other procrastinations */
+1) Move third party code out of revolvr include/src
+2) Reorganize rendering folder
+3) Scene switcher + verify unloading doesn't cause memory leaks
