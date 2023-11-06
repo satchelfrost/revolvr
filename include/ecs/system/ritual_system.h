@@ -9,7 +9,7 @@
 #include "ecs/entity/entity.h"
 #include "ecs/component/types/ritual.h"
 
-namespace rvr::system::ritual{
+namespace rvr::sys::ritual{
 void Update(float dt);
 void Begin();
 }

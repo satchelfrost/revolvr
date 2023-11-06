@@ -7,7 +7,7 @@
 #include <audio/audio_engine.h>
 #include <global_context.h>
 
-namespace rvr::system::audio {
+namespace rvr::sys::audio {
 void Mixer::Render(float* audioData, int32_t numFrames) {
     auto numSamples = numFrames * 2;
     memset(audioData, 0, sizeof(float) * numSamples);

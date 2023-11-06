@@ -11,7 +11,7 @@
 #include "ecs/entity/entity.h"
 #include <ecs/component/tracked_space_type.h>
 
-namespace rvr::system::spatial {
+namespace rvr::sys::spatial {
 void UpdateTrackedSpaces(XrContext* context);
 void UpdateSpatials();
 void SetSpatialWithJointPose(Spatial* spatial, TrackedSpaceType trackedSpaceType);

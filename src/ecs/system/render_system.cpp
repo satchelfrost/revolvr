@@ -10,7 +10,7 @@
 #include <ecs/component/types/point_cloud.h>
 #include <global_context.h>
 
-namespace rvr::system::render {
+namespace rvr::sys::render {
 void AppendCubeTransformBuffer(std::vector<math::Transform>& buffer) {
     auto components = GlobalContext::Inst()->GetECS()->GetComponents(ComponentType::Mesh);
     for (auto [eid, component] : components) {

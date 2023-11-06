@@ -25,7 +25,7 @@ public:
 
 private:
     AAudioStream *stream_;
-    system::audio::Mixer mixer_;
+    sys::audio::Mixer mixer_;
     AudioSpatializer audioSpatializer_;
 };
 }

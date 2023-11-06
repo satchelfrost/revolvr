@@ -9,6 +9,6 @@
 #include "ecs/entity/entity.h"
 #include "ecs/component/types/point_light.h"
 
-namespace rvr::system::lighting {
+namespace rvr::sys::lighting {
 void AppendLightSources(std::vector<PointLight*>& pointLights);
 }

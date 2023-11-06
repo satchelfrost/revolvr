@@ -8,6 +8,6 @@
 
 #include <ecs/component/types/collider.h>
 
-namespace rvr::system::collision {
+namespace rvr::sys::collision {
 void RunCollisionChecks();
 }

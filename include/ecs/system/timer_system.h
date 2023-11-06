@@ -6,7 +6,7 @@
 
 #pragma once
 
-namespace rvr::system::timer {
+namespace rvr::sys::timer {
 void UpdateTicks();
 void Start();
 }

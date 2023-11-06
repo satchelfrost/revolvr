@@ -14,7 +14,7 @@
 #define LeftHandTracker GlobalContext::Inst()->GetXrContext()->handTrackerLeft_
 #define RightHandTracker GlobalContext::Inst()->GetXrContext()->handTrackerRight_
 
-namespace rvr::system::spatial{
+namespace rvr::sys::spatial{
 void UpdateTrackedSpaces(XrContext *context) {
     // First refresh the tracked spaces
     context->RefreshTrackedSpaceLocations();
