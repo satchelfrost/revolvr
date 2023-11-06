@@ -11,15 +11,9 @@
 
 namespace rvr {
 void VulkanTexture::UpdateDescriptor() {
-    descriptor.sampler = sampler;
+    descriptor.sampler = sampler_->GetSampler();
     descriptor.imageView = view_->GetImageView();
     descriptor.imageLayout = imageLayout_;
-}
-
-void VulkanTexture::Destroy() {
-    if (sampler)
-        vkDestroySampler(device_, sampler, nullptr);
-    vkFreeMemory(device_, deviceMemory, nullptr);
 }
 
 void VulkanTexture::FromBuffer(void* buffer, VkDeviceSize bufferSize, uint32_t texWidth,
@@ -67,24 +61,7 @@ VkImageLayout imageLayout) {
     cmd.End();
     cmd.Exec(renderingContext->GetGraphicsQueue());
 
-    // TODO: may want to create a sampler class
-    // Create sampler
-    VkSamplerCreateInfo samplerCreateInfo = {};
-    samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    samplerCreateInfo.magFilter = filter;
-    samplerCreateInfo.minFilter = filter;
-    samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-    samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerCreateInfo.mipLodBias = 0.0f;
-    samplerCreateInfo.compareOp = VK_COMPARE_OP_NEVER;
-    samplerCreateInfo.minLod = 0.0f;
-    samplerCreateInfo.maxLod = 0.0f;
-    samplerCreateInfo.maxAnisotropy = 1.0f;
-    VkResult result = vkCreateSampler(device_, &samplerCreateInfo, nullptr, &sampler);
-    CHECK_VKCMD(result);
-
+    sampler_ = std::make_unique<VulkanSampler>(device_, filter);
     view_ = std::make_unique<VulkanView>(renderingContext, VulkanView::Sample,
                                          image_->GetImage());
 

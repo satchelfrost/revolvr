@@ -4,7 +4,7 @@ scene/scanner.cpp:                               // Done. Leading zeroes should 
 scene/scene.cpp:                                 // Done. Scene manager is a new feature and the focus is bug fixes so ignore
 rendering/utilities/gltf/vulkan_gltf_model.cpp:  // Done. For now this method is feasible, perhaps at some point it could be optimized though
 rendering/utilities/gltf/texture.cpp:            // Done.
-rendering/utilities/gltf/texture.cpp:            // 6 TODO: may want to create a sampler class
+rendering/utilities/gltf/texture.cpp:            // Done.
 rendering/utilities/vulkan_utils.cpp:            // Done.
 rendering/utilities/vulkan_utils.cpp:            // Done.
 rendering/utilities/vulkan_descriptors.cpp:      // Done. 
@@ -17,7 +17,7 @@ rendering/utilities/vulkan_descriptors.h:        // Done.
 rendering/utilities/vulkan_utils.h:              // Done.
 rendering/utilities/vulkan_image.h:              // Done. Not doing, need a more specific reason to expose these parameters
 rendering/utilities/pipeline.h:                  // Done. Need more parameters before making structure parameter
-rendering/vulkan_context.cpp:                    // 19 TODO: change system to sys
+rendering/vulkan_context.cpp:                    // Done. 
 
 /* Known Bugs: */
 1) Graphics performance Wait() CommandBuffer issue

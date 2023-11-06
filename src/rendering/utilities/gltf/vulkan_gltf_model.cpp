@@ -100,7 +100,7 @@ VulkanGLTFModel::~VulkanGLTFModel() {
 }
 
 void LoadImages(tinygltf::Model& input, std::vector<gltf::Image>& images,
-                                 const std::shared_ptr<RenderingContext>& renderingContext) {
+                const std::shared_ptr<RenderingContext>& renderingContext) {
     // Images can be stored inside the glTF (which is the case for the sample model), so instead of directly
     // loading them from disk, we fetch them from the glTF loader and upload the buffers
     images.resize(input.images.size());
