@@ -17,6 +17,7 @@ private:
     VkQueue graphicsQueue_{VK_NULL_HANDLE};
     VkCommandPool graphicsPool_;
     VkFormat colorFormat_ = VK_FORMAT_UNDEFINED;
+//    VkFormat depthFormat_ = VK_FORMAT_D32_SFLOAT;
     VkFormat depthFormat_ = VK_FORMAT_D32_SFLOAT;
     std::unique_ptr<RenderPass> renderPass_;
 

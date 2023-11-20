@@ -61,7 +61,8 @@ private:
         glm::mat4 projection;
         glm::mat4 view;
         glm::vec4 viewPos;
-        glm::vec4 ambientColor = glm::vec4(1.0f, 1.0f, 1.0f, 0.15f); // color + intensity
+//        glm::vec4 ambientColor = glm::vec4(1.0f, 1.0f, 1.0f, 0.15f); // color + intensity
+        glm::vec4 ambientColor = glm::vec4(1.0f, 1.0f, 1.0f, 0.05f); // color + intensity
         PointLightData pointLights[MAX_LIGHTS];
         int numLights;
     } uboScene;
