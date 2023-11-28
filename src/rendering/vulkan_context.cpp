@@ -156,6 +156,7 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
     swapchainContext->Draw(cubePipeline_, drawBuffer_, cubeMvps);
     for (auto& [name, model] : models_) {
         swapchainContext->DrawGltf(gltfPipeline_, model, uboSceneDescriptorSet_);
+        swapchainContext->DrawGltf(outlinePipeline_, model, uboSceneDescriptorSet_);
         model->ClearPushConstants();
     }
     for (auto& [name, pointCloud] : pointClouds_) {
@@ -237,6 +238,28 @@ void VulkanContext::CreateLogicalDevice(XrInstance xrInstance, XrSystemId system
     queueCreateInfo.queueFamilyIndex = queueFamilyIndices_.graphicsFamily.value();
     queueCreateInfo.queueCount = 1;
     queueCreateInfo.pQueuePriorities = &queuePriority;
+
+    std::vector<VkFormat> formatList = {
+            VK_FORMAT_D32_SFLOAT_S8_UINT,
+            VK_FORMAT_D24_UNORM_S8_UINT,
+            VK_FORMAT_D16_UNORM_S8_UINT,
+    };
+
+    bool suitable_format = false;
+
+    for (auto& format : formatList)
+    {
+        VkFormatProperties formatProps;
+        vkGetPhysicalDeviceFormatProperties(physicalDevice_, format, &formatProps);
+        if (formatProps.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT)
+        {
+            PrintInfo("format " + std::to_string(format));
+            suitable_format = true;
+        }
+    }
+
+    if (!suitable_format)
+        PrintError("No suitable format");
 
     // Create the device
     std::vector<const char *> deviceExtensions;
@@ -367,7 +390,27 @@ void VulkanContext::InitGltfResources() {
     vertexBufferLayout.Push({2, DataType::F32, 2, "UV"});
     vertexBufferLayout.Push({3, DataType::F32, 3, "Color"});
     gltfPipeline_ = std::make_unique<Pipeline>(renderingContext_, gltfShaderStages_, vertexBufferLayout,
-                                               VK_FRONT_FACE_COUNTER_CLOCKWISE);
+                                               VK_FRONT_FACE_COUNTER_CLOCKWISE,
+                                               VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, true, false);
+
+    // Create the shader stages, add any push constants and/or descriptor set layouts
+    vert = std::make_unique<VulkanShader>(device_,
+                                               "shaders/outline.vert.spv",
+                                               VulkanShader::Vertex);
+    vert->PushConstant("Model primitive", sizeof(glm::mat4));
+    vert->PushConstant("Normal matrix", sizeof(glm::mat4));
+    vert->AddSetLayout(descriptorSetLayouts_["ubo"]->GetDescriptorSetLayout());
+    frag = std::make_unique<VulkanShader>(device_,"shaders/outline.frag.spv",
+                                          VulkanShader::Fragment);
+    for (auto& [name, model] : models_)
+        frag->AddSetLayout(descriptorSetLayouts_[name]->GetDescriptorSetLayout());
+    outlineShaderStages_ = std::make_unique<ShaderStages>(device_, std::move(vert),
+                                                       std::move(frag));
+
+    // Setup vertex buffer layout, and use that along with shader stages to create a pipeline
+    outlinePipeline_ = std::make_unique<Pipeline>(renderingContext_, outlineShaderStages_, vertexBufferLayout,
+                                               VK_FRONT_FACE_COUNTER_CLOCKWISE,
+                                               VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, true, true);
 }
 
 void VulkanContext::SetupDescriptors() {

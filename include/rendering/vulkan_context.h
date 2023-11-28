@@ -49,7 +49,9 @@ private:
     // Gltf stuff
     bool usingGltf_ = false;
     std::unique_ptr<ShaderStages> gltfShaderStages_;
+    std::unique_ptr<ShaderStages> outlineShaderStages_;
     std::unique_ptr<Pipeline> gltfPipeline_;
+    std::unique_ptr<Pipeline> outlinePipeline_;
     std::map<std::string, std::unique_ptr<VulkanGLTFModel>> models_;
     std::unique_ptr<VulkanBuffer> uniformBuffer_;
     VkDescriptorSet uboSceneDescriptorSet_;
@@ -61,10 +63,10 @@ private:
         glm::mat4 projection;
         glm::mat4 view;
         glm::vec4 viewPos;
-//        glm::vec4 ambientColor = glm::vec4(1.0f, 1.0f, 1.0f, 0.15f); // color + intensity
         glm::vec4 ambientColor = glm::vec4(1.0f, 1.0f, 1.0f, 0.05f); // color + intensity
         PointLightData pointLights[MAX_LIGHTS];
         int numLights;
+        float outlineWidth = 0.01f;
     } uboScene;
     std::unique_ptr<DescriptorPool> globalDescriptorPool_;
     std::map<std::string, std::unique_ptr<DescriptorSetLayout>> descriptorSetLayouts_;

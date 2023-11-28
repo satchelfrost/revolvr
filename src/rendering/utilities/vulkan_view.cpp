@@ -10,11 +10,11 @@ namespace rvr {
 VulkanView::VulkanView(const std::shared_ptr<RenderingContext>& context, ViewType viewType, VkImage image) :
 device_(context->GetDevice()) {
     VkFormat format;
-    VkImageAspectFlagBits aspectMask;
+    VkImageAspectFlags aspectMask;
     switch (viewType) {
         case Depth:
             format = context->GetDepthFormat();
-            aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+            aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
             break;
         case Color:
             format = context->GetColorFormat();

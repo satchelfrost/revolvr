@@ -18,7 +18,9 @@ private:
     VkCommandPool graphicsPool_;
     VkFormat colorFormat_ = VK_FORMAT_UNDEFINED;
 //    VkFormat depthFormat_ = VK_FORMAT_D32_SFLOAT;
-    VkFormat depthFormat_ = VK_FORMAT_D32_SFLOAT;
+//    VkFormat depthFormat_ = VK_FORMAT_D32_SFLOAT_S8_UINT;
+    VkFormat depthFormat_ = VK_FORMAT_D24_UNORM_S8_UINT;
+//    VkFormat depthFormat_ = VK_FORMAT_D16_UNORM_S8_UINT;
     std::unique_ptr<RenderPass> renderPass_;
 
     void AllocateBufferMemory(VkBuffer buffer, VkDeviceMemory* memory, VkMemoryPropertyFlags memoryPropertyFlags);
@@ -35,7 +37,7 @@ public:
     void CreateImage(VkExtent2D extent, VkFormat format, VkImageUsageFlags usage, VkImage* image,
                      VkDeviceMemory* imageMemory,
                      VkMemoryPropertyFlags memoryPropertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-    void CreateImageView(VkImage image, VkFormat format, VkImageAspectFlagBits aspectMask, VkImageView *imageView);
+    void CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectMask, VkImageView *imageView);
     void CreateTransitionLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout);
 
     VkDevice GetDevice();

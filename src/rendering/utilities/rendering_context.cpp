@@ -110,7 +110,7 @@ void RenderingContext::AllocateImageMemory(VkImage image, VkDeviceMemory *memory
     AllocateMemory(memory, memoryPropertyFlags, memoryRequirements);
 }
 
-void RenderingContext::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlagBits aspectMask,
+void RenderingContext::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectMask,
                                        VkImageView *imageView) {
     VkImageViewCreateInfo colorViewInfo{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
     colorViewInfo.image = image;

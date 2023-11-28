@@ -35,7 +35,8 @@ VkPipelineLayout PipelineLayout::GetLayout() {
 }
 
 Pipeline::Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique_ptr<ShaderStages>& shaderStages,
-                   VertexBufferLayout vertexBufferLayout, VkFrontFace frontFace, VkPrimitiveTopology topology)
+                   VertexBufferLayout vertexBufferLayout, VkFrontFace frontFace, VkPrimitiveTopology topology,
+                   bool stencil, bool outline)
                    : device_(context->GetDevice()) {
     pipelineLayout_ = std::make_unique<PipelineLayout>(device_,
                                                        shaderStages->GetPushConstants(),
@@ -61,7 +62,8 @@ Pipeline::Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique
 
     VkPipelineRasterizationStateCreateInfo rs{VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO};
     rs.polygonMode = VK_POLYGON_MODE_FILL;
-    rs.cullMode = VK_CULL_MODE_BACK_BIT;
+//    rs.cullMode = (stencil) ? VK_CULL_MODE_NONE : VK_CULL_MODE_BACK_BIT;
+    rs.cullMode = VK_CULL_MODE_NONE;
     rs.frontFace = frontFace;
     rs.depthClampEnable = VK_FALSE;
     rs.rasterizerDiscardEnable = VK_FALSE;
@@ -103,7 +105,6 @@ Pipeline::Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique
     ds.depthTestEnable = VK_TRUE;
     ds.depthWriteEnable = VK_TRUE;
     ds.depthCompareOp = VK_COMPARE_OP_LESS;
-    ds.depthBoundsTestEnable = VK_FALSE;
     ds.stencilTestEnable = VK_FALSE;
     ds.front.failOp = VK_STENCIL_OP_KEEP;
     ds.front.passOp = VK_STENCIL_OP_KEEP;
@@ -112,6 +113,30 @@ Pipeline::Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique
     ds.back = ds.front;
     ds.minDepthBounds = 0.0f;
     ds.maxDepthBounds = 1.0f;
+
+    if (stencil) {
+        ds.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+        ds.stencilTestEnable = VK_TRUE;
+        ds.back.compareMask = 0xff;
+        ds.back.writeMask = 0xff;
+        ds.back.reference = 1;
+        if (outline) {
+            ds.back.compareOp = VK_COMPARE_OP_NOT_EQUAL;
+            ds.back.failOp = VK_STENCIL_OP_KEEP;
+            ds.back.depthFailOp = VK_STENCIL_OP_KEEP;
+            ds.back.passOp = VK_STENCIL_OP_REPLACE;
+            ds.front = ds.back;
+            ds.depthTestEnable = VK_FALSE;
+        }
+        else {
+            ds.back.failOp = VK_STENCIL_OP_REPLACE;
+            ds.back.depthFailOp = VK_STENCIL_OP_REPLACE;
+            ds.back.passOp = VK_STENCIL_OP_REPLACE;
+            ds.front = ds.back;
+            ds.back.compareOp = VK_COMPARE_OP_ALWAYS;
+        }
+    }
+
 
     VkPipelineMultisampleStateCreateInfo ms{VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO};
     ms.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
