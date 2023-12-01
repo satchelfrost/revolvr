@@ -155,8 +155,8 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
     swapchainContext->BeginRenderPass(imageIndex);
     swapchainContext->Draw(cubePipeline_, drawBuffer_, cubeMvps);
     for (auto& [name, model] : models_) {
-        swapchainContext->DrawGltf(outlinePipeline_, model, uboSceneDescriptorSet_);
         swapchainContext->DrawGltf(gltfPipeline_, model, uboSceneDescriptorSet_);
+        swapchainContext->DrawGltf(outlinePipeline_, model, uboSceneDescriptorSet_);
         model->ClearPushConstants();
     }
     for (auto& [name, pointCloud] : pointClouds_) {
