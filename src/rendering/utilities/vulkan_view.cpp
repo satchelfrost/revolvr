@@ -14,7 +14,7 @@ device_(context->GetDevice()) {
     switch (viewType) {
         case Depth:
             format = context->GetDepthFormat();
-            aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+            aspectMask = (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
             break;
         case Color:
             format = context->GetColorFormat();

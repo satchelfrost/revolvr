@@ -34,7 +34,7 @@ RenderPass::RenderPass(VkDevice device, VkFormat colorFmt, VkFormat depthFmt) : 
         at[colorRef.attachment].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
         at[colorRef.attachment].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         at[colorRef.attachment].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        at[colorRef.attachment].initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        at[colorRef.attachment].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         at[colorRef.attachment].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
         subpass.colorAttachmentCount = 1;

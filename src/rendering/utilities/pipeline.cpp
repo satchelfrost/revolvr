@@ -63,6 +63,7 @@ Pipeline::Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique
     VkPipelineRasterizationStateCreateInfo rs{VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO};
     rs.polygonMode = VK_POLYGON_MODE_FILL;
 //    rs.cullMode = (stencil) ? VK_CULL_MODE_NONE : VK_CULL_MODE_BACK_BIT;
+//    rs.cullMode = VK_CULL_MODE_BACK_BIT;
     rs.cullMode = VK_CULL_MODE_NONE;
     rs.frontFace = frontFace;
     rs.depthClampEnable = VK_FALSE;
@@ -115,13 +116,12 @@ Pipeline::Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique
     ds.maxDepthBounds = 1.0f;
 
     if (stencil) {
-        ds.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
         ds.stencilTestEnable = VK_TRUE;
         ds.back.compareMask = 0xff;
         ds.back.writeMask = 0xff;
         ds.back.reference = 1;
         if (outline) {
-            ds.back.compareOp = VK_COMPARE_OP_NOT_EQUAL;
+            ds.back.compareOp = VK_COMPARE_OP_ALWAYS;
             ds.back.failOp = VK_STENCIL_OP_KEEP;
             ds.back.depthFailOp = VK_STENCIL_OP_KEEP;
             ds.back.passOp = VK_STENCIL_OP_REPLACE;
