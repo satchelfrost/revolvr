@@ -118,6 +118,7 @@ Pipeline::Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique
         ds.back.compareMask = 0xff;
         ds.back.writeMask = 0xff;
         ds.back.reference = 1;
+        ds.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
         if (outline) {
             ds.back.compareOp = VK_COMPARE_OP_NOT_EQUAL;
             ds.back.passOp = VK_STENCIL_OP_REPLACE;

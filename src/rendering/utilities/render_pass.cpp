@@ -48,7 +48,7 @@ RenderPass::RenderPass(VkDevice device, VkFormat colorFmt, VkFormat depthFmt) : 
         at[depthRef.attachment].samples = VK_SAMPLE_COUNT_1_BIT;
         at[depthRef.attachment].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         at[depthRef.attachment].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-        at[depthRef.attachment].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        at[depthRef.attachment].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         at[depthRef.attachment].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         at[depthRef.attachment].initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
         at[depthRef.attachment].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
