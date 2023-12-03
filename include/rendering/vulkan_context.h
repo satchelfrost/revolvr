@@ -22,9 +22,27 @@
 #include <rendering/utilities/vulkan_descriptors.h>
 
 #define MAX_LIGHTS 10
+#define MAX_BANDS 5
 
 namespace rvr {
 class XrContext;
+
+struct PointLightData {
+    glm::vec4 position; // ignore w
+    glm::vec4 color;    // color + intensity
+};
+
+struct UBOScene {
+    glm::mat4 projection;
+    glm::mat4 view;
+    glm::vec4 viewPos;
+    glm::vec4 ambientColor = glm::vec4(1.0f, 1.0f, 1.0f, 0.05f); // color + intensity
+    PointLightData pointLights[MAX_LIGHTS];
+    int numLights;
+    float outlineWidth = 0.01f;
+    int numBands = 1;
+    float bands[MAX_BANDS];
+};
 
 class VulkanContext {
 private:
@@ -55,19 +73,7 @@ private:
     std::map<std::string, std::unique_ptr<VulkanGLTFModel>> models_;
     std::unique_ptr<VulkanBuffer> uniformBuffer_;
     VkDescriptorSet uboSceneDescriptorSet_;
-    struct PointLightData {
-        glm::vec4 position; // ignore w
-        glm::vec4 color;    // color + intensity
-    };
-    struct UBOScene {
-        glm::mat4 projection;
-        glm::mat4 view;
-        glm::vec4 viewPos;
-        glm::vec4 ambientColor = glm::vec4(1.0f, 1.0f, 1.0f, 0.05f); // color + intensity
-        PointLightData pointLights[MAX_LIGHTS];
-        int numLights;
-        float outlineWidth = 0.01f;
-    } uboScene;
+    UBOScene uboScene;
     std::unique_ptr<DescriptorPool> globalDescriptorPool_;
     std::map<std::string, std::unique_ptr<DescriptorSetLayout>> descriptorSetLayouts_;
 
@@ -84,6 +90,8 @@ private:
 #endif
 
 public:
+    UBOScene GetUniform() const;
+    void SetUniform(UBOScene scene);
     void InitDevice(XrInstance xrInstance, XrSystemId systemId);
     void Cleanup();
     XrSwapchainImageBaseHeader* AllocateSwapchainImageStructs(uint32_t capacity,

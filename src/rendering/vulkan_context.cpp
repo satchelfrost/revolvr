@@ -473,4 +473,12 @@ void VulkanContext::InitPointCloudResources() {
                                                      VK_FRONT_FACE_CLOCKWISE,
                                                      VK_PRIMITIVE_TOPOLOGY_POINT_LIST);
 }
+
+UBOScene VulkanContext::GetUniform() const {
+    return uboScene;
+}
+
+void VulkanContext::SetUniform(UBOScene scene) {
+    uboScene = scene;
+}
 }
