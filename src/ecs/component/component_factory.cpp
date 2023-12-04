@@ -183,7 +183,7 @@ void CreatePointLight(Entity *entity, const std::map<std::string, Parser::Field>
     if (GetStringField(entity, fields, "PointLight.color_name", colorName))
         color =  GetNormalizedRGBFromColorName(colorName);
 
-    float intensity = 0.15f; // hopefully a sane default
+    float intensity = 0.4f; // hopefully a sane default
     GetFloatField(entity, fields, "PointLight.intensity", intensity);
     Assign(entity, new PointLight(entity->id, color, intensity));
 }

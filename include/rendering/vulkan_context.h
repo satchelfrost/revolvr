@@ -39,9 +39,14 @@ struct UBOScene {
     glm::vec4 ambientColor = glm::vec4(1.0f, 1.0f, 1.0f, 0.05f); // color + intensity
     PointLightData pointLights[MAX_LIGHTS];
     int numLights;
+
+    // Cel shading
     float outlineWidth = 0.01f;
     int numBands = 1;
-    float bands[MAX_BANDS];
+    float h = 0.05f;
+    float b0 = 0.5;
+    float b1 = 0.5;
+    float b2 = 0.75;
 };
 
 class VulkanContext {
