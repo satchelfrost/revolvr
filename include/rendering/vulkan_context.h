@@ -22,7 +22,6 @@
 #include <rendering/utilities/vulkan_descriptors.h>
 
 #define MAX_LIGHTS 10
-#define MAX_BANDS 5
 
 namespace rvr {
 class XrContext;

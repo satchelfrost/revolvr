@@ -13,6 +13,7 @@
 
 #include "rvr_reference_space.h"
 #include "xr_app_helpers.h"
+#include "rendering/utilities/passthrough.h"
 #include <io/action/action_manager.h>
 #include <io/hand_tracking/hand_tracker.h>
 
@@ -70,7 +71,9 @@ private:
     XrFrameState frameState_{XR_TYPE_FRAME_STATE};
     std::vector<XrCompositionLayerProjectionView> projectionLayerViews_;
     std::vector<XrCompositionLayerBaseHeader*> layers_;
+    std::unique_ptr<PassThrough> passThrough_;
     XrCompositionLayerProjection layer_{XR_TYPE_COMPOSITION_LAYER_PROJECTION};
+    XrCompositionLayerPassthroughFB ptLayer_ = {XR_TYPE_COMPOSITION_LAYER_PASSTHROUGH_FB};
     std::vector<XrView> views_;
     std::vector<XrViewConfigurationView> configViews_;
     XrViewConfigurationType viewConfigType_{XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO};
