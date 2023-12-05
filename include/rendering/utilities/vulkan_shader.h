@@ -29,7 +29,7 @@ public:
     VulkanShader(VkDevice device, const std::string& shaderFileName, ShaderType type);
     ~VulkanShader();
     VkPipelineShaderStageCreateInfo GetShaderStageInfo();
-    void PushConstant(std::string debugName, size_t sizeInBytes);
+    void PushConstant(std::string debugName, size_t sizeInBytes, VkShaderStageFlags flags = VK_SHADER_STAGE_VERTEX_BIT);
     std::vector<VkPushConstantRange> GetPushConstants();
     void AddSetLayout(VkDescriptorSetLayout layout);
     std::vector<VkDescriptorSetLayout> GetDescriptorSetLayouts();

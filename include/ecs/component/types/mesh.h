@@ -10,7 +10,13 @@
 
 namespace rvr {
 class Mesh : public Component {
+
 public:
+    enum Primitive {
+        Quad,
+        Cube
+    };
+
     Mesh(type::EntityId pId, bool visible=true);
     Mesh(const Mesh& other) = delete;
     Mesh(const Mesh& other, type::EntityId newEntityId);
@@ -19,10 +25,13 @@ public:
     bool HasResource() const;
     std::string ResourceName();
     void SetName(std::string name);
+    void SetPrimitiveType(Primitive primitive);
+    Primitive GetPrimitiveType();
 
     void SetVisibilityRecursive(bool visibility);
 private:
     bool visible_;
     std::string resourceName_;
+    Primitive primitive_;
 };
 }

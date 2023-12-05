@@ -65,8 +65,15 @@ private:
 
     // Cube stuff
     std::unique_ptr<ShaderStages> cubeShaderStages_;
-    std::unique_ptr<DrawBuffer> drawBuffer_;
+    std::unique_ptr<DrawBuffer> cubeBuffer_;
     std::unique_ptr<Pipeline> cubePipeline_;
+
+
+    // Orbiting Lights pipeline
+    std::unique_ptr<Pipeline> lightsPipeline_;
+    std::vector<PointLightPushConst> lightPushConstInfo_;
+    std::unique_ptr<DrawBuffer> lightBuffer_;
+    std::unique_ptr<ShaderStages> lightShaderStages_;
 
     // Gltf stuff
     bool usingGltf_ = false;
@@ -113,6 +120,7 @@ private:
     void SetupDescriptors();
     void InitCubeResources();
     void InitGltfResources();
+    void InitLightsResources();
     void InitPointCloudResources();
     void CreateVulkanInstance(XrInstance xrInstance, XrSystemId systemId);
     bool CheckValidationLayerSupport();

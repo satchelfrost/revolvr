@@ -60,6 +60,14 @@ void CreateMesh(Entity *entity, const std::map<std::string, Parser::Field>& fiel
     std::string name;
     if (GetStringField(entity, fields, "Mesh.gltf", name))
         mesh->SetName(name);
+
+    std::string primitive;
+    if (GetStringField(entity, fields, "Mesh.primitive", primitive)) {
+        if (primitive == "Cube")
+            mesh->SetPrimitiveType(Mesh::Cube);
+        else if (primitive == "Quad")
+            mesh->SetPrimitiveType(Mesh::Quad);
+    }
     Assign(entity, mesh);
 }
 

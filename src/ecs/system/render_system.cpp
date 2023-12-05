@@ -15,6 +15,8 @@ void AppendCubeTransformBuffer(std::vector<math::Transform>& buffer) {
     auto components = GlobalContext::Inst()->GetECS()->GetComponents(ComponentType::Mesh);
     for (auto [eid, component] : components) {
         auto mesh = dynamic_cast<Mesh*>(component);
+        if (mesh->GetPrimitiveType() != Mesh::Cube)
+            continue;
         if (mesh->IsVisible() && !mesh->HasResource()) {
             auto* spatial = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(eid);
             buffer.push_back(spatial::GetPlayerRelativeTransform(spatial));

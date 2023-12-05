@@ -11,6 +11,7 @@
 #pragma once
 
 #include "pch.h"
+#define ARRAY_LEN(arr) (sizeof(arr) / sizeof(arr[0]))
 
 namespace Geometry {
 
@@ -57,6 +58,24 @@ constexpr unsigned short c_cubeIndices[] = {
     18, 19, 20, 21, 22, 23,  // +Y
     24, 25, 26, 27, 28, 29,  // -Z
     30, 31, 32, 33, 34, 35,  // +Z
+};
+
+struct SimpleVert {
+    XrVector3f pos;
+};
+
+const SimpleVert quad_verts[] = {
+        {-1.0, -1.0, 0.0},
+        {-1.0, 1.0, 0.0},
+        {1.0, -1.0, 0.0},
+        {1.0, -1.0, 0.0},
+        {-1.0, 1.0, 0.0},
+        {1.0, 1.0, 0.0}
+};
+
+const unsigned short quad_indices[] = {
+        0, 1, 2,
+        3, 4, 5
 };
 
 }  // namespace Geometry

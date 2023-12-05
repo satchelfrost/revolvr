@@ -16,6 +16,12 @@
 #include <rendering/utilities/point_cloud/point_cloud_res.h>
 
 namespace rvr {
+struct PointLightPushConst {
+    glm::vec4 position;
+    glm::vec4 color;
+    float radius;
+};
+
 class SwapchainImageContext {
 private:
     std::shared_ptr<RenderingContext> renderingContext_;
@@ -39,6 +45,9 @@ public:
 
     void Draw(const std::unique_ptr<Pipeline>& pipeline, const std::unique_ptr<DrawBuffer>& drawBuffer,
               const std::vector<glm::mat4> &transforms);
+    void DrawLights(const std::unique_ptr<Pipeline>& pipeline, const std::unique_ptr<DrawBuffer>& drawBuffer,
+                    const std::vector<PointLightPushConst>& pushConsts,
+                    VkDescriptorSet descriptorSet);
     void DrawGltf(const std::unique_ptr<Pipeline>& pipeline, const std::unique_ptr<VulkanGLTFModel>& model,
                   VkDescriptorSet descriptorSet);
     void DrawPointCloud(const std::unique_ptr<Pipeline>& pipeline,

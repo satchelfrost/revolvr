@@ -49,9 +49,9 @@ VkPipelineShaderStageCreateInfo VulkanShader::GetShaderStageInfo() {
     return shaderInfo_;
 }
 
-void VulkanShader::PushConstant(std::string debugName, size_t sizeInBytes) {
+void VulkanShader::PushConstant(std::string debugName, size_t sizeInBytes, VkShaderStageFlags flags) {
     VkPushConstantRange range{};
-    range.stageFlags = shaderInfo_.stage;
+    range.stageFlags = flags;
     range.offset = pushConstantOffset_;
     range.size = sizeInBytes;
     NamedPushConstant namedPushConstant {

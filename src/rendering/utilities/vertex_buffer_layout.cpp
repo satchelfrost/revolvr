@@ -35,7 +35,7 @@ std::vector<VkVertexInputAttributeDescription> VertexBufferLayout::GetVtxAttrDes
        attrDescriptions.push_back(description);
        offset += element.count * DataTypeSize(element.type);
    }
-    return attrDescriptions;
+   return attrDescriptions;
 }
 
 VkVertexInputBindingDescription VertexBufferLayout::GetVertexInputBindingDesc() const {

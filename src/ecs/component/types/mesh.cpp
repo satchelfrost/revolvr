@@ -10,10 +10,11 @@
 #include <utility>
 
 namespace rvr {
-Mesh::Mesh(type::EntityId pId, bool visible) : Component(ComponentType::Mesh, pId), visible_(visible) {}
+Mesh::Mesh(type::EntityId pId, bool visible) : Component(ComponentType::Mesh, pId), visible_(visible),
+                                               primitive_(Cube) {}
 
 Mesh::Mesh(const Mesh &other, type::EntityId newEntityId) :
-Component(ComponentType::Mesh, newEntityId), visible_(other.visible_),
+Component(ComponentType::Mesh, newEntityId), visible_(other.visible_), primitive_(other.primitive_),
 resourceName_(other.resourceName_) {}
 
 Component *Mesh::Clone(type::EntityId newEntityId) {
@@ -44,5 +45,13 @@ std::string Mesh::ResourceName() {
 
 void Mesh::SetName(std::string name) {
     resourceName_ = std::move(name);
+}
+
+void Mesh::SetPrimitiveType(Mesh::Primitive primitive) {
+    primitive_ = primitive;
+}
+
+Mesh::Primitive Mesh::GetPrimitiveType() {
+    return primitive_;
 }
 }

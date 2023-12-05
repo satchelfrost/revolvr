@@ -52,7 +52,7 @@ Pipeline::Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique
     vi.vertexBindingDescriptionCount = 1;
     VkVertexInputBindingDescription vertexInputBindingDescription = vertexBufferLayout.GetVertexInputBindingDesc();
     vi.pVertexBindingDescriptions = &vertexInputBindingDescription;
-    std::vector<VkVertexInputAttributeDescription> attrDescriptions =  vertexBufferLayout.GetVtxAttrDescriptions();
+    std::vector<VkVertexInputAttributeDescription> attrDescriptions = vertexBufferLayout.GetVtxAttrDescriptions();
     vi.vertexAttributeDescriptionCount = (uint32_t) attrDescriptions.size();
     vi.pVertexAttributeDescriptions = attrDescriptions.data();
 
@@ -73,9 +73,9 @@ Pipeline::Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique
     rs.lineWidth = 1.0f;
 
     VkPipelineColorBlendAttachmentState attachState{};
-    attachState.blendEnable = 0;
-    attachState.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
-    attachState.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+    attachState.blendEnable = VK_TRUE;
+    attachState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+    attachState.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
     attachState.colorBlendOp = VK_BLEND_OP_ADD;
     attachState.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
     attachState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;

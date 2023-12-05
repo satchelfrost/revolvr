@@ -120,4 +120,32 @@ void SwapchainImageContext::EndRenderPass() {
     // TODO: get rid of this because of performance, necessary for multiple uniform buffer writes
     cmdBuffer_->Wait();
 }
+
+void SwapchainImageContext::DrawLights(const std::unique_ptr<Pipeline> &pipeline,
+                                       const std::unique_ptr<DrawBuffer> &drawBuffer,
+                                       const std::vector<PointLightPushConst> &pointLightPushConsts,
+                                       VkDescriptorSet descriptorSet){
+
+    VkCommandBuffer cmdBuffer = cmdBuffer_->GetBuffer();
+    pipeline->BindPipeline(cmdBuffer);
+    vkCmdBindIndexBuffer(cmdBuffer, drawBuffer->GetIndexBuffer(),
+                         0, VK_INDEX_TYPE_UINT16);
+    VkDeviceSize offset = 0;
+    VkBuffer vertexBuffer = drawBuffer->GetVertexBuffer();
+    vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &vertexBuffer,
+                           &offset);
+    vkCmdSetViewport(cmdBuffer, 0, 1, &viewport_);
+    vkCmdSetScissor(cmdBuffer, 0, 1, &scissor_);
+    vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            pipeline->GetPipelineLayout(), 0, 1,
+                            &descriptorSet, 0, nullptr) ;
+    for (const auto pointLight : pointLightPushConsts) {
+        vkCmdPushConstants(cmdBuffer, pipeline->GetPipelineLayout(),
+                           VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                           0, sizeof(PointLightPushConst),
+                           &pointLight);
+        vkCmdDrawIndexed(cmdBuffer, drawBuffer->GetIndexCount(),
+                         1, 0, 0, 0);
+    }
+}
 }

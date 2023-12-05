@@ -17,6 +17,7 @@
 #include <rendering/utilities/vulkan_shader.h>
 #include <ecs/component/types/spatial.h>
 #include <ecs/component/types/point_light.h>
+#include "ecs/component/types/mesh.h"
 
 namespace rvr {
 void VulkanContext::InitDevice(XrInstance xrInstance, XrSystemId systemId) {
@@ -78,7 +79,9 @@ void VulkanContext::InitializeResources() {
     std::set<std::string> uniqueNames = system::render::GetUniqueModelNames();
     // Only try to load gltf models if necessary
     if (!uniqueNames.empty()) {
+        SetupDescriptors();
         InitGltfResources();
+        InitLightsResources();
         usingGltf_ = true;
     }
 
@@ -133,14 +136,42 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
             PointLight* pointLight = pointLights[i];
             auto* spatial = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(pointLight->id);
             if (spatial) {
+                // Update ubo
                 glm::vec3 lightPos = system::spatial::GetPlayerRelativeTransform(spatial).GetPosition();
                 uboScene.pointLights[i].position = glm::vec4(lightPos, 1.0f);
                 uboScene.pointLights[i].color = glm::vec4(pointLight->GetColor(), pointLight->GetIntensity());
+
+                // Update light point light push constant info
+                auto* mesh = GlobalContext::Inst()->GetECS()->GetComponent<Mesh>(pointLight->id);
+                if (mesh) {
+                    if (mesh->GetPrimitiveType() == Mesh::Quad) {
+                        PointLightPushConst pushConst{};
+                        pushConst.radius = 0.25f;
+                        pushConst.position = uboScene.pointLights[i].position;
+                        pushConst.color = uboScene.pointLights[i].color;
+                        lightPushConstInfo_.push_back(pushConst);
+                    } else {
+                        PrintWarning("Cannot render light, quad mesh not available id = " +
+                                     std::to_string(pointLight->id));
+                    }
+                }
             }
             else {
                 PrintWarning("PointLight missing spatial. Eid = " + std::to_string(pointLight->id));
             }
         }
+
+        // Hacky sorting
+        std::map<float, PointLightPushConst> sorted;
+        for (auto pushConst: lightPushConstInfo_) {
+            auto offset = uboScene.viewPos - pushConst.position;
+            float distSqrd = glm::dot(offset, offset);
+            sorted[distSqrd] = pushConst;
+        }
+        lightPushConstInfo_.clear();
+        for (auto& [key, pushConst] : sorted)
+            lightPushConstInfo_.push_back(pushConst);
+
         uniformBuffer_->WriteToBuffer(&uboScene);
     }
 
@@ -153,11 +184,16 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
     // Acquire swapchain context and begin render pass
     auto swapchainContext = imageToSwapchainContext_[swapchainImage];
     swapchainContext->BeginRenderPass(imageIndex);
-    swapchainContext->Draw(cubePipeline_, drawBuffer_, cubeMvps);
+    swapchainContext->Draw(cubePipeline_, cubeBuffer_, cubeMvps);
     for (auto& [name, model] : models_) {
         swapchainContext->DrawGltf(gltfPipeline_, model, uboSceneDescriptorSet_);
         swapchainContext->DrawGltf(outlinePipeline_, model, uboSceneDescriptorSet_);
         model->ClearPushConstants();
+    }
+    if (usingGltf_) {
+        swapchainContext->DrawLights(lightsPipeline_, lightBuffer_, lightPushConstInfo_,
+                                     uboSceneDescriptorSet_);
+        lightPushConstInfo_.clear();
     }
     for (auto& [name, pointCloud] : pointClouds_) {
         swapchainContext->DrawPointCloud(pointCloudPipeline_, pointCloud);
@@ -347,26 +383,15 @@ void VulkanContext::InitCubeResources() {
                                                        sizeOfVertex, vertexCount,
                                                    VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
                                                    MemoryType::HostVisible);
-    drawBuffer_ = std::make_unique<DrawBuffer>(std::move(indexBuffer),
+    cubeBuffer_ = std::make_unique<DrawBuffer>(std::move(indexBuffer),
                                                std::move(vertexBuffer));
-    drawBuffer_->UpdateIndices(Geometry::c_cubeIndices);
-    drawBuffer_->UpdateVertices(Geometry::c_cubeVertices);
+    cubeBuffer_->UpdateIndices(Geometry::c_cubeIndices);
+    cubeBuffer_->UpdateVertices(Geometry::c_cubeVertices);
     cubePipeline_ = std::make_unique<Pipeline>(renderingContext_, cubeShaderStages_, vertexBufferLayout,
                                                VK_FRONT_FACE_CLOCKWISE);
 }
 
 void VulkanContext::InitGltfResources() {
-    // Setup model and uniform buffer before setting up descriptors
-    std::set<std::string> uniqueNames = system::render::GetUniqueModelNames();
-    for (auto& name : uniqueNames)
-        models_[name] = std::make_unique<VulkanGLTFModel>(renderingContext_, name + ".gltf");
-
-    uniformBuffer_ = std::make_unique<VulkanBuffer>(renderingContext_, sizeof(uboScene),
-                                                    1, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                                                    MemoryType::HostVisible);
-    uniformBuffer_->Map();
-    uniformBuffer_->WriteToBuffer(&uboScene);
-    SetupDescriptors();
 
     // Create the shader stages, add any push constants and/or descriptor set layouts
     auto vert = std::make_unique<VulkanShader>(device_,
@@ -412,6 +437,11 @@ void VulkanContext::InitGltfResources() {
 }
 
 void VulkanContext::SetupDescriptors() {
+    // Setup model and uniform buffer before setting up descriptors
+    std::set<std::string> uniqueNames = system::render::GetUniqueModelNames();
+    for (auto& name : uniqueNames)
+        models_[name] = std::make_unique<VulkanGLTFModel>(renderingContext_, name + ".gltf");
+
     // Setup the descriptor pool
     DescriptorPool::Builder builder(device_);
     uint32_t maxSets = 1; // start with ubo
@@ -429,6 +459,11 @@ void VulkanContext::SetupDescriptors() {
             .AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
                         VK_SHADER_STAGE_ALL_GRAPHICS)
             .Build();
+    uniformBuffer_ = std::make_unique<VulkanBuffer>(renderingContext_, sizeof(uboScene),
+                                                    1, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                                                    MemoryType::HostVisible);
+    uniformBuffer_->Map();
+    uniformBuffer_->WriteToBuffer(&uboScene);
     auto bufferInfo = uniformBuffer_->DescriptorInfo();
     DescriptorWriter(*descriptorSetLayouts_["ubo"], *globalDescriptorPool_)
         .WriteBuffer(0, &bufferInfo)
@@ -480,5 +515,40 @@ UBOScene VulkanContext::GetUniform() const {
 
 void VulkanContext::SetUniform(UBOScene scene) {
     uboScene = scene;
+}
+
+void VulkanContext::InitLightsResources() {
+    auto vert = std::make_unique<VulkanShader>(device_,
+                                               "shaders/lights.vert.spv",
+                                               VulkanShader::Vertex);
+    vert->PushConstant("Point light info", sizeof(PointLightPushConst), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
+    vert->AddSetLayout(descriptorSetLayouts_["ubo"]->GetDescriptorSetLayout());
+    auto frag= std::make_unique<VulkanShader>(device_,
+                                              "shaders/lights.frag.spv",
+                                              VulkanShader::Fragment);
+    lightShaderStages_ = std::make_unique<ShaderStages>(device_, std::move(vert),
+                                                       std::move(frag));
+    VertexBufferLayout vertexBufferLayout{};
+    vertexBufferLayout.Push({0, DataType::F32, 3, "Position"});
+
+    size_t sizeOfIndex = sizeof(Geometry::quad_indices[0]);
+    size_t sizeOfVertex = sizeof(Geometry::quad_verts[0]);
+    size_t indexCount = sizeof(Geometry::quad_indices) / sizeOfIndex;
+    size_t vertexCount = sizeof(Geometry::quad_verts) / sizeOfVertex;
+    auto indexBuffer = std::make_unique<VulkanBuffer>(renderingContext_,
+                                                      sizeOfIndex, indexCount,
+                                                      VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                                                      MemoryType::HostVisible);
+    auto vertexBuffer = std::make_unique<VulkanBuffer>(renderingContext_,
+                                                       sizeOfVertex, vertexCount,
+                                                       VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                                                       MemoryType::HostVisible);
+    lightBuffer_ = std::make_unique<DrawBuffer>(std::move(indexBuffer),
+                                               std::move(vertexBuffer));
+    lightBuffer_->UpdateIndices(Geometry::quad_indices);
+    lightBuffer_->UpdateVertices(Geometry::quad_verts);
+    lightsPipeline_ = std::make_unique<Pipeline>(renderingContext_, lightShaderStages_, vertexBufferLayout,
+                                                 VK_FRONT_FACE_CLOCKWISE,
+                                                 VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, true, false);
 }
 }
