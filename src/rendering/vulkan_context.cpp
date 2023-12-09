@@ -350,8 +350,7 @@ void VulkanContext::InitGltfResources() {
     auto vert = std::make_unique<VulkanShader>(device_,
                                                "shaders/basic_gltf.vert.spv",
                                                VulkanShader::Vertex);
-    vert->PushConstant("Model primitive", sizeof(glm::mat4));
-    vert->PushConstant("Normal matrix", sizeof(glm::mat4));
+    vert->PushConstant("Model primitive", sizeof(glm::mat4) * 2);
     vert->AddSetLayout(descriptorSetLayouts_["ubo"]->GetDescriptorSetLayout());
     auto frag = std::make_unique<VulkanShader>(device_,
                                                "shaders/basic_gltf.frag.spv",
