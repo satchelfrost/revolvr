@@ -25,8 +25,8 @@ void Scene::LoadScene(const std::string &sceneName) {
     PrintInfo("Successfully loaded scene " + sceneName);
 
     // TODO: put this in scene manager once that exists
-    system::ritual::Begin();
-    system::timer::Start();
+    sys::ritual::Begin();
+    sys::timer::Start();
 }
 
 void Scene::InitUnits(const std::vector<Parser::Unit> &units) {
@@ -98,7 +98,7 @@ void Scene::CreateComponent(Entity* entity, const std::map<std::string, Parser::
         COMPONENT_LIST(COMPONENT_CASE)
         #undef COMPONENT_CASE
     default:
-        THROW(Fmt("Component type %s unrecognized", toString(cType)))
+        THROW(Fmt("Component type %s unrecognized", toString(cType)));
     }
 }
 

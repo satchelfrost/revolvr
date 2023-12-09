@@ -8,7 +8,7 @@
 
 #include <aaudio/AAudio.h>
 
-namespace rvr::system::audio {
+namespace rvr::sys::audio {
 aaudio_data_callback_result_t dataCallback(AAudioStream *stream, void *userData, void *audioData,
                                            int32_t numFrames);
 

@@ -21,8 +21,8 @@ bool AudioEngine::start() {
     AAudioStreamBuilder_setFormat(streamBuilder, AAUDIO_FORMAT_PCM_FLOAT);
     AAudioStreamBuilder_setChannelCount(streamBuilder, 2);
     AAudioStreamBuilder_setPerformanceMode(streamBuilder, AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
-    AAudioStreamBuilder_setDataCallback(streamBuilder, system::audio::dataCallback, &mixer_);
-    AAudioStreamBuilder_setErrorCallback(streamBuilder, system::audio::errorCallback, this);
+    AAudioStreamBuilder_setDataCallback(streamBuilder, sys::audio::dataCallback, &mixer_);
+    AAudioStreamBuilder_setErrorCallback(streamBuilder, sys::audio::errorCallback, this);
 
     // Opens the stream.
     aaudio_result_t result = AAudioStreamBuilder_openStream(streamBuilder, &stream_);

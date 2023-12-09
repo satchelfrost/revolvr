@@ -33,7 +33,7 @@ bool SphereCollider::TestCollision(Collider* other) {
         case ColliderType::OBB:
             return false;
         default:
-            THROW(Fmt("Collider type %d unrecognized", other->type))
+            THROW(Fmt("Collider type %d unrecognized", other->type));
     }
 }
 

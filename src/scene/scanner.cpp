@@ -56,7 +56,7 @@ bool Scanner::IdentifierScan(std::string& line, int& pos) {
 }
 
 bool Scanner::NumberScan(std::string& line, int& pos) {
-  if (isdigit(line[pos]) || line[pos] == '-') { // TODO: make it possible to have a number such as ".3" with no leading zero
+  if (isdigit(line[pos]) || line[pos] == '-') {
     std::string numStr;
     numStr += line[pos];
     while(pos++ < line.size()) {

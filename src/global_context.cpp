@@ -49,11 +49,11 @@ AudioEngine *GlobalContext::GetAudioEngine() {
 
 void GlobalContext::UpdateSystems(float deltaTime) {
     CHECK_MSG(initialized_, "Global Context was not initialized")
-    system::spatial::UpdateTrackedSpaces(xrContext_);
-    system::collision::RunCollisionChecks();
-    system::ritual::Update(deltaTime);
-    system::timer::UpdateTicks();
-    system::spatial::UpdateSpatials();
+    sys::spatial::UpdateTrackedSpaces(xrContext_);
+    sys::collision::RunCollisionChecks();
+    sys::ritual::Update(deltaTime);
+    sys::timer::UpdateTicks();
+    sys::spatial::UpdateSpatials();
 }
 
 VulkanContext *GlobalContext::GetVulkanContext() {

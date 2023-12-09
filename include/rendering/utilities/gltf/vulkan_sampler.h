@@ -6,7 +6,17 @@
 
 #pragma once
 
-namespace rvr::sys::timer {
-void UpdateTicks();
-void Start();
+#include <pch.h>
+
+namespace rvr {
+class VulkanSampler {
+private:
+    VkSampler sampler_;
+    VkDevice device_;
+
+public:
+    VulkanSampler(VkDevice device, VkFilter filter);
+    VkSampler GetSampler();
+    ~VulkanSampler();
+};
 }

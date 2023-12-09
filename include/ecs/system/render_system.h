@@ -11,7 +11,7 @@
 #include "rendering/utilities/gltf/vulkan_gltf_model.h"
 #include "rendering/utilities/point_cloud/point_cloud_res.h"
 
-namespace rvr::system::render{
+namespace rvr::sys::render{
 void AppendCubeTransformBuffer(std::vector<math::Transform>& buffer);
 void AppendGltfModelPushConstants(std::map<std::string, std::unique_ptr<VulkanGLTFModel>>& models);
 void AppendPointCloudPushConstants(std::map<std::string, std::unique_ptr<PointCloudResource>>& pointClouds,

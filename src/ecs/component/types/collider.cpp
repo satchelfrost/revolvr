@@ -21,7 +21,7 @@ std::string Collider::ColliderTypeToString(Collider::ColliderType type) {
         case ColliderType::OBB:
             return "OBB";
         default:
-            THROW(Fmt("Collider type %d not found", type))
+            THROW(Fmt("Collider type %d not found", type));
     }
 }
 
@@ -29,7 +29,7 @@ Collider::ColliderType Collider::StrToColliderTypeEnum(const std::string& str) {
     for (int i = 0; i < colliders; i++)
         if (ColliderTypeToString((ColliderType)i) == str)
             return (ColliderType)i;
-    THROW(Fmt("Collider Type %s unrecognized", str.c_str()))
+    THROW(Fmt("Collider Type %s unrecognized", str.c_str()));
 }
 
 void Collider::Collided(Collider *other) {

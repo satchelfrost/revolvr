@@ -114,14 +114,6 @@ void HandTracker::SetupMeshes() {
     capsulesStateFb.next = nullptr;
     mesh.next = &capsulesStateFb;
     CHECK_XRCMD(xrGetHandMeshFB_(handTracker_, &mesh));
-
-    // TODO: Possibly initialize some renderable with this mesh data
-    // Interesting data includes:
-    // General vertex and normal data
-    // Joint radii
-    // Capsule information
-
-//    PrintHierarchy(parentData);
 }
 
 void HandTracker::Update(XrTime predictedDisplayTime, XrSpace appSpace) {

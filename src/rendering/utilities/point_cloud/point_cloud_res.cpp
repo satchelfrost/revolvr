@@ -6,6 +6,7 @@
 
 #include <rendering/utilities/point_cloud/point_cloud_res.h>
 #include <platform/asset_stream.h>
+#include <rendering/utilities/command_buffer.h>
 #include "happly.h"
 #include "glm/gtc/type_ptr.hpp"
 
@@ -22,8 +23,13 @@ PointCloudResource::PointCloudResource(std::shared_ptr<RenderingContext> renderi
     vertexBuffer_ = std::make_unique<VulkanBuffer>(renderingContext_, sizeof(Geometry::Vertex), vertices.size(),
                                                    VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                                                    MemoryType::DeviceLocal);
-    renderingContext_->CopyBuffer(vertexStagingBuffer.GetBuffer(), vertexBuffer_->GetBuffer(),
-                                  vertexStagingBuffer.GetSizeOfBuffer(), 0, 0);
+    CommandBuffer cmd = CommandBuffer(renderingContext_->GetDevice(), renderingContext_->GetGraphicsPool());
+    cmd.Begin();
+    renderingContext_->CopyBuffer(cmd.GetBuffer(), vertexStagingBuffer.GetBuffer(),
+                                  vertexBuffer_->GetBuffer(), vertexStagingBuffer.GetSizeOfBuffer(),
+                                  0, 0);
+    cmd.End();
+    cmd.Exec(renderingContext_->GetGraphicsQueue());
 }
 
 void PointCloudResource::AddPushConstant(glm::mat4 transform) {

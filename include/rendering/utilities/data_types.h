@@ -5,8 +5,21 @@
 /***************************************************************************/
 
 #pragma once
+#include <pch.h>
 
-namespace rvr::sys::timer {
-void UpdateTicks();
-void Start();
-}
+struct QueueFamilyIndices {
+    std::optional<uint32_t> graphicsFamily;
+    bool isComplete() {return graphicsFamily.has_value();}
+};
+
+enum class DataType {
+    U8,
+    U16,
+    U32,
+    F32
+};
+
+enum class MemoryType {
+    DeviceLocal,
+    HostVisible
+};

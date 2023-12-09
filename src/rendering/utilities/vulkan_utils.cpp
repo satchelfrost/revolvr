@@ -162,7 +162,6 @@ std::vector<char> CreateSPIRVVector(const char* assetName) {
     return shader_vector;
 }
 
-// TODO: Move this to rendering context
 int64_t SelectColorSwapchainFormat(const std::vector<int64_t> &runtimeFormats) {
     // List of supported color swapchain formats.
     constexpr int64_t SupportedColorSwapchainFormats[] = {VK_FORMAT_B8G8R8A8_SRGB,
@@ -254,7 +253,6 @@ uint32_t FindMemoryType(VkPhysicalDevice physicalDevice, uint32_t filter, VkMemo
     THROW("Failed to find suitable memory type");
 }
 
-// TODO: change this to be more like Vulkan Example
 void PopulateTransitionLayoutInfo(VkImageMemoryBarrier &barrier, VkPipelineStageFlags& srcStage,
                                   VkPipelineStageFlags& dstStage, VkImageLayout oldLayout, VkImageLayout newLayout) {
     if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED) {

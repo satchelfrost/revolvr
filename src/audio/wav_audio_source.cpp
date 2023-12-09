@@ -37,7 +37,7 @@ WavAudioSource::WavAudioSource(const std::string& fileName, bool stereoOutput) :
         Read(&frame, sizeof(frame));
         data[i] = frame;
         if (pos_ > size)
-            THROW("Pos > size of file. Something went wrong.")
+            THROW("Pos > size of file. Something went wrong.");
     }
 
     // Convert RiffInt16 buffer to float buffer

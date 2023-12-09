@@ -7,7 +7,7 @@
 #include <ecs/system/lighting_system.h>
 #include <global_context.h>
 
-namespace rvr::system::lighting {
+namespace rvr::sys::lighting {
 void AppendLightSources(std::vector<PointLight*>& pointLights) {
     auto components = GlobalContext::Inst()->GetECS()->GetComponents(ComponentType::PointLight);
     for (auto& [eid, component] : components) {

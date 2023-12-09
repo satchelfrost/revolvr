@@ -8,7 +8,7 @@
 #include <ecs/component/component_type.h>
 #include <global_context.h>
 
-namespace rvr::system::ritual{
+namespace rvr::sys::ritual{
 void Update(float dt) {
     for (auto entityId : GlobalContext::Inst()->GetECS()->GetEids(ComponentType::Ritual)) {
         auto ritual = GlobalContext::Inst()->GetECS()->GetComponent<Ritual>(entityId);

@@ -10,6 +10,7 @@
 #include <xr_context.h>
 #include <global_context.h>
 #include <ecs/system/spatial_system.h>
+#include <ecs/system/render_system.h>
 #include <ecs/system/lighting_system.h>
 #include <math/linear_math.h>
 #include <rendering/utilities/vulkan_utils.h>
@@ -75,14 +76,14 @@ void VulkanContext::CreateVulkanInstance(XrInstance xrInstance, XrSystemId syste
 void VulkanContext::InitializeResources() {
     InitCubeResources();
 
-    std::set<std::string> uniqueNames = system::render::GetUniqueModelNames();
+    std::set<std::string> uniqueNames = sys::render::GetUniqueModelNames();
     // Only try to load gltf models if necessary
     if (!uniqueNames.empty()) {
         InitGltfResources();
         usingGltf_ = true;
     }
 
-    uniqueNames = system::render::GetUniquePointCloudNames();
+    uniqueNames = sys::render::GetUniquePointCloudNames();
     if (!uniqueNames.empty())
         InitPointCloudResources();
 }
@@ -112,7 +113,7 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
 
     std::vector<glm::mat4> cubeMvps;
     renderBuffer_.clear();
-    system::render::AppendCubeTransformBuffer(renderBuffer_);
+    sys::render::AppendCubeTransformBuffer(renderBuffer_);
     for (const math::Transform &model : renderBuffer_) {
         glm::mat4 modelMatrix = model.ToMat4();
         glm::mat4 mvp = viewProjection * modelMatrix;
@@ -127,13 +128,13 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
         uboScene.viewPos = glm::vec4(position, 0.0f);
 
         std::vector<PointLight*> pointLights;
-        system::lighting::AppendLightSources(pointLights);
+        sys::lighting::AppendLightSources(pointLights);
         uboScene.numLights = (int)pointLights.size();
         for (int i = 0; i < pointLights.size(); i++) {
             PointLight* pointLight = pointLights[i];
             auto* spatial = GlobalContext::Inst()->GetECS()->GetComponent<Spatial>(pointLight->id);
             if (spatial) {
-                glm::vec3 lightPos = system::spatial::GetPlayerRelativeTransform(spatial).GetPosition();
+                glm::vec3 lightPos = sys::spatial::GetPlayerRelativeTransform(spatial).GetPosition();
                 uboScene.pointLights[i].position = glm::vec4(lightPos, 1.0f);
                 uboScene.pointLights[i].color = glm::vec4(pointLight->GetColor(), pointLight->GetIntensity());
             }
@@ -145,10 +146,10 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
     }
 
     // Update the transforms for each gltf model
-    system::render::AppendGltfModelPushConstants(models_);
+    sys::render::AppendGltfModelPushConstants(models_);
 
     // Update the transforms for each point cloud
-    system::render::AppendPointCloudPushConstants(pointClouds_, viewProjection);
+    sys::render::AppendPointCloudPushConstants(pointClouds_, viewProjection);
 
     // Acquire swapchain context and begin render pass
     auto swapchainContext = imageToSwapchainContext_[swapchainImage];
@@ -334,7 +335,7 @@ void VulkanContext::InitCubeResources() {
 
 void VulkanContext::InitGltfResources() {
     // Setup model and uniform buffer before setting up descriptors
-    std::set<std::string> uniqueNames = system::render::GetUniqueModelNames();
+    std::set<std::string> uniqueNames = sys::render::GetUniqueModelNames();
     for (auto& name : uniqueNames)
         models_[name] = std::make_unique<VulkanGLTFModel>(renderingContext_, name + ".gltf");
 
@@ -349,8 +350,7 @@ void VulkanContext::InitGltfResources() {
     auto vert = std::make_unique<VulkanShader>(device_,
                                                "shaders/basic_gltf.vert.spv",
                                                VulkanShader::Vertex);
-    vert->PushConstant("Model primitive", sizeof(glm::mat4));
-    vert->PushConstant("Normal matrix", sizeof(glm::mat4));
+    vert->PushConstant("Model primitive", sizeof(glm::mat4) * 2);
     vert->AddSetLayout(descriptorSetLayouts_["ubo"]->GetDescriptorSetLayout());
     auto frag = std::make_unique<VulkanShader>(device_,
                                                "shaders/basic_gltf.frag.spv",
@@ -409,7 +409,7 @@ void VulkanContext::SetupDescriptors() {
 
 void VulkanContext::InitPointCloudResources() {
     // Get the point cloud files
-    std::set<std::string> uniqueNames = system::render::GetUniquePointCloudNames();
+    std::set<std::string> uniqueNames = sys::render::GetUniquePointCloudNames();
     for (auto& name : uniqueNames)
         pointClouds_[name] = std::make_unique<PointCloudResource>(renderingContext_, name);
 

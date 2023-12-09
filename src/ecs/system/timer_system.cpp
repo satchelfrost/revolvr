@@ -8,7 +8,7 @@
 #include <ecs/component/types/timer.h>
 #include <global_context.h>
 
-namespace rvr::system::timer {
+namespace rvr::sys::timer {
 void UpdateTicks() {
     auto components = GlobalContext::Inst()->GetECS()->GetComponents(ComponentType::Timer);
     for (auto& [eid, component] : components) {

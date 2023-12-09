@@ -46,7 +46,7 @@
 }
 
 #define ENTITY_ERR(msg, entityName) ThrowEntity(msg, entityName, nullptr, FILE_AND_LINE);
-#define THROW(msg) Throw(msg, nullptr, FILE_AND_LINE);
+#define THROW(msg) Throw(msg, nullptr, FILE_AND_LINE)
 #define CHECK(exp)                                      \
     {                                                   \
         if (!(exp)) {                                   \

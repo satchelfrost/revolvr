@@ -9,6 +9,7 @@
 #include <pch.h>
 #include <ktx.h>
 #include <rendering/utilities/rendering_context.h>
+#include <rendering/utilities/gltf/vulkan_sampler.h>
 #include <rendering/utilities/vulkan_view.h>
 #include <rendering/utilities/vulkan_image.h>
 
@@ -17,13 +18,12 @@ struct VulkanTexture {
     VkDevice device_;
     std::shared_ptr<VulkanImage> image_;
     std::unique_ptr<VulkanView> view_;
+    std::unique_ptr<VulkanSampler> sampler_;
     VkImageLayout imageLayout_;
-    VkDeviceMemory deviceMemory;
     uint32_t width, height;
     uint32_t mipLevels;
     uint32_t layerCount;
     VkDescriptorImageInfo descriptor;
-    VkSampler sampler;
 
     void UpdateDescriptor();
     void Destroy();

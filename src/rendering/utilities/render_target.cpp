@@ -8,6 +8,7 @@
 #include <rendering/utilities/render_pass.h>
 #include <rendering/utilities/vulkan_results.h>
 #include <array>
+#include "rendering/utilities/command_buffer.h"
 
 namespace rvr {
 RenderTarget::RenderTarget(const std::shared_ptr<RenderingContext>& context, VkImage colorImage, VkExtent2D extent) {
@@ -16,8 +17,13 @@ RenderTarget::RenderTarget(const std::shared_ptr<RenderingContext>& context, VkI
     depthImage_ = new VulkanImage(context, VulkanImage::Depth, extent);
     depthView_ = new VulkanView(context, VulkanView::Depth, depthImage_->GetImage());
 
-    context->CreateTransitionLayout(depthImage_->GetImage(), VK_IMAGE_LAYOUT_UNDEFINED,
+    CommandBuffer cmd = CommandBuffer(context->GetDevice(), context->GetGraphicsPool());
+    cmd.Begin();
+    context->CreateTransitionLayout(cmd.GetBuffer(), depthImage_->GetImage(),
+                                    VK_IMAGE_LAYOUT_UNDEFINED,
                                     VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+    cmd.End();
+    cmd.Exec(context->GetGraphicsQueue());
 
     std::array<VkImageView, 2> attachments{colorView_->GetImageView(), depthView_->GetImageView()};
     VkFramebufferCreateInfo fbInfo{VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO};

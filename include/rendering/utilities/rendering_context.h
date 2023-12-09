@@ -29,13 +29,13 @@ public:
                      VkCommandPool graphicsPool);
     void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryPropertyFlags,
                       VkBuffer* buffer, VkDeviceMemory* bufferMemory);
-    void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize srcOffset,
-                    VkDeviceSize dstOffset);
+    static void CopyBuffer(VkCommandBuffer cmd, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size,
+                    VkDeviceSize srcOffset, VkDeviceSize dstOffset);
     void CreateImage(VkExtent2D extent, VkFormat format, VkImageUsageFlags usage, VkImage* image,
                      VkDeviceMemory* imageMemory,
                      VkMemoryPropertyFlags memoryPropertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     void CreateImageView(VkImage image, VkFormat format, VkImageAspectFlagBits aspectMask, VkImageView *imageView);
-    void CreateTransitionLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout);
+    static void CreateTransitionLayout(VkCommandBuffer cmd, VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout);
 
     VkDevice GetDevice();
     VkQueue GetGraphicsQueue();

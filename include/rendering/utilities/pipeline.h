@@ -30,11 +30,9 @@ class Pipeline {
 private:
     VkDevice device_{VK_NULL_HANDLE};
     VkPipeline pipeline_{VK_NULL_HANDLE};
-//    VkPrimitiveTopology topology_{VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST};
     std::unique_ptr<PipelineLayout> pipelineLayout_;
 
 public:
-    // TODO: change frontFrace parameter to general pipelineConfig param
     Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique_ptr<ShaderStages>& shaderStages,
              VertexBufferLayout vertexBufferLayout, VkFrontFace frontFace,
              VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);

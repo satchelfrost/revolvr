@@ -8,8 +8,7 @@
 
 namespace rvr {
 VulkanImage::VulkanImage(const std::shared_ptr<RenderingContext>& context, VulkanImage::ImageType imageType,
-                         VkExtent2D extent) :
-device_(context->GetDevice()) {
+                         VkExtent2D extent) : device_(context->GetDevice()) {
     VkFormat format;
     VkImageUsageFlags usage;
     switch (imageType) {
