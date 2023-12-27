@@ -20,7 +20,7 @@ class App {
 public:
     App();
     ~App();
-    void Run(struct android_app* app);
+    void Run(struct android_app* app, const std::string& defaultScene);
 
     float deltaTime_;
     Scene scene_;

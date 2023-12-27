@@ -22,7 +22,7 @@ App::~App() {
     delete globalContext_;
 }
 
-void App::Run(struct android_app *app) {
+void App::Run(struct android_app *app, const std::string& defaultScene) {
     globalContext_ = GlobalContext::Inst();
     globalContext_->Init(app);
 
@@ -37,8 +37,10 @@ void App::Run(struct android_app *app) {
 //    scene_.LoadScene("test_scenes/hand_tracking");
 //    scene_.LoadScene("test_scenes/movement");
 //    scene_.LoadScene("test_scenes/hand_shooting_stuff");
-    scene_.LoadScene("test_scenes/orbiting_lights");
+//    scene_.LoadScene("test_scenes/orbiting_lights");
 //    scene_.LoadScene("test_scenes/point_cloud");
+
+    scene_.LoadScene(defaultScene);
 
     // Initialize resources after scene has been loaded
     globalContext_->GetVulkanContext()->InitializeResources();

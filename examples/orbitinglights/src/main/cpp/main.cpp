@@ -16,7 +16,7 @@ void android_main(struct android_app* app) {
     Log::SetLevel(Log::Level::Verbose);
     auto game = std::make_unique<rvr::App>();
     try {
-        game->Run(app);
+        game->Run(app, "test_scenes/orbiting_lights");
     }
     catch (const std::exception& e) {
         rvr::PrintError(e.what());

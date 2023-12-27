@@ -7,7 +7,7 @@
 #pragma once
 
 #include <pch.h>
-#include <ritual_list.h>
+#include "ritual_list.h"
 
 namespace rvr {
 enum class RitualType {

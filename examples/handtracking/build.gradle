@@ -7,7 +7,7 @@ android {
   // -debug.apk or -release.apk appended to it.
   // The filename doesn't effect the Android installation process.
   // Use only letters to remain compatible with the package name.
-  project.archivesBaseName = "app"
+  project.archivesBaseName = "handtracking"
 
   dependencies {
     implementation 'com.android.support:appcompat-v7:27.1.1'
@@ -31,6 +31,7 @@ android {
       }
       cmake {
         cppFlags '-std=c++17'
+        arguments "-DEXAMPLE_NAME=${project.archivesBaseName}"
       }
     }
   }

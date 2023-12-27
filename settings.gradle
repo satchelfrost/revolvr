@@ -2,6 +2,8 @@
 rootProject.projectDir = new File(settingsDir, '.')
 rootProject.name = "RevolVR"
 
-include ':', ':examples:app'
+include ':', \
+ ':examples:orbitinglights', \
+ ':examples:handtracking'
 
 // Top level settings

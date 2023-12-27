@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-		package="com.wamwadstudios.app"
+		package="com.wamwadstudios.handtracking"
 		android:versionCode="1"
 		android:versionName="1.0"
         android:installLocation="auto" >
@@ -13,7 +13,7 @@
 	<uses-feature android:name="oculus.software.handtracking" android:required="false" />
 	<uses-permission android:name="com.oculus.permission.HAND_TRACKING" />
 
-	<application android:allowBackup="false" android:label="app" >
+	<application android:allowBackup="false" android:label="handtracking" >
 	<meta-data android:name="com.oculus.supportedDevices" android:value="all" />
 
 		<!-- launchMode is set to singleTask because there should never be multiple copies of the app running -->
