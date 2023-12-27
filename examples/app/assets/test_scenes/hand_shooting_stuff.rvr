@@ -1,0 +1,100 @@
+[entity id=0 name=Origin]
+Spatial.position {0, 0, 0}
+
+[entity id=1 name=Player]
+Spatial.position {0, 0, 0}
+
+#### Specify some left hand joints ####
+
+# Finger tips
+[entity id=2 parent=1] TrackedSpace.type {LeftIndexTip} Spatial.scale {0.02, 0.02, 0.02} Mesh {}
+[entity id=3 parent=1] TrackedSpace.type {LeftThumbTip} Spatial.scale {0.02, 0.02, 0.02} Mesh {}
+[entity id=4 parent=1] TrackedSpace.type {LeftMiddleTip} Spatial.scale {0.02, 0.02, 0.02} Mesh {}
+[entity id=5 parent=1] TrackedSpace.type {LeftRingTip} Spatial.scale {0.02, 0.02, 0.02} Mesh {}
+[entity id=6 parent=1] TrackedSpace.type {LeftPinkyTip} Spatial.scale {0.02, 0.02, 0.02} Mesh{}
+[entity id=7 parent=1] TrackedSpace.type {LeftCenterJoint} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+
+# Other joints
+[entity id=8  parent=1]  TrackedSpace.type {LeftHandJoint1} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=9  parent=1]  TrackedSpace.type {LeftHandJoint2} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=10 parent=1] TrackedSpace.type {LeftHandJoint3} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=12 parent=1] TrackedSpace.type {LeftHandJoint4} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=13 parent=1] TrackedSpace.type {LeftHandJoint6} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=14 parent=1] TrackedSpace.type {LeftHandJoint7} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=15 parent=1] TrackedSpace.type {LeftHandJoint8} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=16 parent=1] TrackedSpace.type {LeftHandJoint9} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=17 parent=1] TrackedSpace.type {LeftHandJoint11} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=18 parent=1] TrackedSpace.type {LeftHandJoint12} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=19 parent=1] TrackedSpace.type {LeftHandJoint13} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=20 parent=1] TrackedSpace.type {LeftHandJoint14} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=21 parent=1] TrackedSpace.type {LeftHandJoint16} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=22 parent=1] TrackedSpace.type {LeftHandJoint17} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=23 parent=1] TrackedSpace.type {LeftHandJoint18} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=24 parent=1] TrackedSpace.type {LeftHandJoint19} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=25 parent=1] TrackedSpace.type {LeftHandJoint21} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=26 parent=1] TrackedSpace.type {LeftHandJoint22} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=27 parent=1] TrackedSpace.type {LeftHandJoint23} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=28 parent=1] TrackedSpace.type {LeftHandJoint24} Spatial.scale {0.01, 0.01, 0.01} Mesh{}
+
+#### Specify some right hand joints ####
+# Finger tips
+[entity id=29 parent=1] TrackedSpace.type {RightIndexTip} Spatial.scale {0.02, 0.02, 0.02} Mesh {}
+[entity id=30 parent=1] TrackedSpace.type {RightThumbTip} Spatial.scale {0.02, 0.02, 0.02} Mesh {}
+[entity id=31 parent=1] TrackedSpace.type {RightMiddleTip} Spatial.scale {0.02, 0.02, 0.02} Mesh {}
+[entity id=32 parent=1] TrackedSpace.type {RightRingTip} Spatial.scale {0.02, 0.02, 0.02} Mesh {}
+[entity id=33 parent=1] TrackedSpace.type {RightPinkyTip} Spatial.scale {0.02, 0.02, 0.02} Mesh{}
+[entity id=34 parent=1] TrackedSpace.type {RightCenterJoint} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+
+# Other joints
+[entity id=35 parent=1] TrackedSpace.type {RightHandJoint1} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=36 parent=1] TrackedSpace.type {RightHandJoint2} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=37 parent=1] TrackedSpace.type {RightHandJoint3} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=38 parent=1] TrackedSpace.type {RightHandJoint4} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=39 parent=1] TrackedSpace.type {RightHandJoint6} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=40 parent=1] TrackedSpace.type {RightHandJoint7} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=41 parent=1] TrackedSpace.type {RightHandJoint8} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=42 parent=1] TrackedSpace.type {RightHandJoint9} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=43 parent=1] TrackedSpace.type {RightHandJoint11} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=44 parent=1] TrackedSpace.type {RightHandJoint12} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=45 parent=1] TrackedSpace.type {RightHandJoint13} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=46 parent=1] TrackedSpace.type {RightHandJoint14} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=47 parent=1] TrackedSpace.type {RightHandJoint16} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=48 parent=1] TrackedSpace.type {RightHandJoint17} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=49 parent=1] TrackedSpace.type {RightHandJoint18} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=50 parent=1] TrackedSpace.type {RightHandJoint19} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=51 parent=1] TrackedSpace.type {RightHandJoint21} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=52 parent=1] TrackedSpace.type {RightHandJoint22} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=53 parent=1] TrackedSpace.type {RightHandJoint23} Spatial.scale {0.01, 0.01, 0.01} Mesh {}
+[entity id=54 parent=1] TrackedSpace.type {RightHandJoint24} Spatial.scale {0.01, 0.01, 0.01} Mesh{}
+
+# Box that gets shot at
+[entity id=55 name=disappearing_box]
+Spatial.position {3, 1.6, -10}
+Mesh {}
+Collider.type {Sphere}
+Collider.radius {0.625}
+Audio.track_name {impact_small_ceramic}
+Audio.loop {false}
+Audio.spatialize {true}
+Audio.spatial_id {0}
+
+# Projectile box
+[entity id=56 name=projectile parent=34]
+Spatial.position {0, -0.2, -0.05}
+Spatial.scale {4, 4, 4}
+Spatial.euler {0, 0, 30}
+Mesh {}
+Collider.type {Sphere}
+Collider.radius {0.02}
+Timer.wait_time_seconds {2}
+Timer.one_shot {true}
+Timer.auto_start {false}
+Ritual.type {HandShooter}
+Audio.track_name {ui_laser_shoot_01}
+Audio.loop {false}
+Audio.spatialize {true}
+Audio.spatial_id {1}
+
+[entity id=57 name=Head parent=1]
+TrackedSpace.type {Head}
+Spatial {}

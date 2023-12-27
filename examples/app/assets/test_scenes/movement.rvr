@@ -1,0 +1,56 @@
+[entity id=0 name=Origin]
+Spatial.position {0, 0, 0}
+
+[entity id=1 name=Player]
+Spatial.position {0, 0, 0}
+
+[entity id=2 name=Left_Controller parent=1]
+TrackedSpace.type {LeftController}
+Spatial.scale {0.1, 0.1, 0.1}
+Mesh {}
+
+[entity id=3 name=Right_Controller parent=1]
+TrackedSpace.type {RightController}
+Spatial.scale {0.1, 0.1, 0.1}
+Ritual.type {MovementRitual}
+Mesh {}
+
+[entity id=12 name=joystick_pivot_point parent=3]
+Spatial.position {0, 0, -0.05}
+Spatial.scale {0.1, 0.1, 1}
+
+[entity id=4 name=joystick parent=12]
+Spatial.position {0, 0, -0.05}
+Mesh {}
+
+[entity id=5]
+Spatial.scale {0.5, 0.5, 0.5}
+Spatial.position {0, 0, -2}
+Spatial.euler {15, 0, 0}
+Mesh {}
+
+[entity id=6 parent=5]
+Spatial.scale {0.5, 0.5, 0.5}
+Spatial.position {0, 1, 0}
+Spatial.euler {45, 0, 0}
+Mesh {}
+
+[entity id=7]
+Spatial.scale {0.5, 0.5, 0.5}
+Spatial.position {0, 0, -5}
+Mesh {}
+
+[entity id=8]
+Spatial.scale {0.5, 0.5, 0.5}
+Spatial.position {0, 0, 5}
+Mesh {}
+
+[entity id=9]
+Spatial.scale {0.5, 0.5, 0.5}
+Spatial.position {5, 0, 0}
+Mesh {}
+
+[entity id=10]
+Spatial.scale {0.5, 0.5, 0.5}
+Spatial.position {-5, 0, 0}
+Mesh {}

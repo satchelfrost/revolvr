@@ -1,0 +1,11 @@
+Model Information:
+* title:	Pocket Shrek Donkey
+* source:	https://sketchfab.com/3d-models/pocket-shrek-donkey-2bc7f173f6ff4a90beb72fd0706ae31f
+* author:	Neut2000 (https://sketchfab.com/Neut2000)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Pocket Shrek Donkey" (https://sketchfab.com/3d-models/pocket-shrek-donkey-2bc7f173f6ff4a90beb72fd0706ae31f) by Neut2000 (https://sketchfab.com/Neut2000) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

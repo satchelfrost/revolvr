@@ -1,0 +1,11 @@
+Model Information:
+* title:	Shrek
+* source:	https://sketchfab.com/3d-models/shrek-ff6a111c58c94d328b0880a38b912428
+* author:	burnt.melon (https://sketchfab.com/burnt.melon)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Shrek" (https://sketchfab.com/3d-models/shrek-ff6a111c58c94d328b0880a38b912428) by burnt.melon (https://sketchfab.com/burnt.melon) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
