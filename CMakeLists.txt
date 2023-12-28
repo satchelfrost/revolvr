@@ -27,7 +27,7 @@ file(
   LOCAL_SOURCE
   CONFIGURE_DEPENDS
   "core/src/*.cpp"
-  "examples/${EXAMPLE_NAME}/src/main/cpp/*.cpp"
+  "examples/sample-projects/${EXAMPLE_NAME}/src/main/cpp/*.cpp"
 )
 
 file(
@@ -48,7 +48,7 @@ target_include_directories(
   game
   PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/core/include
-  ${CMAKE_CURRENT_SOURCE_DIR}/examples/${EXAMPLE_NAME}/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/examples/sample-projects/${EXAMPLE_NAME}/include
   ${ANDROID_NDK}/sources/android/native_app_glue/
 )
 

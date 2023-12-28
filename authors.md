@@ -2,6 +2,10 @@
 
 RevolVR is intended as a community development game engine. This file aims to list those that have made significant contributions. Github usernames are listed in parentheses.
 
+## Maintainer 
+
+    Reese Gallagher (satchelfrost)
+
 ## Project Founders
 
 (in alphabetical order)

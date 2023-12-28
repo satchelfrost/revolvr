@@ -1,0 +1,20 @@
+
+rootProject.projectDir = new File(settingsDir, '.')
+rootProject.name = "RevolVR"
+
+include ':', \
+ ':sample-projects:orbitinglights', \
+ ':sample-projects:handshooter', \
+ ':sample-projects:handtracking', \
+ ':sample-projects:cloning', \
+ ':sample-projects:conway', \
+ ':sample-projects:collision', \
+ ':sample-projects:sound', \
+ ':sample-projects:rotation', \
+ ':sample-projects:generic', \
+ ':sample-projects:movement', \
+ ':sample-projects:pointcloud', \
+ ':sample-projects:timer'
+
+
+// Top level settings
