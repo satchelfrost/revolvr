@@ -24,7 +24,6 @@ void Scene::LoadScene(const std::string &sceneName) {
     Checks();
     PrintInfo("Successfully loaded scene " + sceneName);
 
-    // TODO: put this in scene manager once that exists
     sys::ritual::Begin();
     sys::timer::Start();
 }

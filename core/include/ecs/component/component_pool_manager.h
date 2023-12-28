@@ -28,7 +28,6 @@ private:
     std::map<std::type_index, ComponentType> typeToEnum;
 };
 
-// TODO: Change usage: GetComponent<MyComponent> --> GetComponent<MyComponent*>, to make it clear pointer is returned.
 /* Warning GetComponent returns nullptr on failure */
 template<typename T>
 T* ComponentPoolManager::GetComponent(type::EntityId id) {
