@@ -59,6 +59,7 @@ target_link_libraries(
         ovraudio
         glm
         tinygltf
+        happly
         ktx
         ${android-log}
         ${android}
