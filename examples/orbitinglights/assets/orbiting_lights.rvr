@@ -1,0 +1,46 @@
+[entity id=0 name=Origin]
+Spatial.position {0, 0, 0}
+
+[entity id=1 name=Player]
+Spatial.position {0, 0, 0}
+
+[entity id=2 name=Left_Controller parent=1]
+TrackedSpace.type {LeftController}
+Spatial.scale {0.1, 0.1, 0.1}
+Mesh {}
+
+[entity id=3 name=Right_Controller parent=1]
+TrackedSpace.type {RightController}
+Spatial.scale {0.1, 0.1, 0.1}
+Mesh {}
+
+[entity id=4 name=shrek]
+Mesh.gltf {gltf/shrek/scene}
+Spatial.position {0, 0, -3}
+Spatial.scale {2, 2, 2}
+Spatial.euler {-90, 0, 0}
+
+[entity id=5 name=donkey]
+Mesh.gltf {gltf/donkey/scene}
+Spatial.position {1, 0, -3}
+Spatial.scale {0.1, 0.1, 0.1}
+Spatial.euler {-90, 0, 0}
+
+[entity id=6 name=orbit_point]
+Spatial.position {0, 2, -3}
+Spatial.scale {0.1, 0.1, 0.1}
+Spatial.euler {0, 0, -10}
+Ritual.type {OrbitingLights}
+Mesh {}
+
+# For full color list see color_list.h
+[entity id=7  parent=6] Spatial {} Mesh {} PointLight.color_name {Red}
+[entity id=8  parent=6] Spatial {} Mesh {} PointLight.color_name {Green}
+[entity id=9  parent=6] Spatial {} Mesh {} PointLight.color_name {Blue}
+[entity id=10 parent=6] Spatial {} Mesh {} PointLight.color_name {Pink}
+[entity id=11 parent=6] Spatial {} Mesh {} PointLight.color_name {Cyan}
+[entity id=12 parent=6] Spatial {} Mesh {} PointLight.color_name {Purple}
+[entity id=13 parent=6] Spatial {} Mesh {} PointLight.color_name {Navy}
+[entity id=14 parent=6] Spatial.scale {2, 2, 2} Mesh {} PointLight.color_name {Gold} PointLight.intensity {0.5}
+[entity id=15 parent=6] Spatial {} Mesh {} PointLight.color_name {Orange}
+[entity id=16 parent=6] Spatial {} Mesh {} PointLight.color_name {Lime}

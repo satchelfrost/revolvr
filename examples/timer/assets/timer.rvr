@@ -1,0 +1,27 @@
+[entity id=0 name=Origin]
+Spatial.position {0, 0, 0}
+
+[entity id=1 name=Player]
+Spatial.position {3, 0, 0}
+
+[entity id=2 name=Left_Controller parent=1]
+TrackedSpace.type {LeftController}
+Spatial.scale {0.1, 0.1, 0.1}
+Mesh {}
+
+[entity id=3 name=Right_Controller parent=1]
+TrackedSpace.type {RightController}
+Spatial.scale {0.1, 0.1, 0.1}
+Mesh {}
+
+[entity id=4 name=timer_box_maker]
+Ritual.type {TimerBoxMaker}
+Ritual.can_update {false}
+Timer.wait_time_milliseconds {250}
+Timer.one_shot {false}
+Timer.auto_start {true}
+
+[entity id=5 name=box_to_clone]
+Spatial.scale {0.5, 0.5, 0.5}
+Spatial.position {-10, 0, -10}
+Mesh.visible {false}

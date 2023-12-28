@@ -1,0 +1,22 @@
+[entity id=0 name=Origin]
+Spatial.position {0, 0, 0}
+
+[entity id=1 name=Player]
+Spatial.position {3, 0, 0}
+
+[entity id=2 name=Left_Controller parent=1]
+TrackedSpace.type {LeftController}
+Spatial.scale {0.1, 0.1, 0.1}
+Mesh {}
+
+[entity id=3 name=Right_Controller parent=1]
+TrackedSpace.type {RightController}
+Spatial.scale {0.1, 0.1, 0.1}
+Mesh {}
+
+[entity id=4 name=Pointer parent=3]
+Spatial.scale {0.1, 0.1, 5}
+Spatial.position {0, 0, -0.25}
+Mesh {}
+Ritual.type {SpinningPointer}
+Ritual.can_update {true}
