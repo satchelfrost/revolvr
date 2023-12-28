@@ -89,10 +89,8 @@ void VulkanContext::InitializeResources() {
         InitPointCloudResources();
 }
 
-XrSwapchainImageBaseHeader* VulkanContext::AllocateSwapchainImageStructs(
-        uint32_t capacity, const XrSwapchainCreateInfo &swapchainCreateInfo) {
-    //
-
+XrSwapchainImageBaseHeader* VulkanContext::AllocateSwapchainImageStructs(uint32_t capacity,
+    const XrSwapchainCreateInfo &swapchainCreateInfo) {
     auto context = std::make_shared<SwapchainImageContext>(renderingContext_,
                                                                          capacity, swapchainCreateInfo);
     auto images = context->GetFirstImagePointer();
