@@ -207,9 +207,6 @@ void XrContext::CreateSwapchains() {
             vulkanContext_->SwapchainImagesReady(swapchainImages);
             swapchainImages_.insert(std::make_pair(swapchain.handle, swapchainImages));
         }
-
-//         Initialize resources once view and image information is up to date
-//        vulkanContext_->InitializeResources();
     }
 }
 

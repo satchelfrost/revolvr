@@ -14,8 +14,11 @@ renderingContext_(renderingContext), swapchainExtent_({swapchainCreateInfo.width
     swapchainImages_.resize(capacity);
     renderTargets_.resize(capacity);
 
-    cmdBuffer_ = std::make_unique<CmdBuffer>(renderingContext_->GetDevice(),
-                                             renderingContext->GetGraphicsPool());
+    cmdBuffs_.resize(MAX_FRAMES_IN_FLIGHT);
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        cmdBuffs_[i] = std::make_unique<CmdBuffer>(renderingContext_->GetDevice(),
+                                                 renderingContext->GetGraphicsPool());
+    }
     viewport_.x = 0.0f;
     viewport_.y = 0.0f;
     viewport_.width = static_cast<float>(swapchainExtent_.width);
@@ -38,7 +41,7 @@ XrSwapchainImageBaseHeader *SwapchainImageContext::GetFirstImagePointer() {
 void SwapchainImageContext::Draw(const std::unique_ptr<Pipeline>& pipeline,
                                  const std::unique_ptr<DrawBuffer>& drawBuffer,
                                  const std::vector<glm::mat4> &transforms) {
-    VkCommandBuffer cmdBuffer = cmdBuffer_->GetBuffer();
+    VkCommandBuffer cmdBuffer = cmdBuffs_[currFrame]->GetBuffer();
     pipeline->BindPipeline(cmdBuffer);
     vkCmdBindIndexBuffer(cmdBuffer, drawBuffer->GetIndexBuffer(),
                          0, VK_INDEX_TYPE_UINT16);
@@ -59,7 +62,7 @@ void SwapchainImageContext::Draw(const std::unique_ptr<Pipeline>& pipeline,
 
 void SwapchainImageContext::DrawGltf(const std::unique_ptr<Pipeline>& pipeline,
                                      const std::unique_ptr<GLTFModel>& model, VkDescriptorSet descriptorSet) {
-    VkCommandBuffer cmdBuffer = cmdBuffer_->GetBuffer();
+    VkCommandBuffer cmdBuffer = cmdBuffs_[currFrame]->GetBuffer();
     vkCmdSetViewport(cmdBuffer, 0, 1, &viewport_);
     vkCmdSetScissor(cmdBuffer, 0, 1, &scissor_);
     vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -71,7 +74,7 @@ void SwapchainImageContext::DrawGltf(const std::unique_ptr<Pipeline>& pipeline,
 
 void SwapchainImageContext::DrawPointCloud(const std::unique_ptr<Pipeline>& pipeline,
                                            const std::unique_ptr<PointCloudResource>& pointCloud) {
-    VkCommandBuffer cmdBuffer = cmdBuffer_->GetBuffer();
+    VkCommandBuffer cmdBuffer = cmdBuffs_[currFrame]->GetBuffer();
     pipeline->BindPipeline(cmdBuffer);
     vkCmdSetViewport(cmdBuffer, 0, 1, &viewport_);
     vkCmdSetScissor(cmdBuffer, 0, 1, &scissor_);
@@ -86,9 +89,9 @@ void SwapchainImageContext::InitRenderTargets() {
 }
 
 void SwapchainImageContext::BeginRenderPass(uint32_t imageIndex) {
-    cmdBuffer_->Wait();
-    cmdBuffer_->Reset();
-    cmdBuffer_->Begin();
+    cmdBuffs_[currFrame]->Wait();
+    cmdBuffs_[currFrame]->Reset();
+    cmdBuffs_[currFrame]->Begin();
 
     // Bind and clear eye render target
     static XrColor4f darkSlateGrey = {0.184313729f, 0.309803933f, 0.309803933f, 1.0f};
@@ -106,16 +109,14 @@ void SwapchainImageContext::BeginRenderPass(uint32_t imageIndex) {
     renderPassBeginInfo.framebuffer = renderTargets_[imageIndex]->GetFramebuffer();
     renderPassBeginInfo.renderArea.offset = {0, 0};
     renderPassBeginInfo.renderArea.extent = swapchainExtent_;
-    vkCmdBeginRenderPass(cmdBuffer_->GetBuffer(), &renderPassBeginInfo,
+    vkCmdBeginRenderPass(cmdBuffs_[currFrame]->GetBuffer(), &renderPassBeginInfo,
                          VK_SUBPASS_CONTENTS_INLINE);
 }
 
 void SwapchainImageContext::EndRenderPass() {
-    vkCmdEndRenderPass(cmdBuffer_->GetBuffer());
-    cmdBuffer_->End();
-    cmdBuffer_->Exec(renderingContext_->GetGraphicsQueue());
-
-    // TODO: get rid of this because of performance, necessary for multiple uniform buffer writes
-    cmdBuffer_->Wait();
+    vkCmdEndRenderPass(cmdBuffs_[currFrame]->GetBuffer());
+    cmdBuffs_[currFrame]->End();
+    cmdBuffs_[currFrame]->Exec(renderingContext_->GetGraphicsQueue());
+    currFrame = (currFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 }

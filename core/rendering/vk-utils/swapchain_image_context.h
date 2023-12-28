@@ -26,9 +26,12 @@ private:
     VkRect2D scissor_{};
 
     std::vector <std::unique_ptr<RenderTarget>> renderTargets_;
-    std::unique_ptr<CmdBuffer> cmdBuffer_;
+    std::vector<std::unique_ptr<CmdBuffer>> cmdBuffs_;
 
 public:
+    uint32_t currFrame = 0;
+    static const int MAX_FRAMES_IN_FLIGHT = 2;
+
     SwapchainImageContext(const std::shared_ptr<RenderingContext>& renderingContext, uint32_t capacity,
                           const XrSwapchainCreateInfo &swapchainCreateInfo);
 

@@ -46,8 +46,8 @@ private:
     std::unique_ptr<ShaderStages> gltfShaderStages_;
     std::unique_ptr<Pipeline> gltfPipeline_;
     std::map<std::string, std::unique_ptr<GLTFModel>> models_;
-    std::unique_ptr<Buffer> uniformBuffer_;
-    VkDescriptorSet uboSceneDescriptorSet_;
+    std::map<const XrSwapchainImageBaseHeader*, std::vector<std::shared_ptr<Buffer>>> imgToUniformBuffs_;
+    std::map<const XrSwapchainImageBaseHeader*, std::vector<VkDescriptorSet>> imgToUboDescriptorSets_;
     struct PointLightData {
         glm::vec4 position; // ignore w
         glm::vec4 color;    // color + intensity

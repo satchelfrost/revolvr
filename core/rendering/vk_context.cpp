@@ -89,10 +89,8 @@ void VulkanContext::InitializeResources() {
         InitPointCloudResources();
 }
 
-XrSwapchainImageBaseHeader* VulkanContext::AllocateSwapchainImageStructs(
-        uint32_t capacity, const XrSwapchainCreateInfo &swapchainCreateInfo) {
-    //
-
+XrSwapchainImageBaseHeader* VulkanContext::AllocateSwapchainImageStructs(uint32_t capacity,
+    const XrSwapchainCreateInfo &swapchainCreateInfo) {
     auto context = std::make_shared<SwapchainImageContext>(renderingContext_,
                                                                          capacity, swapchainCreateInfo);
     auto images = context->GetFirstImagePointer();
@@ -143,7 +141,9 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
                 PrintWarning("PointLight missing spatial. Eid = " + std::to_string(pointLight->id));
             }
         }
-        uniformBuffer_->WriteToBuffer(&uboScene);
+        auto swapchainContext = imageToSwapchainContext_[swapchainImage];
+        uint32_t currFrame = swapchainContext->currFrame;
+        imgToUniformBuffs_[swapchainImage][currFrame]->WriteToBuffer(&uboScene);
     }
 
     // Update the transforms for each gltf model
@@ -157,7 +157,9 @@ void VulkanContext::RenderView(const XrCompositionLayerProjectionView &layerView
     swapchainContext->BeginRenderPass(imageIndex);
     swapchainContext->Draw(cubePipeline_, drawBuffer_, cubeMvps);
     for (auto& [name, model] : models_) {
-        swapchainContext->DrawGltf(gltfPipeline_, model, uboSceneDescriptorSet_);
+        uint32_t currFrame = swapchainContext->currFrame;
+        auto descriptorSet = imgToUboDescriptorSets_[swapchainImage][currFrame];
+        swapchainContext->DrawGltf(gltfPipeline_, model, descriptorSet);
         model->ClearPushConstants();
     }
     for (auto& [name, pointCloud] : pointClouds_) {
@@ -292,6 +294,8 @@ void VulkanContext::RetrieveQueues() {
 
 void VulkanContext::SwapchainImagesReady(XrSwapchainImageBaseHeader *images) {
     auto context = imageToSwapchainContext_[images];
+    imgToUniformBuffs_[images].resize(SwapchainImageContext::MAX_FRAMES_IN_FLIGHT);
+    imgToUboDescriptorSets_[images].resize(SwapchainImageContext::MAX_FRAMES_IN_FLIGHT);
     context->InitRenderTargets();
 }
 
@@ -336,11 +340,15 @@ void VulkanContext::InitGltfResources() {
     for (auto& name : uniqueNames)
         models_[name] = std::make_unique<GLTFModel>(renderingContext_, name + ".gltf");
 
-    uniformBuffer_ = std::make_unique<Buffer>(renderingContext_, sizeof(uboScene),
-                                              1, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                                              MemoryType::HostVisible);
-    uniformBuffer_->Map();
-    uniformBuffer_->WriteToBuffer(&uboScene);
+    for (auto& [img, uniformBuffs] : imgToUniformBuffs_) {
+        for (auto& uniformBuff : uniformBuffs) {
+            uniformBuff = std::make_shared<Buffer>(renderingContext_, sizeof(uboScene),
+                                                   1, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                                                   MemoryType::HostVisible);
+            uniformBuff->Map();
+            uniformBuff->WriteToBuffer(&uboScene);
+        }
+    }
     SetupDescriptors();
 
     // Create the shader stages, add any push constants and/or descriptor set layouts
@@ -366,8 +374,13 @@ void VulkanContext::InitGltfResources() {
 void VulkanContext::SetupDescriptors() {
     // Setup the descriptor pool
     DescriptorPool::Builder builder(device_);
-    uint32_t maxSets = 1; // start with ubo
-    builder.AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1);
+    uint32_t maxSets = 0;
+    for (auto& [img, descriptorSets] : imgToUboDescriptorSets_) {
+        for (auto& descriptorSet : descriptorSets) {
+            maxSets++;
+        }
+    }
+    builder.AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, maxSets);
     for (auto& [name, model] : models_) {
         uint32_t numImages = model->GetNumImages();
         maxSets += numImages;
@@ -381,10 +394,14 @@ void VulkanContext::SetupDescriptors() {
             .AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
                         VK_SHADER_STAGE_ALL_GRAPHICS)
             .Build();
-    auto bufferInfo = uniformBuffer_->DescriptorInfo();
-    DescriptorWriter(*descriptorSetLayouts_["ubo"], *globalDescriptorPool_)
-        .WriteBuffer(0, &bufferInfo)
-        .Build(uboSceneDescriptorSet_);
+    for (auto& [img, descriptorSets] : imgToUboDescriptorSets_) {
+        for (size_t i = 0; i < descriptorSets.size(); i++) {
+            auto bufferInfo = imgToUniformBuffs_[img][i]->DescriptorInfo();
+            DescriptorWriter(*descriptorSetLayouts_["ubo"], *globalDescriptorPool_)
+                    .WriteBuffer(0, &bufferInfo)
+                    .Build(descriptorSets[i]);
+        }
+    }
 
     // For each model setup descriptor sets for materials
     for (auto& [name, model] : models_) {
