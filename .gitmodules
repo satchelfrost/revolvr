@@ -1,6 +1,6 @@
-[submodule "libs/glm"]
-	path = libs/glm
+[submodule "thirdparty/glm"]
+	path = thirdparty/glm
 	url = https://github.com/g-truc/glm.git
-[submodule "libs/tinygltf"]
-	path = libs/tinygltf
+[submodule "thirdparty/tinygltf"]
+	path = thirdparty/tinygltf
 	url = https://github.com/syoyo/tinygltf.git
