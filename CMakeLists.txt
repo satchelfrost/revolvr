@@ -26,7 +26,7 @@ file(
   GLOB_RECURSE
   LOCAL_SOURCE
   CONFIGURE_DEPENDS
-  "core/src/*.cpp"
+  "core/*.cpp"
   "examples/sample-projects/${EXAMPLE_NAME}/src/main/cpp/*.cpp"
 )
 
@@ -34,7 +34,7 @@ file(
   GLOB_RECURSE
   LOCAL_ASSEMBLY
   CONFIGURE_DEPENDS
-  "core/src/*.s"
+  "core/*.s"
 )
 
 # Creates and names a library, sets it as either STATIC
@@ -47,7 +47,7 @@ add_library(game SHARED ${LOCAL_ASSEMBLY} ${LOCAL_SOURCE})
 target_include_directories(
   game
   PUBLIC
-  ${CMAKE_CURRENT_SOURCE_DIR}/core/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/core
   ${CMAKE_CURRENT_SOURCE_DIR}/examples/sample-projects/${EXAMPLE_NAME}/include
   ${ANDROID_NDK}/sources/android/native_app_glue/
 )
