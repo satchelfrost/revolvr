@@ -9,7 +9,7 @@
 #include <pch.h>
 #include <common.h>
 #include <platform/android_context.h>
-#include <rendering/vulkan_context.h>
+#include <rendering/vk_context.h>
 
 #include "rvr_reference_space.h"
 #include "xr_app_helpers.h"

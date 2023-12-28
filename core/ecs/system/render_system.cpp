@@ -23,7 +23,7 @@ void AppendCubeTransformBuffer(std::vector<math::Transform>& buffer) {
     DrawCubeGrid(buffer);
 }
 
-void AppendGltfModelPushConstants(std::map<std::string, std::unique_ptr<VulkanGLTFModel>>& models) {
+void AppendGltfModelPushConstants(std::map<std::string, std::unique_ptr<GLTFModel>>& models) {
     auto components = GlobalContext::Inst()->GetECS()->GetComponents(ComponentType::Mesh);
     for (auto [eid, component] : components) {
         auto mesh = dynamic_cast<Mesh*>(component);

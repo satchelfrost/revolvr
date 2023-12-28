@@ -1,0 +1,43 @@
+/***************************************************************************/
+/* Copyright (c) 2022-present RevolVR Engine contributors (see authors.md) */
+/* This code is licensed under the MIT license (MIT)                       */
+/* (http://opensource.org/licenses/MIT)                                    */
+/***************************************************************************/
+
+#pragma once
+
+#include <pch.h>
+#include <common.h>
+#include "render_pass.h"
+#include "shader_stages.h"
+#include "draw_buffer.h"
+#include "rendering_context.h"
+
+namespace rvr {
+class PipelineLayout {
+private:
+    VkDevice device_{VK_NULL_HANDLE};
+    VkPipelineLayout layout_{VK_NULL_HANDLE};
+
+public:
+    PipelineLayout(VkDevice device, std::vector<VkPushConstantRange> pushConstantRanges,
+                   std::vector<VkDescriptorSetLayout> setLayouts);
+    ~PipelineLayout();
+    VkPipelineLayout GetLayout();
+};
+
+class Pipeline {
+private:
+    VkDevice device_{VK_NULL_HANDLE};
+    VkPipeline pipeline_{VK_NULL_HANDLE};
+    std::unique_ptr<PipelineLayout> pipelineLayout_;
+
+public:
+    Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique_ptr<ShaderStages>& shaderStages,
+             VertexBufferLayout vertexBufferLayout, VkFrontFace frontFace,
+             VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+    ~Pipeline();
+    void BindPipeline(VkCommandBuffer cmdBuffer);
+    VkPipelineLayout GetPipelineLayout();
+};
+}

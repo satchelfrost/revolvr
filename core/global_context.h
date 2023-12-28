@@ -7,7 +7,7 @@
 #pragma once
 
 #include <audio/audio_engine.h>
-#include <rendering/vulkan_context.h>
+#include <rendering/vk_context.h>
 #include <ecs/ecs.h>
 #include <platform/android_context.h>
 #include <xr_context.h>

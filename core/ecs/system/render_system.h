@@ -8,12 +8,12 @@
 
 #include "ecs/entity/entity.h"
 #include "ecs/component/types/spatial.h"
-#include "rendering/utilities/gltf/vulkan_gltf_model.h"
-#include "rendering/utilities/point_cloud/point_cloud_res.h"
+#include "rendering/gltf/gltf_model.h"
+#include "rendering/point_cloud/point_cloud_res.h"
 
 namespace rvr::sys::render{
 void AppendCubeTransformBuffer(std::vector<math::Transform>& buffer);
-void AppendGltfModelPushConstants(std::map<std::string, std::unique_ptr<VulkanGLTFModel>>& models);
+void AppendGltfModelPushConstants(std::map<std::string, std::unique_ptr<GLTFModel>>& models);
 void AppendPointCloudPushConstants(std::map<std::string, std::unique_ptr<PointCloudResource>>& pointClouds,
                                    glm::mat4 viewProjection);
 std::set<std::string> GetUniqueModelNames();

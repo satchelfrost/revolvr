@@ -8,7 +8,7 @@
 #include "ecs/system/spatial_system.h"
 #include <global_context.h>
 #include <instance_extension_manager.h>
-#include <rendering/utilities/vulkan_utils.h>
+#include <rendering/vk-utils/vk_utils.h>
 
 namespace rvr {
 XrContext::XrContext() {
