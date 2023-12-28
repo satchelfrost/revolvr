@@ -16,12 +16,10 @@ void android_main(struct android_app* app) {
     Log::SetLevel(Log::Level::Verbose);
     auto game = std::make_unique<rvr::App>();
     try {
-        game->Run(app, "test_scenes/hand_tracking");
-    }
-    catch (const std::exception& e) {
+        game->Run(app, "hand_tracking");
+    } catch (const std::exception& e) {
         rvr::PrintError(e.what());
-    }
-    catch (...) {
+    } catch (...) {
         rvr::PrintError("Unknown error");
     }
 }

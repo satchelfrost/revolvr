@@ -4,6 +4,17 @@ rootProject.name = "RevolVR"
 
 include ':', \
  ':examples:orbitinglights', \
- ':examples:handtracking'
+ ':examples:handshooter', \
+ ':examples:handtracking', \
+ ':examples:cloning', \
+ ':examples:conway', \
+ ':examples:collision', \
+ ':examples:sound', \
+ ':examples:rotation', \
+ ':examples:generic', \
+ ':examples:movement', \
+ ':examples:pointcloud', \
+ ':examples:timer'
+
 
 // Top level settings
