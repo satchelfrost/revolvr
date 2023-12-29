@@ -39,8 +39,7 @@ Mesh {}
 
 [entity id=9  parent=6]
 Spatial.scale {6, 6, 6}
-#Mesh.gltf {gltf/RoundedCubeBase}
-Mesh {}
+Mesh.gltf {gltf/RoundedCubeBase}
 PointLight.color_name {Blue}
 
 [entity id=10 parent=6] Spatial {} Mesh {} PointLight.color_name {Pink}
