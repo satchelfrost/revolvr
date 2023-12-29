@@ -231,7 +231,7 @@ void LoadNode(const tinygltf::Node& inputNode, const tinygltf::Model& input, glt
                     gltf::Vertex vert{};
                     vert.pos = glm::vec4(glm::make_vec3(&positionBuffer[v * 3]), 1.0f);
                     vert.normal = glm::normalize(glm::vec3(normalsBuffer ? glm::make_vec3(&normalsBuffer[v * 3]) : glm::vec3(0.0f)));
-                    vert.uv = texCoordsBuffer ? glm::make_vec2(&texCoordsBuffer[v * 2]) : glm::vec3(0.0f);
+                    vert.uv = texCoordsBuffer ? glm::make_vec2(&texCoordsBuffer[v * 2]) : glm::vec3(1.0f);
                     vert.color = glm::vec3(1.0f);
                     vertexBuffer.push_back(vert);
                 }
@@ -306,13 +306,15 @@ void GLTFModel::DrawNode(VkCommandBuffer commandBuffer, VkPipelineLayout pipelin
                            sizeof(glm::mat4), sizeof(glm::mat4), &normalMatrix);
         for (gltf::Primitive& primitive : node->mesh.primitives) {
             if (primitive.indexCount > 0) {
-                // Get the texture index for this primitive
-                gltf::Texture texture = textures_[materials_[primitive.materialIndex].baseColorTextureIndex];
-                // Bind the descriptor for the current primitive's texture
-                vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                        pipelineLayout, 1, 1,
-                                        &images_[texture.imageIndex].descriptorSet, 0,
-                                        nullptr);
+                if (!textures_.empty()) {
+                    // Get the texture index for this primitive
+                    gltf::Texture texture = textures_[materials_[primitive.materialIndex].baseColorTextureIndex];
+                    // Bind the descriptor for the current primitive's texture
+                    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                            pipelineLayout, 1, 1,
+                                            &images_[texture.imageIndex].descriptorSet, 0,
+                                            nullptr);
+                }
                 vkCmdDrawIndexed(commandBuffer, primitive.indexCount, 1,
                                  primitive.firstIndex, 0, 0);
             }

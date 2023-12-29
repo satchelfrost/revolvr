@@ -36,7 +36,13 @@ Mesh {}
 # For full color list see color_list.h
 [entity id=7  parent=6] Spatial {} Mesh {} PointLight.color_name {Red}
 [entity id=8  parent=6] Spatial {} Mesh {} PointLight.color_name {Green}
-[entity id=9  parent=6] Spatial {} Mesh {} PointLight.color_name {Blue}
+
+[entity id=9  parent=6]
+Spatial.scale {6, 6, 6}
+#Mesh.gltf {gltf/RoundedCubeBase}
+Mesh {}
+PointLight.color_name {Blue}
+
 [entity id=10 parent=6] Spatial {} Mesh {} PointLight.color_name {Pink}
 [entity id=11 parent=6] Spatial {} Mesh {} PointLight.color_name {Cyan}
 [entity id=12 parent=6] Spatial {} Mesh {} PointLight.color_name {Purple}

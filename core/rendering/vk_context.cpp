@@ -382,9 +382,11 @@ void VulkanContext::SetupDescriptors() {
     }
     builder.AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, maxSets);
     for (auto& [name, model] : models_) {
-        uint32_t numImages = model->GetNumImages();
-        maxSets += numImages;
-        builder.AddPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, numImages);
+        uint32_t numImages;
+        if ((numImages = model->GetNumImages())) {
+            maxSets += numImages;
+            builder.AddPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, numImages);
+        }
     }
     builder.SetMaxSets(maxSets);
     globalDescriptorPool_ = builder.Build();
