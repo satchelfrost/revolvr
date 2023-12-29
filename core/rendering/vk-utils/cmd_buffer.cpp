@@ -18,7 +18,6 @@ CmdBuffer::CmdBuffer(VkDevice device, VkCommandPool pool) : device_(device), poo
     VkFenceCreateInfo fenceInfo{VK_STRUCTURE_TYPE_FENCE_CREATE_INFO};
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
     CHECK_VKCMD(vkCreateFence(device_, &fenceInfo, nullptr, &fence_));
-    Reset();
 }
 
 CmdBuffer::~CmdBuffer() {
