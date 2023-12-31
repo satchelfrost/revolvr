@@ -3,69 +3,58 @@
 
 ## Table of Contents
 * [Overview](#overview)
-* [Primary Goals](#primary-goals)
-* [Current features](#current-features)
 * [Target Hardware](#target-hardware)
-* [Planned Features](#planned-features)
-* [Contributing](#contributing)
-* [Dependencies](#dependencies)
-* [Getting Started ](#planned-or-available-features)
+* [Clone Recursively](#clone-recursively)
+* [Run Examples](#run-examples)
 
 ## Overview
-The RevolVR Game Engine is a VR-focused C++ game engine. It's free to use with a permissive license. The target audience is the tinkerer, or the person interested in making games from scratch.
-
-## Primary Goals
-* To make a purpose built games/apps for Meta Quest, Android, or other mobile headsets
-* Give people in the native android / XR development community examples from scratch
-* Permissive license to encourage modification (regardless of contributions)
-
-## Current features
-* CMake build system
-* OpenXR compatibility
-* Vulkan compatibility
-* gltf model loading
-* An Entity Component System (ECS)
-* A custom scene description file format
-* WAV file loading and playback
-* Spatial audio (using OVRAudio)
-* Controller input
-* Hand tracking
-* Keyboard input
-* Basic collsion
-* Ritual System (Begin(), Update(), & other callbacks)
+This is not a production ready game engine. The target audience is the tinkerer, or the person interested in making games from scratch (particularly on the Meta Quest).
 
 ## Target Hardware
-Currently RevolVR only supports, and has been tested on the Meta Quest 1/2. It may work on the Meta Quest Pro and/or Meta Quest 3, but has not been tested on those devices yet.
+Meta Quest 1, 2, 3, & Pro.
 
-We hope to expand this in the future. Perhaps starting with lower hanging fruit first (Pico?), and then moving towards other types of headsets (PC VR?).
+## Run examples
 
-> **_NOTE:_** While utilizing OpenXR makes cross-platform easier, it still requires work to support various platforms. PC/Desktop VR is not our current focus.
+To run the examples you must have android studio properly installed for your OS. Please refer to Meta's documentation [Android Development Setup](https://developer.oculus.com/documentation/native/android/mobile-studio-setup-android/). Do not skip this step.
 
-## Planned Features
-RevolVR was made with purpose-built in mind. So by-definition it doesn't try to be a general purpose engine. If the game needs it, then the feature gets added. This means no GUI/editor, you will just be editing a scene description file, and writing C++.
+### Clone Recursively
 
-If there is a feature you are particularly interested in, then you may open an issue, or perhaps fork the project and build it yourself.
+```bash
+git clone --recurse-submodules https://github.com/satchelfrost/revolvr-sample-project.git
+```
 
+or, if you've already cloned without doing that, you can run:
 
-## Contributing
-We are open to our community suggestions and contributions. Here are a few examples of contributions:
+```bash
+git submodule update --init --recursive
+```
 
-Example 1) suppose you have another mobile headset (let's say the Pico). If you can get the input working and have it build correctly with RevolVR then that would be great. We'd love the ability to support more headsets.
+### Option 1 - *Running examples from command line*
 
-Example 2) You find a bug.
+Navigate to the examples folder and run the following commands (be sure to replace the sample name with the actual name of the sample)
 
-Example 3) You want support for other game-related features (more robust collisions or physics)
+```bash
+./gradlew :sample-projects:<SAMPLE NAME>:assembleDebug
+```
 
-## Dependencies
-* General
-  * C++ 17
-  * CMake 3.22.1
-  * glm
-* Platform specific
-  * Meta (OpenXR loader, OVRAudio for spatial audio)
-  * gradle 7.3.1
+Then install the build to the headset (ensure that you have enabled usb debugging and allowed modification of files).
 
+```bash
+adb install sample-projects/<SAMPLE NAME>/build/outputs/apk/debug/<SAMPLE NAME>-debug.apk
+```
 
-## Getting Started
+Then run
 
-This repo contains only the headers, src, and third party libraries for building. If you are looking to get started with examples, see the [sample project](https://github.com/satchelfrost/revolvr-sample-project.git).
+```bash
+adb shell am start com.wamwadstudios.<SAMPLE NAME>/android.app.NativeActivity
+```
+
+To quit, either quit from the headset, or run the following command
+
+```bash
+adb shell am force-stop com.wamwadstudios.<SAMPLE NAME>
+```
+
+### Option 2 - *Running examples from android studio*
+
+Open the project from the examples folder. Allow gradle to initialize. The drop down should have various run configurations. Choose one to deploy to the headset by hitting the play button.
