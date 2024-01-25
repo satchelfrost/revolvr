@@ -1,4 +1,4 @@
-![](logo.png)
+![](pics/logo.png)
 # *A VR-focused Game Engine*
 
 ## Table of Contents
@@ -9,6 +9,7 @@
 
 ## Overview
 This is not a production ready game engine. The target audience is the tinkerer, or the person interested in making games from scratch (particularly on the Meta Quest).
+![](pics/passthrough.png)
 
 ## Target Hardware
 Meta Quest 1, 2, 3, & Pro.
