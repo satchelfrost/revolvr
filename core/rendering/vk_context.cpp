@@ -424,9 +424,9 @@ void VulkanContext::InitPointCloudResources() {
         pointClouds_[name] = std::make_unique<PointCloudResource>(renderingContext_, name);
 
     // Setup shader stages & vertex buffer layout
-    auto vert = std::make_unique<Shader>(device_, "shaders/basic.vert.spv", Shader::Vertex);
+    auto vert = std::make_unique<Shader>(device_, "shaders/point_cloud.vert.spv", Shader::Vertex);
     vert->PushConstant("Model View Projection Matrix", sizeof(glm::mat4));
-    auto frag= std::make_unique<Shader>(device_,"shaders/basic.frag.spv", Shader::Fragment);
+    auto frag= std::make_unique<Shader>(device_,"shaders/point_cloud.frag.spv", Shader::Fragment);
     pointCloudShaderStages_ = std::make_unique<ShaderStages>(device_, std::move(vert),
                                                        std::move(frag));
     VertexBufferLayout vertexBufferLayout;

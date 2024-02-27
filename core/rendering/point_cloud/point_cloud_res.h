@@ -18,6 +18,7 @@ class PointCloudResource {
     std::vector<glm::mat4> pushConstantTransforms_;
     std::shared_ptr<RenderingContext> renderingContext_;
     static std::vector<Geometry::Vertex> GetVertexDataFromPly(const std::string& fileName);
+    static std::vector<Geometry::Vertex> GetVertexDataFromVtx(const std::string& fileName);
 
 public:
     PointCloudResource(std::shared_ptr<RenderingContext> renderingContext, const std::string& fileName);

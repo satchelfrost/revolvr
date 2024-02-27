@@ -13,7 +13,8 @@
 namespace rvr {
 PointCloudResource::PointCloudResource(std::shared_ptr<RenderingContext> renderingContext, const std::string& fileName)
 : renderingContext_(std::move(renderingContext)) {
-    auto vertices = GetVertexDataFromPly(fileName);
+//    auto vertices = GetVertexDataFromPly(fileName);
+    auto vertices = GetVertexDataFromVtx(fileName);
     auto vertexStagingBuffer = Buffer(renderingContext_, sizeof(Geometry::Vertex),
                                       vertices.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                                       MemoryType::HostVisible);
@@ -60,6 +61,37 @@ std::vector<Geometry::Vertex> PointCloudResource::GetVertexDataFromPly(const std
             vertex.Color.x    = (float)vColor[i][0] / 255.0f;
             vertex.Color.y    = (float)vColor[i][1] / 255.0f;
             vertex.Color.z    = (float)vColor[i][2] / 255.0f;
+            vertices[i] = vertex;
+        }
+    } catch (const std::exception& e) {
+        rvr::PrintError(e.what());
+    }
+
+    return vertices;
+}
+
+std::vector<Geometry::Vertex> PointCloudResource::GetVertexDataFromVtx(const std::string &fileName) {
+    AssetStream sb(fileName);
+    std::istream is(&sb);
+    std::vector<Geometry::Vertex> vertices;
+    try {
+        uint32_t size;
+        is.read(reinterpret_cast<char*>(&size), sizeof(size));
+        PrintInfo("Number of verts: " + std::to_string(size));
+
+        vertices.resize(size);
+        Geometry::Vertex vertex{};
+        for (size_t i = 0; i < size; i++) {
+            is.read(reinterpret_cast<char*>(&vertex.Position.x), sizeof(vertex.Position.x));
+            is.read(reinterpret_cast<char*>(&vertex.Position.y), sizeof(vertex.Position.y));
+            is.read(reinterpret_cast<char*>(&vertex.Position.z), sizeof(vertex.Position.z));
+            char r, g, b;
+            r = is.get();
+            g = is.get();
+            b = is.get();
+            vertex.Color.x = (float)(r) / 255.0f;
+            vertex.Color.y = (float)(g) / 255.0f;
+            vertex.Color.z = (float)(b) / 255.0f;
             vertices[i] = vertex;
         }
     } catch (const std::exception& e) {

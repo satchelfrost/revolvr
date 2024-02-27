@@ -15,7 +15,8 @@ public:
         Ply,
         Las,
         Laz,
-        E57
+        E57,
+        Vtx
     };
     PointCloud(type::EntityId pId, std::string  resourceName, FileType fileType);
     PointCloud(const PointCloud& other) = delete;

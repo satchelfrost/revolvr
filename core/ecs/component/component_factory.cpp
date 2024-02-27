@@ -193,8 +193,10 @@ void CreatePointCloud(Entity *entity, const std::map<std::string, Parser::Field>
         pointCloud = new PointCloud(entity->id, name, PointCloud::Laz);
     } else if (GetStringField(entity, fields, "PointCloud.e57", name)) {
         pointCloud = new PointCloud(entity->id, name, PointCloud::E57);
+    } else if (GetStringField(entity, fields, "PointCloud.vtx", name)) {
+        pointCloud = new PointCloud(entity->id, name, PointCloud::Vtx);
     } else  {
-        ENTITY_ERR("PointCloud must specify PointCloud.ply|las|laz|e57", entity->GetName());
+        ENTITY_ERR("PointCloud must specify PointCloud.ply|las|laz|e57|vtx", entity->GetName());
     }
 
     Assign(entity, pointCloud);

@@ -72,9 +72,24 @@ Pipeline::Pipeline(std::shared_ptr<RenderingContext>& context, const std::unique
     rs.lineWidth = 1.0f;
 
     VkPipelineColorBlendAttachmentState attachState{};
+    // No blending
     attachState.blendEnable = 0;
     attachState.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
     attachState.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+
+//    attachState.blendEnable = VK_TRUE;
+//    attachState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+//    attachState.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+
+//    // Additive
+//    attachState.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+//    attachState.dstColorBlendFactor = VK_BLEND_FACTOR_DST_ALPHA;
+
+//    // Alpha blend
+//    attachState.srcColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;
+//    attachState.dstColorBlendFactor = VK_BLEND_FACTOR_DST_ALPHA;
+
+
     attachState.colorBlendOp = VK_BLEND_OP_ADD;
     attachState.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
     attachState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
