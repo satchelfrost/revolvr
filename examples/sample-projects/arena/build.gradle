@@ -7,7 +7,7 @@ android {
   // -debug.apk or -release.apk appended to it.
   // The filename doesn't effect the Android installation process.
   // Use only letters to remain compatible with the package name.
-  project.archivesBaseName = "pointcloud"
+  project.archivesBaseName = "arena"
 
   dependencies {
     implementation 'com.android.support:appcompat-v7:27.1.1'

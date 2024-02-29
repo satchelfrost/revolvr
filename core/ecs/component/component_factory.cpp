@@ -19,7 +19,7 @@
 namespace rvr::componentFactory {
 void CreateSpatial(Entity *entity, const std::map<std::string, Parser::Field>& fields) {
     glm::vec3 scale{1, 1 ,1};
-    float x, y, z;
+    float x, y, z, w;
     if (GetFloat3Field(entity, fields, "Spatial.scale", x, y, z))
         scale = {x, y, z};
 
@@ -27,9 +27,17 @@ void CreateSpatial(Entity *entity, const std::map<std::string, Parser::Field>& f
     if (GetFloat3Field(entity, fields, "Spatial.position", x, y, z))
         position = {x, y, z};
 
-    glm::quat orientation{1,0,0,0};
-    if (GetFloat3Field(entity, fields, "Spatial.euler", x, y, z))
+    glm::quat orientation{1, 0, 0, 0};
+    bool euler = false;
+    if (GetFloat3Field(entity, fields, "Spatial.euler", x, y, z)) {
         orientation = math::quaternion::FromEuler(x, y, z);
+        euler = true;
+    }
+
+    // Have euler angles take precedence
+    if (!euler && GetFloat4Field(entity, fields, "Spatial.quat", x, y, z, w)) {
+        orientation = glm::quat(w, x, y, z);
+    }
 
     Assign(entity, new Spatial(entity->id, position, orientation, scale));
 }
