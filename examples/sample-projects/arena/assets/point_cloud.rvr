@@ -4,16 +4,16 @@ Spatial.position {0, 0, 0}
 [entity id=1 name=Player]
 Spatial.position {0, 0, 0}
 
-[entity id=2 name=ArenaAnchor parent=4]
+[entity id=2 name=MainArenaSpatial]
+Spatial {}
+Mesh {}
+Ritual.type {Movement}
+
+[entity id=3 name=ArenaAnchor parent=2]
 Spatial.position {0, 0, 0}
 Spatial.quat {0.0, 0.11445, 0.0, 0.99343}
 
-[entity id=3 parent=2]
+[entity id=4 parent=3 name=ArenaModel]
 PointCloud.vtx {arena_smaller}
 Spatial.position {14.89194, 0.00000, -130.37703}
 Spatial.euler {-90, 0, 0}
-Ritual.type {Movement}
-
-[entity id=4 name=SuperAnchor]
-Spatial {}
-Mesh {}

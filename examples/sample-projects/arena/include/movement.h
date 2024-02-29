@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ecs/component/types/ritual.h>
+#include <ecs/component/types/spatial.h>
 
 class Movement : public rvr::Ritual {
 public:
@@ -11,4 +12,5 @@ public:
     virtual void OnTriggered(rvr::Collider* other) override;
     virtual void OnTimeout() override;
 
+    rvr::Spatial* arenaOrigin_;
 };
