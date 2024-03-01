@@ -18,6 +18,7 @@
 
 #include <array>
 #include <cmath>
+#include <rendering/passthrough/passthrough.h>
 
 namespace rvr {
 struct Swapchain {
@@ -74,6 +75,10 @@ private:
     std::vector<XrView> views_;
     std::vector<XrViewConfigurationView> configViews_;
     XrViewConfigurationType viewConfigType_{XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO};
+
+    // Passthrough
+    std::unique_ptr<PassThrough> passThrough_;
+    XrCompositionLayerPassthroughFB ptLayer_{XR_TYPE_COMPOSITION_LAYER_PASSTHROUGH_FB};
 
     std::vector<Swapchain> swapchains_;
     std::map<XrSwapchain, const XrSwapchainImageBaseHeader*> swapchainImages_;

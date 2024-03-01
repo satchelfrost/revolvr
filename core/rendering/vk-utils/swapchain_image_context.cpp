@@ -94,7 +94,11 @@ void SwapchainImageContext::BeginRenderPass(uint32_t imageIndex) {
     cmdBuffs_[currFrame]->Begin();
 
     // Bind and clear eye render target
-    static XrColor4f darkSlateGrey = {0.184313729f, 0.309803933f, 0.309803933f, 1.0f};
+//    static XrColor4f darkSlateGrey = {0.184313729f, 0.309803933f, 0.309803933f, 1.0f};
+
+    // TODO: only set to all zeros if using passthrough
+    static XrColor4f darkSlateGrey = {0.0f, 0.0f, 0.0f, 0.0f};
+
     static std::array<VkClearValue, 2> clearValues;
     clearValues[0].color.float32[0] = darkSlateGrey.r;
     clearValues[0].color.float32[1] = darkSlateGrey.g;

@@ -14,7 +14,8 @@ InstanceExtensionManager::InstanceExtensionManager()  {
     std::vector<std::string> handTrackingExtensions = {XR_EXT_HAND_TRACKING_EXTENSION_NAME,
                                                        XR_FB_HAND_TRACKING_MESH_EXTENSION_NAME,
                                                        XR_FB_HAND_TRACKING_AIM_EXTENSION_NAME,
-                                                       XR_FB_HAND_TRACKING_CAPSULES_EXTENSION_NAME};
+                                                       XR_FB_HAND_TRACKING_CAPSULES_EXTENSION_NAME,
+                                                       XR_FB_PASSTHROUGH_EXTENSION_NAME};
     PushBackExtensions(androidExtensions);
     PushBackExtensions(vulkanExtensions);
     PushBackExtensions(handTrackingExtensions);

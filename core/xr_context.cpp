@@ -18,6 +18,10 @@ XrContext::XrContext() {
     CreateXrInstance();
     InitializeSystem();
     InitializeSession();
+
+    // TODO: Only do passthrough extension is begin used
+    passThrough_ = std::make_unique<PassThrough>(xrInstance_, session_);
+
     InitializeReferenceSpaces();
     InitializeActions();
     actionManager.CreateActionSpaces(session_);
@@ -422,6 +426,16 @@ void XrContext::EndFrame() {
 
 void XrContext::Render() {
     if (frameState_.shouldRender == XR_TRUE) {
+        // TODO: only do this is using passthrough
+        // First handle passthrough (real world)
+        if (passThrough_ && passThrough_->passthroughLayer != XR_NULL_HANDLE) {
+            ptLayer_.layerHandle = passThrough_->passthroughLayer;
+            ptLayer_.flags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
+            ptLayer_.space = XR_NULL_HANDLE;
+            layers_.push_back(reinterpret_cast<XrCompositionLayerBaseHeader*>(&ptLayer_));
+        }
+
+        // Then handle the virtual world
         if (RenderLayer(projectionLayerViews_, layer_)) {
             layers_.push_back(reinterpret_cast<XrCompositionLayerBaseHeader*>(&layer_));
         }
@@ -484,6 +498,9 @@ bool XrContext::RenderLayer(std::vector<XrCompositionLayerProjectionView> &proje
     layer.space = appSpace_;
     layer.viewCount = (uint32_t)projectionLayerViews.size();
     layer.views = projectionLayerViews.data();
+
+    // TODO: Only set if using passthrough
+    layer.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
     return true;
 }
 
