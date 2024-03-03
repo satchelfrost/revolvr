@@ -17,3 +17,7 @@ Spatial.quat {0.0, 0.11445, 0.0, 0.99343}
 PointCloud.vtx {arena_smaller}
 Spatial.position {14.89194, 0.00000, -130.37703}
 Spatial.euler {-90, 0, 0}
+
+[entity id=5 name=Head parent=1]
+TrackedSpace.type {Head}
+Spatial {}

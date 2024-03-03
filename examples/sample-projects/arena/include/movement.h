@@ -13,4 +13,5 @@ public:
     virtual void OnTimeout() override;
 
     rvr::Spatial* arenaOrigin_;
+    rvr::Spatial* head_;
 };
