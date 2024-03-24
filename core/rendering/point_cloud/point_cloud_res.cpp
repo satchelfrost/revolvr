@@ -25,6 +25,8 @@ PointCloudResource::PointCloudResource(std::shared_ptr<RenderingContext> renderi
                                              VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                                              MemoryType::DeviceLocal);
     CmdBuffer cmd = CmdBuffer(renderingContext_->GetDevice(), renderingContext_->GetGraphicsPool());
+    cmd.Wait();
+    cmd.Reset();
     cmd.Begin();
     renderingContext_->CopyBuffer(cmd.GetBuffer(), vertexStagingBuffer.GetBuffer(),
                                   vertexBuffer_->GetBuffer(), vertexStagingBuffer.GetSizeOfBuffer(),

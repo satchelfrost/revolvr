@@ -16,8 +16,7 @@ renderingContext_(renderingContext), swapchainExtent_({swapchainCreateInfo.width
 
     cmdBuffs_.resize(MAX_FRAMES_IN_FLIGHT);
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        cmdBuffs_[i] = std::make_unique<CmdBuffer>(renderingContext_->GetDevice(),
-                                                 renderingContext->GetGraphicsPool());
+        cmdBuffs_[i] = std::make_unique<CmdBuffer>(renderingContext_->GetDevice(), renderingContext->GetGraphicsPool());
     }
     viewport_.x = 0.0f;
     viewport_.y = 0.0f;

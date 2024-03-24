@@ -18,6 +18,8 @@ RenderTarget::RenderTarget(const std::shared_ptr<RenderingContext>& context, VkI
     depthView_ = new View(context, View::Depth, depthImage_->GetImage());
 
     CmdBuffer cmd = CmdBuffer(context->GetDevice(), context->GetGraphicsPool());
+    cmd.Wait();
+    cmd.Reset();
     cmd.Begin();
     context->CreateTransitionLayout(cmd.GetBuffer(), depthImage_->GetImage(),
                                     VK_IMAGE_LAYOUT_UNDEFINED,

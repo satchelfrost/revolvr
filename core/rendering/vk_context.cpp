@@ -21,6 +21,7 @@
 #include <ecs/component/types/point_light.h>
 
 namespace rvr {
+
 void VulkanContext::InitDevice(XrInstance xrInstance, XrSystemId systemId) {
     CheckVulkanGraphicsRequirements2KHR(xrInstance, systemId);
     CreateVulkanInstance(xrInstance, systemId);
@@ -91,8 +92,7 @@ void VulkanContext::InitializeResources() {
 
 XrSwapchainImageBaseHeader* VulkanContext::AllocateSwapchainImageStructs(uint32_t capacity,
     const XrSwapchainCreateInfo &swapchainCreateInfo) {
-    auto context = std::make_shared<SwapchainImageContext>(renderingContext_,
-                                                                         capacity, swapchainCreateInfo);
+    auto context = std::make_shared<SwapchainImageContext>(renderingContext_, capacity, swapchainCreateInfo);
     auto images = context->GetFirstImagePointer();
     imageToSwapchainContext_.insert(std::make_pair(images, context));
     return images;
