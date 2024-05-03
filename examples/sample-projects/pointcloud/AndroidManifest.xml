@@ -12,6 +12,7 @@
 	<!-- Tell the system this app can handle tracked remotes and hands -->
 	<uses-feature android:name="oculus.software.handtracking" android:required="false" />
 	<uses-permission android:name="com.oculus.permission.HAND_TRACKING" />
+	<uses-feature android:name="com.oculus.feature.PASSTHROUGH" android:required="true" />
 
 	<application android:allowBackup="false" android:label="pointcloud" >
 	<meta-data android:name="com.oculus.supportedDevices" android:value="all" />

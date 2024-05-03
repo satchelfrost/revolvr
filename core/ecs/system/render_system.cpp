@@ -20,7 +20,7 @@ void AppendCubeTransformBuffer(std::vector<math::Transform>& buffer) {
             buffer.push_back(spatial::GetPlayerRelativeTransform(spatial));
         }
     }
-    DrawCubeGrid(buffer);
+//    DrawCubeGrid(buffer);
 }
 
 void AppendGltfModelPushConstants(std::map<std::string, std::unique_ptr<GLTFModel>>& models) {
@@ -67,12 +67,12 @@ std::set<std::string> GetUniqueModelNames() {
     return uniqueNames;
 }
 
-std::set<std::string> GetUniquePointCloudNames() {
+std::set<std::pair<std::string, PointCloud::FileType>> GetUniquePointClouds() {
     auto components = GlobalContext::Inst()->GetECS()->GetComponents(ComponentType::PointCloud);
-    std::set<std::string> uniqueNames;
+    std::set<std::pair<std::string, PointCloud::FileType>> uniqueNames;
     for (auto [eid, component] : components) {
         auto pointCloud = dynamic_cast<PointCloud*>(component);
-        uniqueNames.insert(pointCloud->FullResourceName());
+        uniqueNames.insert(std::make_pair(pointCloud->FullResourceName(), pointCloud->GetFileType()));
     }
     return uniqueNames;
 }

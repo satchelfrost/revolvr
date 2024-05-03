@@ -21,6 +21,7 @@
 #include <ecs/component/types/point_light.h>
 
 namespace rvr {
+
 void VulkanContext::InitDevice(XrInstance xrInstance, XrSystemId systemId) {
     CheckVulkanGraphicsRequirements2KHR(xrInstance, systemId);
     CreateVulkanInstance(xrInstance, systemId);
@@ -84,15 +85,12 @@ void VulkanContext::InitializeResources() {
         usingGltf_ = true;
     }
 
-    uniqueNames = sys::render::GetUniquePointCloudNames();
-    if (!uniqueNames.empty())
-        InitPointCloudResources();
+    InitPointCloudResources();
 }
 
 XrSwapchainImageBaseHeader* VulkanContext::AllocateSwapchainImageStructs(uint32_t capacity,
     const XrSwapchainCreateInfo &swapchainCreateInfo) {
-    auto context = std::make_shared<SwapchainImageContext>(renderingContext_,
-                                                                         capacity, swapchainCreateInfo);
+    auto context = std::make_shared<SwapchainImageContext>(renderingContext_, capacity, swapchainCreateInfo);
     auto images = context->GetFirstImagePointer();
     imageToSwapchainContext_.insert(std::make_pair(images, context));
     return images;
@@ -419,14 +417,16 @@ void VulkanContext::SetupDescriptors() {
 
 void VulkanContext::InitPointCloudResources() {
     // Get the point cloud files
-    std::set<std::string> uniqueNames = sys::render::GetUniquePointCloudNames();
-    for (auto& name : uniqueNames)
-        pointClouds_[name] = std::make_unique<PointCloudResource>(renderingContext_, name);
+    auto uniquePointClouds = sys::render::GetUniquePointClouds();
+    if (uniquePointClouds.empty())
+        return;
+    for (auto& [name, fileType] : uniquePointClouds)
+        pointClouds_[name] = std::make_unique<PointCloudResource>(renderingContext_, name, fileType);
 
     // Setup shader stages & vertex buffer layout
-    auto vert = std::make_unique<Shader>(device_, "shaders/basic.vert.spv", Shader::Vertex);
+    auto vert = std::make_unique<Shader>(device_, "shaders/point_cloud.vert.spv", Shader::Vertex);
     vert->PushConstant("Model View Projection Matrix", sizeof(glm::mat4));
-    auto frag= std::make_unique<Shader>(device_,"shaders/basic.frag.spv", Shader::Fragment);
+    auto frag= std::make_unique<Shader>(device_,"shaders/point_cloud.frag.spv", Shader::Fragment);
     pointCloudShaderStages_ = std::make_unique<ShaderStages>(device_, std::move(vert),
                                                        std::move(frag));
     VertexBufferLayout vertexBufferLayout;

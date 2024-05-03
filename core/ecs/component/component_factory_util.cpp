@@ -56,6 +56,26 @@ bool GetFloat3Field(Entity* entity, const std::map<std::string, Parser::Field>& 
     return false;
 }
 
+bool GetFloat4Field(Entity* entity, const std::map<std::string, Parser::Field>& fields,
+                    const std::string& nameQualifier, float& outFloat1, float& outFloat2, float& outFloat3,
+                    float& outFloat4)  {
+    auto float3Field = fields.find(nameQualifier);
+    if (float3Field != fields.end()) {
+        try {
+            outFloat1 = float3Field->second.floatValues.at(0);
+            outFloat2 = float3Field->second.floatValues.at(1);
+            outFloat3 = float3Field->second.floatValues.at(2);
+            outFloat4 = float3Field->second.floatValues.at(3);
+            return true;
+        }
+        catch (std::out_of_range& e) {
+            THROW(Fmt("Out of bounds %s was expecting 4 floats entity %s",
+                      nameQualifier.c_str(), entity->GetName().c_str()));
+        }
+    }
+    return false;
+}
+
 // Returns true if 1 float with nameQualifier was found and sets the out float with found value
 bool GetFloatField(Entity* entity, const std::map<std::string, Parser::Field>& fields,
                           const std::string& nameQualifier, float& outFloat)  {

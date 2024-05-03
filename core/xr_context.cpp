@@ -7,7 +7,7 @@
 #include "xr_context.h"
 #include "ecs/system/spatial_system.h"
 #include <global_context.h>
-#include <instance_extension_manager.h>
+#include <extension_manager.h>
 #include <rendering/vk-utils/vk_utils.h>
 
 namespace rvr {
@@ -18,11 +18,17 @@ XrContext::XrContext() {
     CreateXrInstance();
     InitializeSystem();
     InitializeSession();
+
+    if (GlobalContext::Inst()->ExtMan()->usingPassthrough_)
+        passThrough_ = std::make_unique<PassThrough>(xrInstance_, session_);;
+
     InitializeReferenceSpaces();
     InitializeActions();
     actionManager.CreateActionSpaces(session_);
-    handTrackerLeft_.Init(xrInstance_, session_, HandTracker::Hand::Left);
-    handTrackerRight_.Init(xrInstance_, session_, HandTracker::Hand::Right);
+    if (GlobalContext::Inst()->ExtMan()->usingHandtracking_) {
+        handTrackerLeft_.Init(xrInstance_, session_, HandTracker::Hand::Left);
+        handTrackerRight_.Init(xrInstance_, session_, HandTracker::Hand::Right);
+    }
     CreateSwapchains();
 }
 
@@ -36,8 +42,10 @@ XrContext::~XrContext() {
     if (appSpace_ != XR_NULL_HANDLE)
         xrDestroySpace(appSpace_);
 
-    handTrackerLeft_.EndSession();
-    handTrackerRight_.EndSession();
+    if (GlobalContext::Inst()->ExtMan()->usingHandtracking_) {
+        handTrackerLeft_.EndSession();
+        handTrackerRight_.EndSession();
+    }
     actionManager.EndSession();
 
     if (session_ != XR_NULL_HANDLE)
@@ -65,9 +73,8 @@ void XrContext::InitializePlatformLoader() {
 
 void XrContext::CreateXrInstance() {
     CHECK(xrInstance_ == XR_NULL_HANDLE);
-
-    InstanceExtensionManager instanceExtensionManager;
-    auto extensions = instanceExtensionManager.GetExtensions();
+    GlobalContext::Inst()->ExtMan()->EnsureExtensionsAvailable();
+    auto extensions = GlobalContext::Inst()->ExtMan()->GetExtensions();
 
     XrInstanceCreateInfo createInfo{XR_TYPE_INSTANCE_CREATE_INFO};
     createInfo.next = GlobalContext::Inst()->GetAndroidContext()->GetInstanceCreateExtension();
@@ -89,12 +96,14 @@ void XrContext::InitializeSystem() {
     systemInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
     CHECK_XRCMD(xrGetSystem(xrInstance_, &systemInfo, &xrSystemId_));
 
-    // Make sure the system has hand tracking
-    XrSystemHandTrackingPropertiesEXT handTrackingSystemProperties{XR_TYPE_SYSTEM_HAND_TRACKING_PROPERTIES_EXT};
-    XrSystemProperties systemProperties{XR_TYPE_SYSTEM_PROPERTIES, &handTrackingSystemProperties};
-    CHECK_XRCMD(xrGetSystemProperties(xrInstance_, xrSystemId_, &systemProperties));
-    if(!handTrackingSystemProperties.supportsHandTracking)
-        THROW("Application requires hand tracking");
+    if (GlobalContext::Inst()->ExtMan()->usingHandtracking_) {
+        // Make sure the system has hand tracking
+        XrSystemHandTrackingPropertiesEXT handTrackingSystemProperties{XR_TYPE_SYSTEM_HAND_TRACKING_PROPERTIES_EXT};
+        XrSystemProperties systemProperties{XR_TYPE_SYSTEM_PROPERTIES, &handTrackingSystemProperties};
+        CHECK_XRCMD(xrGetSystemProperties(xrInstance_, xrSystemId_, &systemProperties));
+        if(!handTrackingSystemProperties.supportsHandTracking)
+            THROW("Application requires hand tracking");
+    }
 
     vulkanContext_->InitDevice(xrInstance_, xrSystemId_);
 }
@@ -265,8 +274,10 @@ void XrContext::PollXrEvents(bool* exitRenderLoop, bool* requestRestart) {
 
 void XrContext::Update() {
     actionManager.Update(session_);
-    handTrackerLeft_.Update(frameState_.predictedDisplayTime, appSpace_);
-    handTrackerRight_.Update(frameState_.predictedDisplayTime, appSpace_);
+    if (GlobalContext::Inst()->ExtMan()->usingHandtracking_) {
+        handTrackerLeft_.Update(frameState_.predictedDisplayTime, appSpace_);
+        handTrackerRight_.Update(frameState_.predictedDisplayTime, appSpace_);
+    }
 }
 
 void XrContext::HandleSessionStateChangedEvent(const XrEventDataSessionStateChanged& stateChangedEvent,
@@ -315,10 +326,6 @@ void XrContext::HandleSessionStateChangedEvent(const XrEventDataSessionStateChan
 
 bool XrContext::IsSessionRunning() const {
     return xrSessionRunning_;
-}
-
-bool XrContext::IsSessionFocused() const {
-    return xrSessionState_ == XR_SESSION_STATE_FOCUSED;
 }
 
 void XrContext::LogActionSourceName(Action* action) const {
@@ -422,6 +429,15 @@ void XrContext::EndFrame() {
 
 void XrContext::Render() {
     if (frameState_.shouldRender == XR_TRUE) {
+        // First handle passthrough (real world)
+        if (passThrough_ && passThrough_->passthroughLayer != XR_NULL_HANDLE) {
+            ptLayer_.layerHandle = passThrough_->passthroughLayer;
+            ptLayer_.flags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
+            ptLayer_.space = XR_NULL_HANDLE;
+            layers_.push_back(reinterpret_cast<XrCompositionLayerBaseHeader*>(&ptLayer_));
+        }
+
+        // Then handle the virtual world
         if (RenderLayer(projectionLayerViews_, layer_)) {
             layers_.push_back(reinterpret_cast<XrCompositionLayerBaseHeader*>(&layer_));
         }
@@ -484,6 +500,9 @@ bool XrContext::RenderLayer(std::vector<XrCompositionLayerProjectionView> &proje
     layer.space = appSpace_;
     layer.viewCount = (uint32_t)projectionLayerViews.size();
     layer.views = projectionLayerViews.data();
+
+    // TODO: Only set if using passthrough
+    layer.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
     return true;
 }
 

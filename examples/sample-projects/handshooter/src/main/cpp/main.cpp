@@ -14,7 +14,8 @@
  */
 void android_main(struct android_app* app) {
     Log::SetLevel(Log::Level::Verbose);
-    auto game = std::make_unique<rvr::App>();
+    std::vector<RVRExtensions> exts = {RVRExtensions::HandTracking, RVRExtensions::PassThrough};
+    auto game = std::make_unique<rvr::App>(exts);
     try {
         game->Run(app, "hand_shooting_stuff");
     } catch (const std::exception& e) {

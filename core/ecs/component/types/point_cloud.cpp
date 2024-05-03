@@ -50,9 +50,14 @@ std::string PointCloud::GetFileExtension() {
     case Las: return "las";
     case Laz: return "laz";
     case E57: return "e57";
+    case Vtx: return "vtx";
     default:
         PrintError("Point cloud file type unrecognized " + std::to_string(fileType_)) ;
         return "";
     }
+}
+
+PointCloud::FileType PointCloud::GetFileType() {
+    return fileType_;
 }
 }

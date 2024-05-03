@@ -24,6 +24,11 @@ bool GetBoolField(Entity* entity, const std::map<std::string, Parser::Field>& fi
 bool GetFloat3Field(Entity* entity, const std::map<std::string, Parser::Field>& fields,
                     const std::string& nameQualifier, float& outFloat1, float& outFloat2, float& outFloat3);
 
+// Returns true if 4 floats with nameQualifier was found and sets the out floats with found values
+bool GetFloat4Field(Entity* entity, const std::map<std::string, Parser::Field>& fields,
+                    const std::string& nameQualifier, float& outFloat1, float& outFloat2, float& outFloat3,
+                    float& outFloat4);
+
 // Returns true if 1 float with nameQualifier was found and sets the out float with found value
 bool GetFloatField(Entity* entity, const std::map<std::string, Parser::Field>& fields,
                    const std::string& nameQualifier, float& outFloat);

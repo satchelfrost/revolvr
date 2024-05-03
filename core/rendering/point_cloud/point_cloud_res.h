@@ -11,6 +11,7 @@
 #include <rendering/vk-utils/buffer.h>
 #include <rendering/geometry.h>
 #include <glm/glm.hpp>
+#include <ecs/component/types/point_cloud.h>
 
 namespace rvr {
 class PointCloudResource {
@@ -18,9 +19,11 @@ class PointCloudResource {
     std::vector<glm::mat4> pushConstantTransforms_;
     std::shared_ptr<RenderingContext> renderingContext_;
     static std::vector<Geometry::Vertex> GetVertexDataFromPly(const std::string& fileName);
+    static std::vector<Geometry::Vertex> GetVertexDataFromVtx(const std::string& fileName);
 
 public:
-    PointCloudResource(std::shared_ptr<RenderingContext> renderingContext, const std::string& fileName);
+    PointCloudResource(std::shared_ptr<RenderingContext> renderingContext, const std::string& fileName,
+                       PointCloud::FileType fileType);
     void AddPushConstant(glm::mat4 transform);
     void ClearPushConstants();
     void Draw(VkCommandBuffer cmdBuffer, VkPipelineLayout pipelineLayout);

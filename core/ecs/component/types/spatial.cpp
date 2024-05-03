@@ -136,7 +136,8 @@ void Spatial::ApplyParentRTS(Spatial* parentSpatial) {
     // Update the world transform
     math::Transform parentWorld = parentSpatial->world_;
     world_.SetOrientation(parentWorld.GetOrientation() * local_.GetOrientation());
-    world_.SetPosition(parentWorld.GetPosition() + (parentWorld.GetOrientation() * local_.GetPosition()));
+    glm::vec3 positionScaled =  local_.GetPosition() * parentWorld.GetScale();
+    world_.SetPosition(parentWorld.GetPosition() + (parentWorld.GetOrientation() * positionScaled));
     world_.SetScale(local_.GetScale() * parentWorld.GetScale());
 }
 

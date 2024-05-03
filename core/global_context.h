@@ -11,13 +11,14 @@
 #include <ecs/ecs.h>
 #include <platform/android_context.h>
 #include <xr_context.h>
+#include "extension_manager.h"
 
 namespace rvr {
 class GlobalContext {
 public:
     ~GlobalContext();
     static GlobalContext* Inst();
-    void Init(android_app *app);
+    void Init(android_app *app, std::vector<RVRExtensions> exts);
 
     void UpdateSystems(float deltaTime);
 
@@ -26,6 +27,7 @@ public:
     VulkanContext* GetVulkanContext();
     ECS* GetECS();
     AndroidContext* GetAndroidContext();
+    ExtensionManager* ExtMan();
 
     // Default value for player id
     type::EntityId PLAYER_ID = 0;
@@ -38,6 +40,7 @@ private:
     AndroidContext* androidContext_;
     ECS* ecs_;
     XrContext* xrContext_;
+    ExtensionManager* extensionManager_;
 
     bool initialized_ = false;
 };

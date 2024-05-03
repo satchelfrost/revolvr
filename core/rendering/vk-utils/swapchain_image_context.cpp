@@ -5,6 +5,7 @@
 /***************************************************************************/
 
 #include "swapchain_image_context.h"
+#include "global_context.h"
 #include <utility>
 
 namespace rvr {
@@ -16,8 +17,7 @@ renderingContext_(renderingContext), swapchainExtent_({swapchainCreateInfo.width
 
     cmdBuffs_.resize(MAX_FRAMES_IN_FLIGHT);
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        cmdBuffs_[i] = std::make_unique<CmdBuffer>(renderingContext_->GetDevice(),
-                                                 renderingContext->GetGraphicsPool());
+        cmdBuffs_[i] = std::make_unique<CmdBuffer>(renderingContext_->GetDevice(), renderingContext->GetGraphicsPool());
     }
     viewport_.x = 0.0f;
     viewport_.y = 0.0f;
@@ -93,13 +93,15 @@ void SwapchainImageContext::BeginRenderPass(uint32_t imageIndex) {
     cmdBuffs_[currFrame]->Reset();
     cmdBuffs_[currFrame]->Begin();
 
-    // Bind and clear eye render target
-    static XrColor4f darkSlateGrey = {0.184313729f, 0.309803933f, 0.309803933f, 1.0f};
+    static XrColor4f clrColor = {0.184313729f, 0.309803933f, 0.309803933f, 1.0f};
+    if (GlobalContext::Inst()->ExtMan()->usingPassthrough_)
+        clrColor = {0.0f, 0.0f, 0.0f, 0.0f};
+
     static std::array<VkClearValue, 2> clearValues;
-    clearValues[0].color.float32[0] = darkSlateGrey.r;
-    clearValues[0].color.float32[1] = darkSlateGrey.g;
-    clearValues[0].color.float32[2] = darkSlateGrey.b;
-    clearValues[0].color.float32[3] = darkSlateGrey.a;
+    clearValues[0].color.float32[0] = clrColor.r;
+    clearValues[0].color.float32[1] = clrColor.g;
+    clearValues[0].color.float32[2] = clrColor.b;
+    clearValues[0].color.float32[3] = clrColor.a;
     clearValues[1].depthStencil.depth = 1.0f;
     clearValues[1].depthStencil.stencil = 0;
     VkRenderPassBeginInfo renderPassBeginInfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};

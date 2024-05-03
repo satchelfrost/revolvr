@@ -35,3 +35,7 @@ google-services.json
 
 # VS Code
 .vscode/
+
+# Proprietary models
+arena_smaller.vtx
+arena_bigger.vtx
