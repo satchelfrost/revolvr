@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <ecs/component/types/point_cloud.h>
 #include "ecs/entity/entity.h"
 #include "ecs/component/types/spatial.h"
 #include "rendering/gltf/gltf_model.h"
@@ -17,6 +18,6 @@ void AppendGltfModelPushConstants(std::map<std::string, std::unique_ptr<GLTFMode
 void AppendPointCloudPushConstants(std::map<std::string, std::unique_ptr<PointCloudResource>>& pointClouds,
                                    glm::mat4 viewProjection);
 std::set<std::string> GetUniqueModelNames();
-std::set<std::string> GetUniquePointCloudNames();
+std::set<std::pair<std::string, PointCloud::FileType>> GetUniquePointClouds();
 void DrawCubeGrid(std::vector<math::Transform>& buffer);
 }

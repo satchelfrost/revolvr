@@ -85,9 +85,7 @@ void VulkanContext::InitializeResources() {
         usingGltf_ = true;
     }
 
-    uniqueNames = sys::render::GetUniquePointCloudNames();
-    if (!uniqueNames.empty())
-        InitPointCloudResources();
+    InitPointCloudResources();
 }
 
 XrSwapchainImageBaseHeader* VulkanContext::AllocateSwapchainImageStructs(uint32_t capacity,
@@ -419,9 +417,11 @@ void VulkanContext::SetupDescriptors() {
 
 void VulkanContext::InitPointCloudResources() {
     // Get the point cloud files
-    std::set<std::string> uniqueNames = sys::render::GetUniquePointCloudNames();
-    for (auto& name : uniqueNames)
-        pointClouds_[name] = std::make_unique<PointCloudResource>(renderingContext_, name);
+    auto uniquePointClouds = sys::render::GetUniquePointClouds();
+    if (uniquePointClouds.empty())
+        return;
+    for (auto& [name, fileType] : uniquePointClouds)
+        pointClouds_[name] = std::make_unique<PointCloudResource>(renderingContext_, name, fileType);
 
     // Setup shader stages & vertex buffer layout
     auto vert = std::make_unique<Shader>(device_, "shaders/point_cloud.vert.spv", Shader::Vertex);

@@ -28,6 +28,7 @@ public:
     bool HasResource() const;
     void SetVisibilityRecursive(bool visibility);
     std::string GetFileExtension();
+    FileType GetFileType();
 
 private:
     bool visible_;

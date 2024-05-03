@@ -21,12 +21,13 @@ GlobalContext* GlobalContext::Inst() {
     return instance_;
 }
 
-void GlobalContext::Init(android_app *app) {
+void GlobalContext::Init(android_app *app, std::vector<RVRExtensions> exts) {
     if (initialized_)
         THROW("Cannot initialize Global Context twice");
     initialized_ = true;
 
     // Order matters here
+    extensionManager_ = new ExtensionManager(exts);
     ecs_ = new ECS();
     audioEngine_ = new AudioEngine();
     androidContext_ = new AndroidContext(app);
@@ -76,4 +77,8 @@ AndroidContext *GlobalContext::GetAndroidContext() {
     return androidContext_;
 }
 
+ExtensionManager* GlobalContext::ExtMan() {
+    CHECK_MSG(initialized_, "Global Context was not initialized")
+    return extensionManager_;
+}
 }

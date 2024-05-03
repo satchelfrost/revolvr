@@ -14,7 +14,8 @@
  */
 void android_main(struct android_app* app) {
     Log::SetLevel(Log::Level::Verbose);
-    auto game = std::make_unique<rvr::App>();
+    std::vector<RVRExtensions> exts = {RVRExtensions::PassThrough};
+    auto game = std::make_unique<rvr::App>(exts);
     try {
         game->Run(app, "point_cloud");
     } catch (const std::exception& e) {

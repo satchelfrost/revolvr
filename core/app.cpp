@@ -13,10 +13,12 @@
 #include <xr_app_helpers.h>
 #include <xr_context.h>
 
+#include <utility>
+
 namespace rvr {
 
-App::App() : requestRestart_(false), exitRenderLoop_(false), globalContext_(nullptr), deltaTime_(0) {
-}
+App::App(std::vector<RVRExtensions> exts) : requestRestart_(false), exitRenderLoop_(false), globalContext_(nullptr),
+deltaTime_(0), exts_(std::move(exts)) {}
 
 App::~App() {
     delete globalContext_;
@@ -24,7 +26,7 @@ App::~App() {
 
 void App::Run(struct android_app *app, const std::string& defaultScene) {
     globalContext_ = GlobalContext::Inst();
-    globalContext_->Init(app);
+    globalContext_->Init(app, exts_);
 
     // Load and Initialize Scene
     scene_.LoadScene(defaultScene);

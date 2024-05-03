@@ -9,6 +9,7 @@
 #include <pch.h>
 #include <common.h>
 #include "scene/scene.h"
+#include "extension_manager.h"
 
 #include <global_context.h>
 
@@ -18,7 +19,7 @@
 namespace rvr {
 class App {
 public:
-    App();
+    App(std::vector<RVRExtensions> exts = {});
     ~App();
     void Run(struct android_app* app, const std::string& defaultScene);
 
@@ -28,5 +29,8 @@ public:
 
     bool requestRestart_;
     bool exitRenderLoop_;
+
+private:
+    std::vector<RVRExtensions> exts_;
 };
 }

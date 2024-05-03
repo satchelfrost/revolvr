@@ -11,10 +11,21 @@
 #include "glm/gtc/type_ptr.hpp"
 
 namespace rvr {
-PointCloudResource::PointCloudResource(std::shared_ptr<RenderingContext> renderingContext, const std::string& fileName)
+PointCloudResource::PointCloudResource(std::shared_ptr<RenderingContext> renderingContext,
+                                       const std::string& fileName, PointCloud::FileType fileType)
 : renderingContext_(std::move(renderingContext)) {
-//    auto vertices = GetVertexDataFromPly(fileName);
-    auto vertices = GetVertexDataFromVtx(fileName);
+    std::vector<Geometry::Vertex> vertices;
+    switch (fileType) {
+        case PointCloud::FileType::Vtx:
+            vertices = GetVertexDataFromVtx(fileName);
+            break;
+        case PointCloud::FileType::Ply:
+            vertices = GetVertexDataFromPly(fileName);
+            break;
+        default:
+            PrintError("resource of file type not parsable for point cloud");
+            return;
+    }
     auto vertexStagingBuffer = Buffer(renderingContext_, sizeof(Geometry::Vertex),
                                       vertices.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                                       MemoryType::HostVisible);

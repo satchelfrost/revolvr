@@ -56,4 +56,8 @@ std::string PointCloud::GetFileExtension() {
         return "";
     }
 }
+
+PointCloud::FileType PointCloud::GetFileType() {
+    return fileType_;
+}
 }

@@ -4,11 +4,15 @@ Spatial.position {0, 0, 0}
 [entity id=1 name=Player]
 Spatial.position {3, 0, 0}
 
-[entity id=2 name=flowerAnchor]
-Spatial.position {2, 0, -2}
+[entity id=2 name=Left_Controller parent=1]
+TrackedSpace.type {LeftController}
+Spatial.scale {0.1, 0.1, 0.1}
 
 [entity id=3 parent=2]
+Spatial.position {0.0, 0.0, 0.0}
+
+[entity id=4 parent=3]
 PointCloud.ply {flowers}
 Spatial.scale {0.1, 0.1, 0.1}
-Spatial.position {0.1, 1.0, 2.5}
-Spatial.euler {-5, 0, -90}
+Spatial.position {0.0, 0.0, 1.0}
+Spatial.euler {0, 0, 0}

@@ -32,7 +32,6 @@ public:
     XrContext();
     ~XrContext();
     bool IsSessionRunning() const;
-    bool IsSessionFocused() const;
     void PollXrEvents(bool* exitRenderLoop, bool* requestRestart);
     void Update();
     void RefreshTrackedSpaceLocations();

@@ -14,7 +14,8 @@ Spatial.position {0, 0, 0}
 Spatial.quat {0.0, 0.11445, 0.0, 0.99343}
 
 [entity id=4 parent=3 name=ArenaModel]
-PointCloud.vtx {arena_smaller}
+#PointCloud.vtx {arena_smaller}
+PointCloud.ply {flowers}
 Spatial.position {14.89194, 0.00000, -130.37703}
 Spatial.euler {-90, 0, 0}
 
